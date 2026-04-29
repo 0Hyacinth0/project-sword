@@ -8,8 +8,8 @@
       @click="toggleTheme"
     >
       <transition name="theme-icon" mode="out-in">
-        <span v-if="isDark" key="sun">☀️</span>
-        <span v-else key="moon">🌙</span>
+        <Sun v-if="isDark" key="sun" :size="18" :stroke-width="1.8" />
+        <Moon v-else key="moon" :size="18" :stroke-width="1.8" />
       </transition>
     </button>
   </div>
@@ -17,6 +17,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { Sun, Moon } from 'lucide-vue-next'
 
 const isDark = ref(false)
 

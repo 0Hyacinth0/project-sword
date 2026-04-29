@@ -5,7 +5,9 @@
 
     <!-- 品牌区域 -->
     <div class="login-brand">
-      <div class="login-brand__icon">⚔️</div>
+      <div class="login-brand__icon">
+        <Swords :size="40" :stroke-width="1.5" />
+      </div>
       <h1 class="login-brand__title">剑之传说</h1>
       <p class="login-brand__subtitle">史诗之旅即将开始</p>
     </div>
@@ -46,7 +48,8 @@
         class="login-message"
         :class="`login-message--${message.type}`"
       >
-        <span>{{ message.type === 'success' ? '✓' : '✕' }}</span>
+        <CircleCheck v-if="message.type === 'success'" :size="16" />
+        <CircleX v-else :size="16" />
         <span>{{ message.text }}</span>
       </div>
 
@@ -71,7 +74,7 @@
                 autocomplete="username"
                 @blur="validateField('loginUsername')"
               />
-              <span class="form-group__icon">👤</span>
+              <span class="form-group__icon"><User :size="16" /></span>
             </div>
             <span v-if="errors.loginUsername" class="form-group__error">
               {{ errors.loginUsername }}
@@ -91,14 +94,15 @@
                 autocomplete="current-password"
                 @blur="validateField('loginPassword')"
               />
-              <span class="form-group__icon">🔒</span>
+              <span class="form-group__icon"><Lock :size="16" /></span>
               <button
                 type="button"
                 class="form-group__visibility-toggle"
                 :title="showPassword ? '隐藏密码' : '显示密码'"
                 @click="showPassword = !showPassword"
               >
-                {{ showPassword ? '🙈' : '👁️' }}
+                <EyeOff v-if="showPassword" :size="16" />
+                <Eye v-else :size="16" />
               </button>
             </div>
             <span v-if="errors.loginPassword" class="form-group__error">
@@ -155,7 +159,7 @@
                 autocomplete="username"
                 @blur="validateField('registerUsername')"
               />
-              <span class="form-group__icon">👤</span>
+              <span class="form-group__icon"><User :size="16" /></span>
             </div>
             <span v-if="errors.registerUsername" class="form-group__error">
               {{ errors.registerUsername }}
@@ -175,14 +179,15 @@
                 autocomplete="new-password"
                 @blur="validateField('registerPassword')"
               />
-              <span class="form-group__icon">🔒</span>
+              <span class="form-group__icon"><Lock :size="16" /></span>
               <button
                 type="button"
                 class="form-group__visibility-toggle"
                 :title="showPassword ? '隐藏密码' : '显示密码'"
                 @click="showPassword = !showPassword"
               >
-                {{ showPassword ? '🙈' : '👁️' }}
+                <EyeOff v-if="showPassword" :size="16" />
+                <Eye v-else :size="16" />
               </button>
             </div>
             <span v-if="errors.registerPassword" class="form-group__error">
@@ -203,14 +208,15 @@
                 autocomplete="new-password"
                 @blur="validateField('registerConfirm')"
               />
-              <span class="form-group__icon">🔒</span>
+              <span class="form-group__icon"><ShieldCheck :size="16" /></span>
               <button
                 type="button"
                 class="form-group__visibility-toggle"
                 :title="showConfirmPassword ? '隐藏密码' : '显示密码'"
                 @click="showConfirmPassword = !showConfirmPassword"
               >
-                {{ showConfirmPassword ? '🙈' : '👁️' }}
+                <EyeOff v-if="showConfirmPassword" :size="16" />
+                <Eye v-else :size="16" />
               </button>
             </div>
             <span v-if="errors.registerConfirm" class="form-group__error">
@@ -256,6 +262,16 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import ThemeToggle from '../components/ThemeToggle.vue'
+import {
+  Swords,
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  CircleCheck,
+  CircleX
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()

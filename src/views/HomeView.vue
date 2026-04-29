@@ -2,7 +2,10 @@
 <template>
   <div class="home-page">
     <div class="home-card">
-      <h1 class="home-card__title">⚔️ 剑之传说</h1>
+      <h1 class="home-card__title">
+        <Swords :size="32" :stroke-width="1.5" class="home-card__icon" />
+        剑之传说
+      </h1>
       <p class="home-card__subtitle">欢迎回来，{{ auth.user?.username }}！</p>
       <p class="home-card__desc">游戏内容正在开发中...</p>
       <button
@@ -19,6 +22,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { Swords } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -54,6 +58,14 @@ function handleLogout() {
 .home-card__title {
   font-size: var(--font-size-heading);
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.home-card__icon {
+  color: var(--accent-blue);
 }
 
 .home-card__subtitle {
