@@ -1,20 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-
-/** 用户信息接口 */
-export interface UserInfo {
-  id: string
-  username: string
-  token: string
-}
+import { loginApi, registerApi, logoutApi } from '../api'
+import type { LoginResult } from '../api'
 
 /**
  * 认证状态管理
- * 管理用户登录/注册状态，后续对接真实 API
+ * Store 只负责状态管理，API 调用委托给 api 层
  */
 export const useAuthStore = defineStore('auth', () => {
   // ── 状态 ──
-  const user = ref<UserInfo | null>(null)
+  const user = ref<LoginResult | null>(null)
   const loading = ref(false)
 
   // ── 计算属性 ──
@@ -32,62 +27,49 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  /**
-   * 登录（Mock 实现）
-   * 后续替换为真实 API 请求
-   */
-  async function login(username: string, _password: string): Promise<{ success: boolean; message: string }> {
+  /** 登录 */
+  async function login(username: string, password: string): Promise<{ success: boolean; message: string }> {
     loading.value = true
-
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1200))
-
     try {
-      // Mock 验证逻辑
-      if (username.length < 3) {
-        return { success: false, message: '用户名不存在' }
+      const res = await loginApi({ username, password })
+      if (res.code === 200) {
+        user.value = res.data
+        localStorage.setItem('auth_user', JSON.stringify(res.data))
+        return { success: true, message: res.message }
       }
-
-      // Mock 成功登录
-      const mockUser: UserInfo = {
-        id: crypto.randomUUID(),
-        username,
-        token: `mock_jwt_${Date.now()}`
-      }
-
-      user.value = mockUser
-      localStorage.setItem('auth_user', JSON.stringify(mockUser))
-      return { success: true, message: '登录成功' }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '登录失败，请稍后重试'
+      return { success: false, message }
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * 注册（Mock 实现）
-   * 后续替换为真实 API 请求
-   */
-  async function register(username: string, _password: string): Promise<{ success: boolean; message: string }> {
+  /** 注册 */
+  async function register(username: string, password: string): Promise<{ success: boolean; message: string }> {
     loading.value = true
-
-    // 模拟网络延迟
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
     try {
-      // Mock 检查用户名是否已存在
-      if (username.toLowerCase() === 'admin') {
-        return { success: false, message: '该用户名已被注册' }
+      const res = await registerApi({ username, password })
+      if (res.code === 200) {
+        return { success: true, message: res.message }
       }
-
-      // Mock 注册成功
-      return { success: true, message: '注册成功，请登录' }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '注册失败，请稍后重试'
+      return { success: false, message }
     } finally {
       loading.value = false
     }
   }
 
   /** 登出 */
-  function logout() {
+  async function logout() {
+    try {
+      await logoutApi()
+    } catch {
+      // 登出即使接口失败也要清除本地状态
+    }
     user.value = null
     localStorage.removeItem('auth_user')
   }
