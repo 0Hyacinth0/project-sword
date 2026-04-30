@@ -164,11 +164,24 @@
    左侧面板 - 装备栏 + 角色详情
    ══════════════════════════════════════════ */
 .game-left {
-  width: 280px;
-  min-width: 280px;
+  width: 380px;
+  min-width: 380px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* ── UID 显示（屏幕左下角固定定位）── */
+.game-uid {
+  position: fixed;
+  left: 16px;
+  bottom: 12px;
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  opacity: 0.5;
+  z-index: 10;
 }
 
 /* ── 装备栏 ── */
@@ -604,4 +617,35 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* ── Toast 提示 ── */
+.game-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: rgba(30, 30, 30, 0.88);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  max-width: 80vw;
+  text-align: center;
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: all 0.3s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-12px);
 }

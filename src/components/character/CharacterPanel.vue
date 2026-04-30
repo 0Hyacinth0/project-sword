@@ -1,15 +1,26 @@
 <!--
   CharacterPanel.vue
   角色详情主面板容器组件
-  通过标签页切换属性、装备、战宠三个模块
+  顶部基本信息 + 标签页切换 + 内容区域
 -->
 <template>
   <div class="char-panel">
-    <!-- 基本信息区域（始终显示） -->
-    <CharacterBasicInfo
-      v-if="character"
-      :character="character"
-    />
+    <!-- 基本信息 -->
+    <div class="char-panel__header">
+      <div class="char-panel__name">{{ character.characterName }}</div>
+      <div class="char-panel__meta">
+        <span class="char-panel__level">Lv.{{ character.level }}</span>
+        <span
+          class="char-panel__job-tag"
+          :style="{
+            background: jobConfig.colorLight,
+            color: jobConfig.color
+          }"
+        >
+          {{ jobConfig.name }}
+        </span>
+      </div>
+    </div>
 
     <!-- 标签页切换 -->
     <div class="char-panel__tabs">
@@ -29,16 +40,18 @@
     <div class="char-panel__content">
       <!-- 属性面板 -->
       <CharacterStats
-        v-if="activeTab === 'stats' && character"
+        v-if="activeTab === 'stats'"
         :character="character"
         :level-up-result="levelUpResult"
         @refresh="handleRefresh"
       />
 
-      <!-- 装备概览 -->
+      <!-- 装备概览（纸娃娃布局） -->
       <CharacterEquipmentGrid
-        v-if="activeTab === 'equipment' && character"
+        v-if="activeTab === 'equipment'"
         :equipment="character.equipment"
+        :portrait-url="character.portraitUrl"
+        :profession="character.profession"
         :set-bonuses="setBonuses"
         @click-slot="handleClickSlot"
       />
@@ -54,15 +67,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, type Component } from 'vue'
+import { ref, computed, type Component } from 'vue'
 import { Activity, Shirt, PawPrint } from 'lucide-vue-next'
-import CharacterBasicInfo from './CharacterBasicInfo.vue'
 import CharacterStats from './CharacterStats.vue'
 import CharacterEquipmentGrid from './CharacterEquipmentGrid.vue'
 import CharacterPetCard from './CharacterPetCard.vue'
 import type { CharacterInfo } from '../../api/character'
 import type { EquipmentSlotType, SetBonus } from '../../types/equipment'
 import type { LevelUpResult } from '../../utils/levelConfig'
+import { getJobConfigByProfession } from '../../config/job_config'
 
 /**
  * 角色详情主面板容器组件
@@ -75,7 +88,7 @@ import type { LevelUpResult } from '../../utils/levelConfig'
  */
 
 interface Props {
-  character: CharacterInfo | null
+  character: CharacterInfo
   setBonuses?: SetBonus[]
   levelUpResult?: LevelUpResult | null
 }
@@ -87,7 +100,7 @@ interface Emits {
   (e: 'levelUpHandled'): void
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 /** 当前激活的标签页 */
@@ -99,6 +112,11 @@ const tabs: Array<{ key: 'stats' | 'equipment' | 'pet'; label: string; icon: Com
   { key: 'equipment', label: '装备', icon: Shirt },
   { key: 'pet', label: '战宠', icon: PawPrint }
 ]
+
+/** 职业配置（用于名称和颜色） */
+const jobConfig = computed(() => {
+  return getJobConfigByProfession(props.character.profession)
+})
 
 /**
  * 刷新角色数据
@@ -126,6 +144,41 @@ function handlePetClick() {
 .char-panel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
+}
+
+/* 基本信息 */
+.char-panel__header {
+  margin-bottom: 8px;
+}
+
+.char-panel__name {
+  font-size: var(--font-size-large, 18px);
+  font-weight: 600;
+  color: var(--text-primary, #1d1d1f);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.char-panel__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.char-panel__level {
+  font-size: var(--font-size-small, 14px);
+  font-weight: 500;
+  color: var(--text-muted, rgba(0, 0, 0, 0.56));
+}
+
+.char-panel__job-tag {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 /* 标签页 */
@@ -133,7 +186,6 @@ function handlePetClick() {
   display: flex;
   gap: 4px;
   padding: 4px;
-  margin-top: 12px;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.04);
 }
@@ -168,5 +220,19 @@ function handlePetClick() {
 /* 内容区域 */
 .char-panel__content {
   margin-top: 8px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 深色模式 */
+@media (prefers-color-scheme: dark) {
+  .char-panel__tabs {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .char-panel__tab--active {
+    background: rgba(255, 255, 255, 0.12);
+  }
 }
 </style>

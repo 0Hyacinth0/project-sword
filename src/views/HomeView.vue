@@ -94,30 +94,52 @@
           <!-- 标签切换 -->
           <div class="backpack-tabs">
             <button
-              class="backpack-tab backpack-tab--active"
+              v-for="tab in BACKPACK_TABS"
+              :key="tab.key"
+              class="backpack-tab"
+              :class="{ 'backpack-tab--active': inventory.activeTab === tab.key }"
+              @click="inventory.setActiveTab(tab.key)"
             >
-              全部
+              <component v-if="tab.icon" :is="tab.icon" :size="12" />
+              <span>{{ tab.label }}</span>
             </button>
-            <button class="backpack-tab">装备</button>
-            <button class="backpack-tab">消耗</button>
-            <button class="backpack-tab">材料</button>
+          </div>
+          <!-- 加载状态 -->
+          <div v-if="inventory.loading" class="backpack-loading">
+            <Loader2 :size="20" class="backpack-loading__spinner" />
           </div>
           <!-- 背包网格 -->
-          <div class="backpack-grid">
-            <!-- 暂时显示空格子 -->
-            <div
-              v-for="i in 32"
-              :key="i"
-              class="backpack-cell backpack-cell--empty"
-            />
-          </div>
+          <BackpackGrid
+            v-else-if="inventory.filteredItems.length > 0"
+            :items="inventory.filteredItems"
+            @click-item="showItemDetail"
+          />
           <!-- 空背包提示 -->
-          <div class="backpack-empty" style="display: none">
-            <Package :size="32" class="backpack-empty__icon" />
-            <span>背包空空如也</span>
+          <div v-else class="backpack-empty">
+            <Package :size="28" class="backpack-empty__icon" />
+            <span>暂无物品</span>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- 物品详情弹窗 -->
+    <ItemDetailModal
+      :item="selectedItem"
+      :action-loading="inventory.actionLoading"
+      @close="selectedItem = null"
+      @use="handleUseItem"
+      @discard="handleDiscardItem"
+    />
+
+    <!-- Toast 提示 -->
+    <Transition name="toast">
+      <div v-if="toastMessage" class="game-toast">{{ toastMessage }}</div>
+    </Transition>
+
+    <!-- UID 显示 - 屏幕左下角 -->
+    <div v-if="auth.user?.id" class="game-uid">
+      UID：{{ auth.user.id.slice(0, 8) }}
     </div>
   </div>
 </template>
@@ -127,8 +149,13 @@ import { computed, markRaw, onMounted, onUnmounted, ref, type Component } from '
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
+import { useInventoryStore } from '../stores/inventory'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
+import BackpackGrid from '../components/inventory/BackpackGrid.vue'
+import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
+import { BACKPACK_TABS } from '../config/item_config'
+import type { InventoryItem } from '../types/item'
 import {
   Map, Swords, Users, Store, Package,
   LogOut, Loader2, Sparkles,
@@ -138,8 +165,66 @@ import {
 const router = useRouter()
 const auth = useAuthStore()
 const charStore = useCharacterStore()
+const inventory = useInventoryStore()
 
 const loading = ref(false)
+
+/** 当前选中的物品（弹窗用） */
+const selectedItem = ref<InventoryItem | null>(null)
+
+/** Toast 提示消息 */
+const toastMessage = ref('')
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 显示 Toast 提示
+ */
+function showToast(message: string) {
+  if (toastTimer) clearTimeout(toastTimer)
+  toastMessage.value = message
+  toastTimer = setTimeout(() => {
+    toastMessage.value = ''
+  }, 3000)
+}
+
+/**
+ * 显示物品详情弹窗
+ */
+function showItemDetail(item: InventoryItem) {
+  selectedItem.value = item
+}
+
+/**
+ * 使用消耗品
+ */
+async function handleUseItem(inventoryId: string, quantity: number) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await inventory.useItem(characterId, inventoryId, quantity)
+  if (result) {
+    showToast(result.message)
+    selectedItem.value = null
+  } else if (inventory.actionErrorMsg) {
+    showToast(inventory.actionErrorMsg)
+  }
+}
+
+/**
+ * 丢弃物品
+ */
+async function handleDiscardItem(inventoryId: string, quantity: number) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const success = await inventory.discardItem(characterId, inventoryId, quantity)
+  if (success) {
+    showToast('丢弃成功')
+    selectedItem.value = null
+  } else if (inventory.actionErrorMsg) {
+    showToast(inventory.actionErrorMsg)
+  }
+}
 
 /* ── 公告轮播 ── */
 interface Announcement {
@@ -209,6 +294,7 @@ const charDetail = computed(() => charStore.characterDetail)
 function handleLogout() {
   auth.logout()
   charStore.clear()
+  inventory.clear()
   router.push({ name: 'login' })
 }
 
@@ -223,6 +309,7 @@ async function loadCharacterDetail() {
   }
   loading.value = true
   await charStore.fetchCharacterDetail(characterId)
+  await inventory.fetchInventory(characterId)
   loading.value = false
 }
 

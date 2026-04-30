@@ -7,7 +7,7 @@ import type { ApiResponse } from './request'
 import type { EquipmentSlots } from '../types/equipment'
 import type { PetInfo } from '../types/pet'
 import { calculateBaseStats } from '../utils/attributeCalculator'
-import { calculateNextLevelExp, POINTS_PER_LEVEL, type LevelUpResult, calculateLevelUp } from '../utils/levelConfig'
+import { calculateNextLevelExp, type LevelUpResult, calculateLevelUp } from '../utils/levelConfig'
 import { isMockEnabled } from '../utils/mockConfig'
 
 /**
@@ -39,6 +39,7 @@ export interface CharacterInfo {
   createTime: string
   updateTime: string
   // 新增字段
+  portraitUrl: string | null    // 角色立绘 URL，null 时显示占位
   equipment: EquipmentSlots    // 装备槽位数据
   activePet: PetInfo | null    // 出战战宠数据
 }
@@ -86,6 +87,7 @@ const mockCharacters: CharacterInfo[] = [
     characterName: '剑圣无名',
     profession: 1,
     professionName: '战士',
+    portraitUrl: null,
     level: 15,
     experience: 2340,
     nextLevelExp: 3000,
@@ -131,6 +133,7 @@ const mockCharacters: CharacterInfo[] = [
     characterName: '冰霜女王',
     profession: 2,
     professionName: '法师',
+    portraitUrl: null,
     level: 8,
     experience: 860,
     nextLevelExp: 1500,
@@ -263,6 +266,7 @@ async function mockCreateCharacter(params: CreateCharacterParams): Promise<ApiRe
     characterName: params.characterName,
     profession: params.profession,
     professionName: stats.professionName,
+    portraitUrl: null,
     level: 1,
     experience: 0,
     nextLevelExp: 100,

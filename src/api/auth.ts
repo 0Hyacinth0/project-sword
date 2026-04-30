@@ -31,9 +31,13 @@ export interface CheckUsernameResult {
 }
 
 // ──────────────────────────────────────────
-// Mock 已注册用户列表
+// Mock 已注册用户（用户名 → 密码）
 // ──────────────────────────────────────────
-const mockRegisteredUsers = new Set(['admin', 'test', 'player1'])
+const mockRegisteredUsers: Map<string, string> = new Map([
+  ['123456', '123456'],
+  ['admin', 'admin123'],
+  ['test', 'test123']
+])
 
 /** 用户登录 */
 export async function loginApi(params: LoginParams): Promise<ApiResponse<LoginResult>> {
@@ -85,9 +89,15 @@ function delay(ms: number): Promise<void> {
 async function mockLogin(params: LoginParams): Promise<ApiResponse<LoginResult>> {
   await delay(1200)
 
-  // 只有已注册的用户才能登录
-  if (!mockRegisteredUsers.has(params.username.toLowerCase())) {
+  const lowerName = params.username.toLowerCase()
+  const storedPassword = mockRegisteredUsers.get(lowerName)
+
+  if (!storedPassword) {
     return { code: 401, message: '用户名不存在', data: null as unknown as LoginResult }
+  }
+
+  if (params.password !== storedPassword) {
+    return { code: 401, message: '密码错误', data: null as unknown as LoginResult }
   }
 
   return {
@@ -109,8 +119,7 @@ async function mockRegister(params: RegisterParams): Promise<ApiResponse<null>> 
     return { code: 409, message: '该用户名已被注册', data: null }
   }
 
-  // 注册成功，加入已注册列表
-  mockRegisteredUsers.add(lowerName)
+  mockRegisteredUsers.set(lowerName, params.password)
   return { code: 200, message: '注册成功，请登录', data: null }
 }
 
