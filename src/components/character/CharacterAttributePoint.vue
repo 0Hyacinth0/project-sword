@@ -2,6 +2,7 @@
   CharacterAttributePoint.vue
   属性加点组件
   提供属性点分配预览和确认功能
+  包含衍生属性变化预览
 -->
 <template>
   <div class="char-allocate">
@@ -88,6 +89,55 @@
       </div>
     </div>
 
+    <!-- 衍生属性变化预览 -->
+    <div v-if="totalAllocated > 0" class="char-allocate__preview">
+      <div class="char-allocate__preview-title">属性变化预览</div>
+      <div class="char-allocate__preview-grid">
+        <div v-if="statChanges.hp !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">HP</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.hp > 0 }">
+            {{ statChanges.hp > 0 ? '+' : '' }}{{ statChanges.hp }}
+          </span>
+        </div>
+        <div v-if="statChanges.mp !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">MP</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.mp > 0 }">
+            {{ statChanges.mp > 0 ? '+' : '' }}{{ statChanges.mp }}
+          </span>
+        </div>
+        <div v-if="statChanges.physicalAttack !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">物攻</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.physicalAttack > 0 }">
+            {{ statChanges.physicalAttack > 0 ? '+' : '' }}{{ statChanges.physicalAttack }}
+          </span>
+        </div>
+        <div v-if="statChanges.magicAttack !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">魔攻</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.magicAttack > 0 }">
+            {{ statChanges.magicAttack > 0 ? '+' : '' }}{{ statChanges.magicAttack }}
+          </span>
+        </div>
+        <div v-if="statChanges.defense !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">防御</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.defense > 0 }">
+            {{ statChanges.defense > 0 ? '+' : '' }}{{ statChanges.defense }}
+          </span>
+        </div>
+        <div v-if="statChanges.dodgeRate !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">闪避</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.dodgeRate > 0 }">
+            {{ statChanges.dodgeRate > 0 ? '+' : '' }}{{ (statChanges.dodgeRate * 100).toFixed(1) }}%
+          </span>
+        </div>
+        <div v-if="statChanges.criticalRate !== 0" class="char-allocate__preview-item">
+          <span class="char-allocate__preview-label">暴击</span>
+          <span class="char-allocate__preview-value" :class="{ positive: statChanges.criticalRate > 0 }">
+            {{ statChanges.criticalRate > 0 ? '+' : '' }}{{ (statChanges.criticalRate * 100).toFixed(1) }}%
+          </span>
+        </div>
+      </div>
+    </div>
+
     <!-- 确认/取消按钮 -->
     <div class="char-allocate__actions">
       <button class="char-allocate__cancel" @click="$emit('cancel')">
@@ -107,6 +157,7 @@
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
 import { Plus, Minus } from 'lucide-vue-next'
+import { calculateBaseStats } from '../../utils/attributeCalculator'
 
 /**
  * 属性加点组件
@@ -114,6 +165,7 @@ import { Plus, Minus } from 'lucide-vue-next'
  * @param strength - 当前力量值
  * @param intelligence - 当前智力值
  * @param agility - 当前敏捷值
+ * @param profession - 职业编号（用于计算衍生属性）
  * @emits confirm - 确认加点，返回分配的点数
  * @emits cancel - 取消加点
  */
@@ -123,6 +175,7 @@ interface Props {
   strength: number
   intelligence: number
   agility: number
+  profession: number
 }
 
 interface Emits {
@@ -145,6 +198,37 @@ const totalAllocated = computed(() => pending.str + pending.int + pending.agi)
 
 /** 剩余可用点数 */
 const remainingPoints = computed(() => props.availablePoints - totalAllocated.value)
+
+/** 当前衍生属性 */
+const currentDerived = computed(() =>
+  calculateBaseStats(
+    { strength: props.strength, intelligence: props.intelligence, agility: props.agility },
+    props.profession
+  )
+)
+
+/** 加点后衍生属性 */
+const newDerived = computed(() =>
+  calculateBaseStats(
+    {
+      strength: props.strength + pending.str,
+      intelligence: props.intelligence + pending.int,
+      agility: props.agility + pending.agi
+    },
+    props.profession
+  )
+)
+
+/** 属性变化量 */
+const statChanges = computed(() => ({
+  hp: newDerived.value.maxHp - currentDerived.value.maxHp,
+  mp: newDerived.value.maxMp - currentDerived.value.maxMp,
+  physicalAttack: newDerived.value.physicalAttack - currentDerived.value.physicalAttack,
+  magicAttack: newDerived.value.magicAttack - currentDerived.value.magicAttack,
+  defense: newDerived.value.defense - currentDerived.value.defense,
+  dodgeRate: newDerived.value.dodgeRate - currentDerived.value.dodgeRate,
+  criticalRate: newDerived.value.criticalRate - currentDerived.value.criticalRate
+}))
 
 /**
  * 调整属性点数
@@ -287,5 +371,47 @@ function handleConfirm() {
 .char-allocate__confirm:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 衍生属性变化预览 */
+.char-allocate__preview {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(52, 199, 89, 0.08);
+}
+
+.char-allocate__preview-title {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 500;
+  color: var(--accent-green, #34c759);
+  margin-bottom: 8px;
+}
+
+.char-allocate__preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 12px;
+}
+
+.char-allocate__preview-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.char-allocate__preview-label {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--text-muted, rgba(0, 0, 0, 0.56));
+}
+
+.char-allocate__preview-value {
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.char-allocate__preview-value.positive {
+  color: var(--accent-green, #34c759);
 }
 </style>

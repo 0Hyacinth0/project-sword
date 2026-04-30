@@ -4,6 +4,7 @@
  */
 import request from './request'
 import type { ApiResponse } from './request'
+import { isMockEnabled } from '../utils/mockConfig'
 
 /** 登录响应数据 */
 export interface LoginResult {
@@ -30,22 +31,13 @@ export interface CheckUsernameResult {
 }
 
 // ──────────────────────────────────────────
-// Mock 开关（按接口独立控制，联调完成后逐个关闭）
+// Mock 已注册用户列表
 // ──────────────────────────────────────────
-
-const MOCK = {
-  login: false,           // 登录 —— 已联调，走真实后端
-  register: false,        // 注册 —— 已联调，走真实后端
-  logout: false,           // 登出 —— 已联调，走真实后端
-  checkUsername: false     // 用户名检测 —— 已联调，走真实后端
-}
-
-/** Mock 已注册用户列表 */
 const mockRegisteredUsers = new Set(['admin', 'test', 'player1'])
 
 /** 用户登录 */
 export async function loginApi(params: LoginParams): Promise<ApiResponse<LoginResult>> {
-  if (MOCK.login) {
+  if (isMockEnabled()) {
     return mockLogin(params)
   }
   const res = await request.post<ApiResponse<LoginResult>>('/auth/login', params)
@@ -54,7 +46,7 @@ export async function loginApi(params: LoginParams): Promise<ApiResponse<LoginRe
 
 /** 用户注册 */
 export async function registerApi(params: RegisterParams): Promise<ApiResponse<null>> {
-  if (MOCK.register) {
+  if (isMockEnabled()) {
     return mockRegister(params)
   }
   const res = await request.post<ApiResponse<null>>('/auth/register', params)
@@ -63,7 +55,7 @@ export async function registerApi(params: RegisterParams): Promise<ApiResponse<n
 
 /** 用户登出 */
 export async function logoutApi(): Promise<ApiResponse<null>> {
-  if (MOCK.logout) {
+  if (isMockEnabled()) {
     return { code: 200, message: '已退出登录', data: null }
   }
   const res = await request.post<ApiResponse<null>>('/auth/logout')
@@ -72,7 +64,7 @@ export async function logoutApi(): Promise<ApiResponse<null>> {
 
 /** 检测用户名是否可用 */
 export async function checkUsernameApi(username: string): Promise<ApiResponse<CheckUsernameResult>> {
-  if (MOCK.checkUsername) {
+  if (isMockEnabled()) {
     return mockCheckUsername(username)
   }
   const res = await request.get<ApiResponse<CheckUsernameResult>>('/auth/check-username', {

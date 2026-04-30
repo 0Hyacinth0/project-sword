@@ -2,7 +2,7 @@
   CharacterStats.vue
   角色属性面板组件
   显示 HP/MP/经验条、基础属性和衍生属性
-  包含属性加点功能
+  包含属性加点、经验条动画和升级动效
 -->
 <template>
   <div class="char-stats">
@@ -41,13 +41,25 @@
     <!-- 经验条 -->
     <div class="stat-bar">
       <div class="stat-bar__header">
-        <span class="stat-bar__label" style="color: var(--accent-gold)">EXP</span>
-        <span class="stat-bar__value">{{ character.experience }} / {{ character.nextLevelExp }}</span>
+        <span class="stat-bar__label" style="color: var(--accent-gold)">
+          EXP
+          <span v-if="character.level >= 100" class="stat-bar__max-tag">MAX</span>
+        </span>
+        <span class="stat-bar__value">
+          {{ character.level >= 100 ? '已满级' : `${character.experience} / ${character.nextLevelExp}` }}
+        </span>
       </div>
       <div class="stat-bar__track">
+        <!-- 正常填充 -->
         <div
           class="stat-bar__fill stat-bar__fill--exp"
-          :style="{ width: expPercent + '%' }"
+          :class="{ 'stat-bar__fill--exp-flash': isExpFlashing }"
+          :style="{ width: displayedExpPercent + '%' }"
+        />
+        <!-- 升级闪光效果 -->
+        <div
+          v-if="isExpFlashing"
+          class="stat-bar__flash"
         />
       </div>
     </div>
@@ -63,6 +75,7 @@
         :strength="character.strength"
         :intelligence="character.intelligence"
         :agility="character.agility"
+        :profession="character.profession"
         @confirm="handleConfirm"
         @cancel="isAllocating = false"
       />
@@ -110,24 +123,48 @@
         <CharacterStatItem label="暴击" :value="character.criticalRate" :show-percent="true" />
       </div>
     </div>
+
+    <!-- 升级庆祝动效 -->
+    <LevelUpEffect
+      :visible="showLevelUpEffect"
+      :old-level="levelUpData.oldLevel"
+      :new-level="levelUpData.newLevel"
+      @close="handleEffectEnd"
+    />
+
+    <!-- 升级结果弹窗 -->
+    <LevelUpModal
+      :visible="showLevelUpModal"
+      :result="levelUpData"
+      :base-attrs="{ strength: character.strength, intelligence: character.intelligence, agility: character.agility }"
+      :profession="character.profession"
+      :skills="jobSkills"
+      @close="handleModalClose"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Sparkles } from 'lucide-vue-next'
 import type { CharacterInfo } from '../../api/character'
+import type { LevelUpResult } from '../../utils/levelConfig'
+import { getJobConfigByProfession } from '../../config/job_config'
 import CharacterStatItem from './CharacterStatItem.vue'
 import CharacterAttributePoint from './CharacterAttributePoint.vue'
+import LevelUpEffect from '../common/LevelUpEffect.vue'
+import LevelUpModal from '../common/LevelUpModal.vue'
 
 /**
  * 角色属性面板组件
  * @param character - 角色完整数据
- * @emits refresh - 加点后需要刷新数据
+ * @param levelUpResult - 升级结果（如有升级）
+ * @emits refresh - 加点/升级后需要刷新数据
  */
 
 interface Props {
   character: CharacterInfo
+  levelUpResult?: LevelUpResult | null
 }
 
 interface Emits {
@@ -140,6 +177,38 @@ const emit = defineEmits<Emits>()
 /** 是否处于加点模式 */
 const isAllocating = ref(false)
 
+/** 经验条闪烁状态（升级时触发） */
+const isExpFlashing = ref(false)
+
+/** 用于动画的经验百分比（先填满再归零） */
+const displayedExpPercent = computed(() => {
+  if (props.character.level >= 100) return 100
+  if (isExpFlashing.value) return 100
+  return Math.max(0, Math.min(100, (props.character.experience / props.character.nextLevelExp) * 100))
+})
+
+/** 升级动效显示状态 */
+const showLevelUpEffect = ref(false)
+
+/** 升级弹窗显示状态 */
+const showLevelUpModal = ref(false)
+
+/** 升级数据 */
+const levelUpData = ref<LevelUpResult>({
+  oldLevel: 1,
+  newLevel: 1,
+  levelsGained: 0,
+  pointsGained: 0,
+  overflowExp: 0,
+  isNewMaxLevel: false
+})
+
+/** 当前职业技能列表 */
+const jobSkills = computed(() => {
+  const config = getJobConfigByProfession(props.character.profession)
+  return config?.skills ?? []
+})
+
 /** HP百分比 */
 const hpPercent = computed(() => {
   return Math.max(0, Math.min(100, (props.character.hp / props.character.maxHp) * 100))
@@ -150,23 +219,51 @@ const mpPercent = computed(() => {
   return Math.max(0, Math.min(100, (props.character.mp / props.character.maxMp) * 100))
 })
 
-/** 经验百分比 */
-const expPercent = computed(() => {
-  return Math.max(0, Math.min(100, (props.character.experience / props.character.nextLevelExp) * 100))
-})
+/**
+ * 监听升级结果，触发动画流程
+ * 流程：经验条填满闪光 → 升级庆祝动效 → 升级弹窗
+ */
+watch(() => props.levelUpResult, (result) => {
+  if (!result || result.levelsGained <= 0) return
+
+  levelUpData.value = result
+
+  // 第一阶段：经验条填满 + 闪光
+  isExpFlashing.value = true
+
+  // 第二阶段：闪光结束后播放升级动效
+  setTimeout(() => {
+    isExpFlashing.value = false
+    showLevelUpEffect.value = true
+  }, 600)
+}, { immediate: true })
+
+/**
+ * 升级动效结束，显示弹窗
+ */
+function handleEffectEnd() {
+  showLevelUpEffect.value = false
+  showLevelUpModal.value = true
+}
+
+/**
+ * 关闭升级弹窗
+ */
+function handleModalClose() {
+  showLevelUpModal.value = false
+}
 
 /**
  * 开始加点流程
  */
-function startAllocating(attr: 'strength' | 'intelligence' | 'agility') {
+function startAllocating(_attr: 'strength' | 'intelligence' | 'agility') {
   isAllocating.value = true
 }
 
 /**
  * 确认加点
  */
-function handleConfirm(points: { str: number; int: number; agi: number }) {
-  // 加点逻辑由父组件 CharacterPanel 处理
+function handleConfirm(_points: { str: number; int: number; agi: number }) {
   emit('refresh')
   isAllocating.value = false
 }
@@ -192,6 +289,18 @@ function handleConfirm(points: { str: number; int: number; agi: number }) {
 
 .stat-bar__label {
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-bar__max-tag {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: var(--accent-gold, #f59e0b);
+  color: #fff;
+  font-weight: 600;
 }
 
 .stat-bar__value {
@@ -204,6 +313,7 @@ function handleConfirm(points: { str: number; int: number; agi: number }) {
   border-radius: 5px;
   background: var(--bg-body, #f5f5f7);
   overflow: hidden;
+  position: relative;
 }
 
 .stat-bar__fill {
@@ -230,6 +340,31 @@ function handleConfirm(points: { str: number; int: number; agi: number }) {
 
 .stat-bar__fill--exp {
   background: linear-gradient(90deg, #f59e0b, #ffd60a);
+}
+
+/* 经验条升级闪光 */
+.stat-bar__fill--exp-flash {
+  animation: expFlash 0.5s ease;
+}
+
+@keyframes expFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(1.8); box-shadow: 0 0 12px rgba(245, 158, 11, 0.6); }
+  100% { filter: brightness(1.3); }
+}
+
+/* 经验条溢出光效 */
+.stat-bar__flash {
+  position: absolute;
+  inset: 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  animation: flashSweep 0.5s ease;
+}
+
+@keyframes flashSweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
 }
 
 /* 属性区域 */

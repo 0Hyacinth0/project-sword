@@ -6,6 +6,9 @@ import request from './request'
 import type { ApiResponse } from './request'
 import type { EquipmentSlots } from '../types/equipment'
 import type { PetInfo } from '../types/pet'
+import { calculateBaseStats } from '../utils/attributeCalculator'
+import { calculateNextLevelExp, POINTS_PER_LEVEL, type LevelUpResult, calculateLevelUp } from '../utils/levelConfig'
+import { isMockEnabled } from '../utils/mockConfig'
 
 /**
  * 角色信息（与后端 characters 表字段对应）
@@ -59,17 +62,16 @@ export interface CheckNameResult {
   available: boolean
 }
 
-// ──────────────────────────────────────────
-// Mock 开关（按接口独立控制）
-// ──────────────────────────────────────────
+/** 增加经验参数 */
+export interface AddExperienceParams {
+  characterId: string
+  expToAdd: number
+}
 
-const MOCK = {
-  list: false,          // 角色列表 —— 已联调
-  create: false,        // 创建角色 —— 已联调
-  delete: false,        // 删除角色 —— 已联调
-  checkName: true,      // 角色名检测 —— 待联调
-  info: false,          // 角色详情 —— 已联调
-  updateAttributes: true // 属性加点 —— 待联调
+/** 增加经验响应 */
+export interface AddExperienceResult {
+  character: CharacterInfo
+  levelUp: LevelUpResult | null
 }
 
 // ──────────────────────────────────────────
@@ -172,7 +174,7 @@ function delay(ms: number): Promise<void> {
 
 /** 获取当前账号的角色列表 */
 export async function getCharacterListApi(): Promise<ApiResponse<CharacterInfo[]>> {
-  if (MOCK.list) {
+  if (isMockEnabled()) {
     await delay(800)
     return { code: 200, message: '获取成功', data: [...mockCharacters] }
   }
@@ -182,7 +184,7 @@ export async function getCharacterListApi(): Promise<ApiResponse<CharacterInfo[]
 
 /** 创建角色 */
 export async function createCharacterApi(params: CreateCharacterParams): Promise<ApiResponse<CharacterInfo>> {
-  if (MOCK.create) {
+  if (isMockEnabled()) {
     return mockCreateCharacter(params)
   }
   const res = await request.post<ApiResponse<CharacterInfo>>('/character/create', params)
@@ -191,7 +193,7 @@ export async function createCharacterApi(params: CreateCharacterParams): Promise
 
 /** 检测角色名是否可用 */
 export async function checkCharacterNameApi(name: string): Promise<ApiResponse<CheckNameResult>> {
-  if (MOCK.checkName) {
+  if (isMockEnabled()) {
     await delay(500)
     const available = !mockNamesTaken.has(name)
     return {
@@ -208,7 +210,7 @@ export async function checkCharacterNameApi(name: string): Promise<ApiResponse<C
 
 /** 删除角色 */
 export async function deleteCharacterApi(characterId: string): Promise<ApiResponse<null>> {
-  if (MOCK.delete) {
+  if (isMockEnabled()) {
     return mockDeleteCharacter(characterId)
   }
   const res = await request.delete<ApiResponse<null>>(`/character/delete/${characterId}`)
@@ -217,7 +219,7 @@ export async function deleteCharacterApi(characterId: string): Promise<ApiRespon
 
 /** 获取角色详情 */
 export async function getCharacterInfoApi(characterId: string): Promise<ApiResponse<CharacterInfo>> {
-  if (MOCK.info) {
+  if (isMockEnabled()) {
     await delay(600)
     const char = mockCharacters.find(c => c.id === characterId)
     if (!char) {
@@ -251,8 +253,10 @@ async function mockCreateCharacter(params: CreateCharacterParams): Promise<ApiRe
   }
 
   const stats = baseStats[params.profession]
-  const maxHp = stats.str * 5 + 100
-  const maxMp = stats.int * 5 + 20
+  const derived = calculateBaseStats(
+    { strength: stats.str, intelligence: stats.int, agility: stats.agi },
+    params.profession
+  )
   const newChar: CharacterInfo = {
     id: crypto.randomUUID(),
     userId: 'mock-user',
@@ -266,15 +270,15 @@ async function mockCreateCharacter(params: CreateCharacterParams): Promise<ApiRe
     strength: stats.str,
     intelligence: stats.int,
     agility: stats.agi,
-    hp: maxHp,
-    maxHp,
-    mp: maxMp,
-    maxMp,
-    physicalAttack: stats.str * 2,
-    magicAttack: stats.int * 2,
-    defense: 5,
-    dodgeRate: stats.agi * 0.01,
-    criticalRate: stats.agi * 0.008,
+    hp: derived.maxHp,
+    maxHp: derived.maxHp,
+    mp: derived.maxMp,
+    maxMp: derived.maxMp,
+    physicalAttack: derived.physicalAttack,
+    magicAttack: derived.magicAttack,
+    defense: derived.defense,
+    dodgeRate: derived.dodgeRate,
+    criticalRate: derived.criticalRate,
     createTime: new Date().toISOString(),
     updateTime: new Date().toISOString(),
     equipment: {
@@ -310,7 +314,7 @@ async function mockDeleteCharacter(characterId: string): Promise<ApiResponse<nul
 
 /** 属性加点 */
 export async function updateAttributesApi(params: UpdateAttributesParams): Promise<ApiResponse<CharacterInfo>> {
-  if (MOCK.updateAttributes) {
+  if (isMockEnabled()) {
     return mockUpdateAttributes(params)
   }
   const res = await request.post<ApiResponse<CharacterInfo>>('/character/update-attributes', {
@@ -336,12 +340,69 @@ async function mockUpdateAttributes(params: UpdateAttributesParams): Promise<Api
   char.intelligence += params.int
   char.agility += params.agi
   char.availablePoints -= total
-  // 重新计算衍生属性
-  char.maxHp = char.strength * 5 + 100
-  char.maxMp = char.intelligence * 5 + 20
-  char.physicalAttack = char.strength * 2
-  char.magicAttack = char.intelligence * 2
-  char.dodgeRate = char.agility * 0.01
-  char.criticalRate = char.agility * 0.008
+  // 使用统一计算模块重新计算衍生属性
+  const derived = calculateBaseStats(
+    { strength: char.strength, intelligence: char.intelligence, agility: char.agility },
+    char.profession
+  )
+  char.maxHp = derived.maxHp
+  char.maxMp = derived.maxMp
+  char.physicalAttack = derived.physicalAttack
+  char.magicAttack = derived.magicAttack
+  char.defense = derived.defense
+  char.dodgeRate = derived.dodgeRate
+  char.criticalRate = derived.criticalRate
   return { code: 200, message: '属性加点成功', data: { ...char } }
+}
+
+// ──────────────────────────────────────────
+// 经验与升级
+// ──────────────────────────────────────────
+
+/**
+ * 增加角色经验（可能触发升级）
+ * @param params - 包含角色ID和要增加的经验值
+ * @returns 更新后的角色信息，以及升级结果（如有升级）
+ */
+export async function addExperienceApi(params: AddExperienceParams): Promise<ApiResponse<AddExperienceResult>> {
+  if (isMockEnabled()) {
+    return mockAddExperience(params)
+  }
+  const res = await request.post<ApiResponse<AddExperienceResult>>('/character/add-experience', params)
+  return res.data
+}
+
+/**
+ * Mock 实现：增加经验并处理升级
+ */
+async function mockAddExperience(params: AddExperienceParams): Promise<ApiResponse<AddExperienceResult>> {
+  await delay(800)
+
+  const char = mockCharacters.find(c => c.id === params.characterId)
+  if (!char) {
+    return { code: 404, message: '角色不存在', data: null as unknown as AddExperienceResult }
+  }
+
+  // 计算升级结果
+  const levelUpResult = calculateLevelUp(char.level, char.experience, params.expToAdd)
+
+  // 更新角色数据
+  char.level = levelUpResult.newLevel
+  char.experience = levelUpResult.overflowExp
+  char.nextLevelExp = calculateNextLevelExp(char.level)
+  char.availablePoints += levelUpResult.pointsGained
+
+  // 如果升级，重新计算衍生属性（基础属性不变，需玩家手动加点）
+  // 但 HP/MP 上限会随属性点分配后增长，这里暂不自动调整
+
+  return {
+    code: 200,
+    message: levelUpResult.levelsGained > 0
+      ? `恭喜升级！获得 ${levelUpResult.pointsGained} 点属性点`
+      : `获得 ${params.expToAdd} 经验值`,
+    data: {
+      character: { ...char },
+      levelUp: levelUpResult.levelsGained > 0 ? levelUpResult : null
+    }
+  }
 }

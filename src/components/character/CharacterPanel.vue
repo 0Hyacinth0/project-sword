@@ -31,6 +31,7 @@
       <CharacterStats
         v-if="activeTab === 'stats' && character"
         :character="character"
+        :level-up-result="levelUpResult"
         @refresh="handleRefresh"
       />
 
@@ -61,11 +62,13 @@ import CharacterEquipmentGrid from './CharacterEquipmentGrid.vue'
 import CharacterPetCard from './CharacterPetCard.vue'
 import type { CharacterInfo } from '../../api/character'
 import type { EquipmentSlotType, SetBonus } from '../../types/equipment'
+import type { LevelUpResult } from '../../utils/levelConfig'
 
 /**
  * 角色详情主面板容器组件
  * @param character - 角色完整数据
  * @param setBonuses - 套装效果列表（可选）
+ * @param levelUpResult - 升级结果（可选，触发升级动画）
  * @emits refresh - 需要刷新角色数据
  * @emits clickSlot - 点击装备槽位
  * @emits clickPet - 点击战宠卡片
@@ -74,12 +77,14 @@ import type { EquipmentSlotType, SetBonus } from '../../types/equipment'
 interface Props {
   character: CharacterInfo | null
   setBonuses?: SetBonus[]
+  levelUpResult?: LevelUpResult | null
 }
 
 interface Emits {
   (e: 'refresh'): void
   (e: 'clickSlot', slot: EquipmentSlotType): void
   (e: 'clickPet'): void
+  (e: 'levelUpHandled'): void
 }
 
 defineProps<Props>()

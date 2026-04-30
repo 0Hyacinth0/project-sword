@@ -1,8 +1,8 @@
 # 剑之传说 - 前后端接口文档
 
-> 版本：v1.2.0
+> 版本：v1.3.0
 > 更新日期：2026-04-30
-> 状态：认证模块 + 角色模块 + 战宠模块
+> 状态：认证模块 + 角色模块 + 战宠模块 + 升级模块
 
 ---
 
@@ -69,16 +69,17 @@ Authorization: Bearer <token>
 | 6 | POST | `/character/create` | 创建角色 | ✅ |
 | 7 | GET | `/character/check-name` | 检测角色名是否可用 | ✅ |
 | 8 | DELETE | `/character/delete/{id}` | 删除角色 | ✅ |
-| 9 | GET | `/pet/list` | 获取角色战宠列表 | ✅ |
-| 10 | GET | `/pet/{id}` | 获取战宠详情 | ✅ |
-| 11 | PUT | `/pet/rename` | 重命名战宠 | ✅ |
-| 12 | PUT | `/pet/set-active` | 设置出战战宠 | ✅ |
-| 13 | POST | `/pet/feed` | 喂食经验道具 | ✅ |
-| 14 | POST | `/pet/evolve` | 战宠进化 | ✅ |
-| 15 | PUT | `/pet/skill-slot` | 装备/替换战宠技能 | ✅ |
-| 16 | PUT | `/pet/equip` | 战宠穿戴装备 | ✅ |
-| 17 | PUT | `/pet/unequip` | 卸下战宠装备 | ✅ |
-| 18 | GET | `/pet/encyclopedia` | 获取战宠图鉴列表 | ✅ |
+| 9 | POST | `/character/add-experience` | 增加角色经验（含升级处理） | ✅ |
+| 10 | GET | `/pet/list` | 获取角色战宠列表 | ✅ |
+| 11 | GET | `/pet/{id}` | 获取战宠详情 | ✅ |
+| 12 | PUT | `/pet/rename` | 重命名战宠 | ✅ |
+| 13 | PUT | `/pet/set-active` | 设置出战战宠 | ✅ |
+| 14 | POST | `/pet/feed` | 喂食经验道具 | ✅ |
+| 15 | POST | `/pet/evolve` | 战宠进化 | ✅ |
+| 16 | PUT | `/pet/skill-slot` | 装备/替换战宠技能 | ✅ |
+| 17 | PUT | `/pet/equip` | 战宠穿戴装备 | ✅ |
+| 18 | PUT | `/pet/unequip` | 卸下战宠装备 | ✅ |
+| 19 | GET | `/pet/encyclopedia` | 获取战宠图鉴列表 | ✅ |
 
 ---
 
@@ -528,7 +529,131 @@ DELETE /character/delete/a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 ---
 
-## 9. 获取角色战宠列表
+## 9. 增加角色经验
+
+### `POST /character/add-experience`
+
+> 需要在请求头携带 `Authorization: Bearer <token>`
+
+#### 请求参数（Request Body）
+
+```json
+{
+  "characterId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "expToAdd": 500
+}
+```
+
+| 字段 | 类型 | 必填 | 校验规则 | 说明 |
+|------|------|:---:|------|------|
+| `characterId` | `string` | ✅ | UUID 格式 | 角色 UUID |
+| `expToAdd` | `number` | ✅ | ≥ 0 | 要增加的经验值 |
+
+#### 成功响应（未升级）
+
+```json
+{
+  "code": 200,
+  "message": "获得 500 经验值",
+  "data": {
+    "character": {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "level": 15,
+      "experience": 2840,
+      "nextLevelExp": 671,
+      "availablePoints": 3,
+      "strength": 10,
+      "intelligence": 3,
+      "agility": 5,
+      "hp": 500,
+      "maxHp": 500,
+      "mp": 50,
+      "maxMp": 50,
+      "physicalAttack": 20,
+      "magicAttack": 6,
+      "defense": 15,
+      "dodgeRate": 0.05,
+      "criticalRate": 0.03
+    },
+    "levelUp": null
+  }
+}
+```
+
+#### 成功响应（触发升级）
+
+```json
+{
+  "code": 200,
+  "message": "恭喜升级！获得 3 点属性点",
+  "data": {
+    "character": {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "level": 16,
+      "experience": 800,
+      "nextLevelExp": 759,
+      "availablePoints": 6,
+      "strength": 10,
+      "intelligence": 3,
+      "agility": 5,
+      "hp": 500,
+      "maxHp": 500,
+      "mp": 50,
+      "maxMp": 50,
+      "physicalAttack": 20,
+      "magicAttack": 6,
+      "defense": 15,
+      "dodgeRate": 0.05,
+      "criticalRate": 0.03
+    },
+    "levelUp": {
+      "oldLevel": 15,
+      "newLevel": 16,
+      "levelsGained": 1,
+      "pointsGained": 3,
+      "overflowExp": 800,
+      "isNewMaxLevel": false
+    }
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.character` | `CharacterInfo` | 更新后的完整角色数据 |
+| `data.levelUp` | `LevelUpResult \| null` | 升级结果，未升级时为 `null` |
+| `data.levelUp.oldLevel` | `number` | 升级前等级 |
+| `data.levelUp.newLevel` | `number` | 升级后等级 |
+| `data.levelUp.levelsGained` | `number` | 升级数量（支持连升多级） |
+| `data.levelUp.pointsGained` | `number` | 获得的属性点数 |
+| `data.levelUp.overflowExp` | `number` | 溢出到新等级的经验值 |
+| `data.levelUp.isNewMaxLevel` | `boolean` | 是否达到满级（100 级） |
+
+> **说明**：前端根据 `levelUp` 是否非空触发升级庆祝动效。连续升级时 `levelsGained` 可能大于 1，属性点累加计算。
+
+#### 失败响应示例
+
+**角色不存在：**
+```json
+{
+  "code": 404,
+  "message": "角色不存在",
+  "data": null
+}
+```
+
+**经验值非法：**
+```json
+{
+  "code": 400,
+  "message": "经验值不能为负数",
+  "data": null
+}
+```
+
+---
+
+## 10. 获取角色战宠列表
 
 ### `GET /pet/list`
 
@@ -616,7 +741,7 @@ GET /pet/list?characterId=a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 ---
 
-## 10. 获取战宠详情
+## 11. 获取战宠详情
 
 ### `GET /pet/{id}`
 
@@ -707,7 +832,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 11. 重命名战宠
+## 12. 重命名战宠
 
 ### `PUT /pet/rename`
 
@@ -757,7 +882,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 12. 设置出战战宠
+## 13. 设置出战战宠
 
 ### `PUT /pet/set-active`
 
@@ -799,7 +924,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 13. 喂食经验道具
+## 14. 喂食经验道具
 
 ### `POST /pet/feed`
 
@@ -865,7 +990,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 14. 战宠进化
+## 15. 战宠进化
 
 ### `POST /pet/evolve`
 
@@ -937,7 +1062,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 15. 装备/替换战宠技能
+## 16. 装备/替换战宠技能
 
 ### `PUT /pet/skill-slot`
 
@@ -991,7 +1116,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 16. 战宠穿戴装备
+## 17. 战宠穿戴装备
 
 ### `PUT /pet/equip`
 
@@ -1051,7 +1176,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 17. 卸下战宠装备
+## 18. 卸下战宠装备
 
 ### `PUT /pet/unequip`
 
@@ -1103,7 +1228,7 @@ GET /pet/p1a2b3c4-d5e6-7890-abcd-ef1234567890
 
 ---
 
-## 18. 获取战宠图鉴列表
+## 19. 获取战宠图鉴列表
 
 ### `GET /pet/encyclopedia`
 
