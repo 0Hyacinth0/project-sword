@@ -157,9 +157,16 @@
                 type="text"
                 placeholder="3-20 个字符"
                 autocomplete="username"
+                @input="onUsernameInput"
                 @blur="validateField('registerUsername')"
               />
               <span class="form-group__icon"><User :size="16" /></span>
+              <!-- 用户名检测状态指示器 -->
+              <span v-if="usernameCheckStatus !== 'idle'" class="form-group__check-status">
+                <Loader2 v-if="usernameCheckStatus === 'checking'" :size="16" class="form-group__check-spinner" />
+                <CircleCheck v-else-if="usernameCheckStatus === 'available'" :size="16" class="form-group__check-ok" />
+                <CircleX v-else-if="usernameCheckStatus === 'taken'" :size="16" class="form-group__check-fail" />
+              </span>
             </div>
             <span v-if="errors.registerUsername" class="form-group__error">
               {{ errors.registerUsername }}
@@ -258,9 +265,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { checkUsernameApi } from '../api'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import {
   Swords,
@@ -270,7 +278,8 @@ import {
   EyeOff,
   ShieldCheck,
   CircleCheck,
-  CircleX
+  CircleX,
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -280,6 +289,10 @@ const auth = useAuthStore()
 const activeTab = ref<'login' | 'register'>('login')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+// 用户名可用性检测状态
+const usernameCheckStatus = ref<'idle' | 'checking' | 'available' | 'taken'>('idle')
+let usernameCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const loginForm = reactive({
   username: '',
@@ -303,6 +316,53 @@ const errors = reactive<Record<string, string>>({
 const message = reactive({
   text: '',
   type: 'success' as 'success' | 'error'
+})
+
+// ── 用户名防抖检测 ──
+
+/** 输入时触发防抖检测 */
+function onUsernameInput() {
+  // 清除之前的定时器
+  if (usernameCheckTimer) {
+    clearTimeout(usernameCheckTimer)
+  }
+
+  const username = registerForm.username
+
+  // 长度不够时重置状态
+  if (!username || username.length < 3) {
+    usernameCheckStatus.value = 'idle'
+    return
+  }
+
+  // 500ms 防抖
+  usernameCheckStatus.value = 'checking'
+  usernameCheckTimer = setTimeout(async () => {
+    try {
+      const res = await checkUsernameApi(username)
+      // 检查响应时用户名是否已变更（防止竞态）
+      if (registerForm.username !== username) return
+
+      if (res.data.available) {
+        usernameCheckStatus.value = 'available'
+        errors.registerUsername = ''
+      } else {
+        usernameCheckStatus.value = 'taken'
+        errors.registerUsername = '该用户名已被注册'
+      }
+    } catch {
+      // 网络错误时不阻塞用户
+      usernameCheckStatus.value = 'idle'
+    }
+  }, 500)
+}
+
+// 切换 Tab 时重置检测状态
+watch(activeTab, () => {
+  usernameCheckStatus.value = 'idle'
+  if (usernameCheckTimer) {
+    clearTimeout(usernameCheckTimer)
+  }
 })
 
 // ── 方法 ──
@@ -370,6 +430,11 @@ function validateField(field: string): boolean {
         errors.registerUsername = '用户名需要 3-20 个字符'
         return false
       }
+      // 如果检测状态为已占用，阻止提交
+      if (usernameCheckStatus.value === 'taken') {
+        errors.registerUsername = '该用户名已被注册'
+        return false
+      }
       errors.registerUsername = ''
       return true
 
@@ -414,6 +479,11 @@ function validateRegisterForm(): boolean {
   const u = validateField('registerUsername')
   const p = validateField('registerPassword')
   const c = validateField('registerConfirm')
+  // 正在检测中也阻止提交
+  if (usernameCheckStatus.value === 'checking') {
+    errors.registerUsername = '正在检测用户名，请稍候'
+    return false
+  }
   return u && p && c
 }
 

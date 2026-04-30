@@ -1,6 +1,6 @@
 /**
  * 认证相关 API
- * 登录、注册、登出
+ * 登录、注册、登出、用户名检测
  */
 import request from './request'
 import type { ApiResponse } from './request'
@@ -24,11 +24,19 @@ export interface RegisterParams {
   password: string
 }
 
+/** 用户名检测响应 */
+export interface CheckUsernameResult {
+  available: boolean
+}
+
 // ──────────────────────────────────────────
 // 以下为 Mock 实现，后端就绪后切换为真实请求
 // ──────────────────────────────────────────
 
 const USE_MOCK = true
+
+/** Mock 已注册用户列表 */
+const mockRegisteredUsers = new Set(['admin', 'test', 'player1'])
 
 /** 用户登录 */
 export async function loginApi(params: LoginParams): Promise<ApiResponse<LoginResult>> {
@@ -57,6 +65,17 @@ export async function logoutApi(): Promise<ApiResponse<null>> {
   return res.data
 }
 
+/** 检测用户名是否可用 */
+export async function checkUsernameApi(username: string): Promise<ApiResponse<CheckUsernameResult>> {
+  if (USE_MOCK) {
+    return mockCheckUsername(username)
+  }
+  const res = await request.get<ApiResponse<CheckUsernameResult>>('/auth/check-username', {
+    params: { username }
+  })
+  return res.data
+}
+
 // ──────────────────────────────────────────
 // Mock 实现
 // ──────────────────────────────────────────
@@ -69,7 +88,8 @@ function delay(ms: number): Promise<void> {
 async function mockLogin(params: LoginParams): Promise<ApiResponse<LoginResult>> {
   await delay(1200)
 
-  if (params.username.length < 3) {
+  // 只有已注册的用户才能登录
+  if (!mockRegisteredUsers.has(params.username.toLowerCase())) {
     return { code: 401, message: '用户名不存在', data: null as unknown as LoginResult }
   }
 
@@ -87,9 +107,23 @@ async function mockLogin(params: LoginParams): Promise<ApiResponse<LoginResult>>
 async function mockRegister(params: RegisterParams): Promise<ApiResponse<null>> {
   await delay(1500)
 
-  if (params.username.toLowerCase() === 'admin') {
+  const lowerName = params.username.toLowerCase()
+  if (mockRegisteredUsers.has(lowerName)) {
     return { code: 409, message: '该用户名已被注册', data: null }
   }
 
+  // 注册成功，加入已注册列表
+  mockRegisteredUsers.add(lowerName)
   return { code: 200, message: '注册成功，请登录', data: null }
+}
+
+async function mockCheckUsername(username: string): Promise<ApiResponse<CheckUsernameResult>> {
+  await delay(600)
+
+  const available = !mockRegisteredUsers.has(username.toLowerCase())
+  return {
+    code: 200,
+    message: available ? '用户名可用' : '该用户名已被注册',
+    data: { available }
+  }
 }

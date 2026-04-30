@@ -64,6 +64,7 @@ Authorization: Bearer <token>
 | 1 | POST | `/auth/login` | 用户登录 | ❌ |
 | 2 | POST | `/auth/register` | 用户注册 | ❌ |
 | 3 | POST | `/auth/logout` | 用户登出 | ✅ |
+| 4 | GET | `/auth/check-username` | 检测用户名是否可用 | ❌ |
 
 ---
 
@@ -202,6 +203,54 @@ Authorization: Bearer <token>
 ```
 
 > **说明**：前端会清除本地 localStorage 中的用户信息。后端可选择将该 Token 加入黑名单，或直接依赖 Token 过期机制。
+
+---
+
+## 4. 检测用户名是否可用
+
+### `GET /auth/check-username`
+
+> 前端在注册表单中，用户输入用户名后会**防抖 500ms** 自动调用此接口，实时显示用户名是否可用。
+
+#### 请求参数（Query String）
+
+```
+GET /auth/check-username?username=testuser
+```
+
+| 字段 | 类型 | 必填 | 校验规则 | 说明 |
+|------|------|:---:|------|------|
+| `username` | `string` | ✅ | 3-20 个字符 | 待检测的用户名 |
+
+#### 成功响应（可用）
+
+```json
+{
+  "code": 200,
+  "message": "用户名可用",
+  "data": {
+    "available": true
+  }
+}
+```
+
+#### 成功响应（已占用）
+
+```json
+{
+  "code": 200,
+  "message": "该用户名已被注册",
+  "data": {
+    "available": false
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.available` | `boolean` | `true` 可用，`false` 已被占用 |
+
+> **说明**：此接口会被频繁调用（用户每次输入都会触发），建议后端做接口限流（如每 IP 每秒最多 5 次）。
 
 ---
 
