@@ -497,7 +497,7 @@ async function handleLogin() {
     showMessage(result.message, 'success')
     // 延迟跳转，让用户看到成功提示
     setTimeout(() => {
-      router.push({ name: 'home' })
+      router.push({ name: 'characters' })
     }, 500)
   } else {
     showMessage(result.message, 'error')

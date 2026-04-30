@@ -1,8 +1,8 @@
 # 剑之传说 - 前后端接口文档
 
-> 版本：v1.0.0  
-> 更新日期：2026-04-29  
-> 状态：登录/注册模块
+> 版本：v1.1.0  
+> 更新日期：2026-04-30  
+> 状态：认证模块 + 角色模块
 
 ---
 
@@ -65,6 +65,10 @@ Authorization: Bearer <token>
 | 2 | POST | `/auth/register` | 用户注册 | ❌ |
 | 3 | POST | `/auth/logout` | 用户登出 | ✅ |
 | 4 | GET | `/auth/check-username` | 检测用户名是否可用 | ❌ |
+| 5 | GET | `/character/list` | 获取角色列表 | ✅ |
+| 6 | POST | `/character/create` | 创建角色 | ✅ |
+| 7 | GET | `/character/check-name` | 检测角色名是否可用 | ✅ |
+| 8 | DELETE | `/character/delete/{id}` | 删除角色 | ✅ |
 
 ---
 
@@ -254,6 +258,266 @@ GET /auth/check-username?username=testuser
 
 ---
 
+## 5. 获取角色列表
+
+### `GET /character/list`
+
+> 需要在请求头携带 `Authorization: Bearer <token>`
+
+#### 请求参数
+
+无（用户身份从 JWT Token 中获取）
+
+#### 成功响应
+
+```json
+{
+  "code": 200,
+  "message": "获取成功",
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "userId": "550e8400-e29b-41d4-a716-446655440000",
+      "characterName": "剑圣无名",
+      "profession": 1,
+      "level": 15,
+      "experience": 2340,
+      "strength": 10,
+      "intelligence": 3,
+      "agility": 5,
+      "hp": 500,
+      "mp": 50,
+      "physicalAttack": 20,
+      "magicAttack": 6,
+      "defense": 15,
+      "dodgeRate": 5,
+      "criticalRate": 3,
+      "createTime": "2026-04-20T08:00:00Z",
+      "updateTime": "2026-04-28T10:00:00Z"
+    }
+  ]
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data` | `CharacterInfo[]` | 角色数组，最多 3 个元素 |
+| `data[].id` | `string` | 角色唯一标识（UUID） |
+| `data[].userId` | `string` | 所属用户 UUID |
+| `data[].characterName` | `string` | 角色名 |
+| `data[].profession` | `number` | 职业类型：1-战士, 2-法师, 3-猎人 |
+| `data[].level` | `number` | 等级 |
+| `data[].experience` | `number` | 经验值 |
+| `data[].strength` | `number` | 力量 |
+| `data[].intelligence` | `number` | 智力 |
+| `data[].agility` | `number` | 敏捷 |
+| `data[].hp` | `number` | 生命值 |
+| `data[].mp` | `number` | 魔法值 |
+| `data[].physicalAttack` | `number` | 物理攻击力 |
+| `data[].magicAttack` | `number` | 魔法攻击力 |
+| `data[].defense` | `number` | 防御力 |
+| `data[].dodgeRate` | `number` | 闪避率 |
+| `data[].criticalRate` | `number` | 暴击率 |
+| `data[].createTime` | `string` | 创建时间（ISO 8601） |
+| `data[].updateTime` | `string` | 更新时间（ISO 8601） |
+
+> **说明**：前端在角色选择页加载时调用此接口。如果返回空数组，前端自动引导用户创建角色。
+
+#### 失败响应示例
+
+**未认证：**
+```json
+{
+  "code": 401,
+  "message": "登录已过期，请重新登录",
+  "data": null
+}
+```
+
+---
+
+## 6. 创建角色
+
+### `POST /character/create`
+
+> 需要在请求头携带 `Authorization: Bearer <token>`
+
+#### 请求参数（Request Body）
+
+```json
+{
+  "characterName": "暗影刺客",
+  "profession": 3
+}
+```
+
+| 字段 | 类型 | 必填 | 校验规则 | 说明 |
+|------|------|:---:|------|------|
+| `characterName` | `string` | ✅ | 2-12 个字符，全局唯一 | 角色名 |
+| `profession` | `number` | ✅ | 枚举值：1 / 2 / 3 | 职业类型：1-战士, 2-法师, 3-猎人 |
+
+#### 成功响应
+
+```json
+{
+  "code": 200,
+  "message": "角色创建成功",
+  "data": {
+    "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "userId": "550e8400-e29b-41d4-a716-446655440000",
+    "characterName": "暗影刺客",
+    "profession": 3,
+    "level": 1,
+    "experience": 0,
+    "strength": 5,
+    "intelligence": 4,
+    "agility": 11,
+    "hp": 125,
+    "mp": 40,
+    "physicalAttack": 10,
+    "magicAttack": 8,
+    "defense": 5,
+    "dodgeRate": 5,
+    "criticalRate": 3,
+    "createTime": "2026-04-30T12:00:00Z",
+    "updateTime": "2026-04-30T12:00:00Z"
+  }
+}
+```
+
+> **说明**：创建成功后，后端根据 `profession` 初始化对应职业的基础属性值。前端会将新角色追加到本地角色列表中。
+
+#### 失败响应示例
+
+**角色数量已满：**
+```json
+{
+  "code": 403,
+  "message": "每个账号最多创建 3 个角色",
+  "data": null
+}
+```
+
+**角色名已存在：**
+```json
+{
+  "code": 409,
+  "message": "该角色名已被使用",
+  "data": null
+}
+```
+
+**职业类型非法：**
+```json
+{
+  "code": 400,
+  "message": "无效的职业类型",
+  "data": null
+}
+```
+
+---
+
+## 7. 检测角色名是否可用
+
+### `GET /character/check-name`
+
+> 需要在请求头携带 `Authorization: Bearer <token>`
+
+> 前端在角色创建表单中，用户输入角色名后会**防抖 500ms** 自动调用此接口，实时显示角色名是否可用。
+
+#### 请求参数（Query String）
+
+```
+GET /character/check-name?name=暗影刺客
+```
+
+| 字段 | 类型 | 必填 | 校验规则 | 说明 |
+|------|------|:---:|------|------|
+| `name` | `string` | ✅ | 2-12 个字符 | 待检测的角色名 |
+
+#### 成功响应（可用）
+
+```json
+{
+  "code": 200,
+  "message": "角色名可用",
+  "data": {
+    "available": true
+  }
+}
+```
+
+#### 成功响应（已占用）
+
+```json
+{
+  "code": 200,
+  "message": "该角色名已被使用",
+  "data": {
+    "available": false
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data.available` | `boolean` | `true` 可用，`false` 已被占用 |
+
+> **说明**：此接口会被频繁调用（用户每次输入都会触发），建议后端做接口限流（如每 IP 每秒最多 5 次）。
+
+---
+
+## 8. 删除角色
+
+### `DELETE /character/delete/{id}`
+
+> 需要在请求头携带 `Authorization: Bearer <token>`
+
+#### 请求参数（Path Variable）
+
+```
+DELETE /character/delete/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|:---:|------|
+| `id` | `string` | ✅ | 要删除的角色 UUID |
+
+#### 成功响应
+
+```json
+{
+  "code": 200,
+  "message": "角色已删除",
+  "data": null
+}
+```
+
+> **说明**：前端在删除前会弹出确认弹窗，确认后才调用此接口。删除成功后前端会从本地角色列表中移除该角色。
+
+#### 失败响应示例
+
+**角色不存在：**
+```json
+{
+  "code": 404,
+  "message": "角色不存在",
+  "data": null
+}
+```
+
+**无权删除他人角色：**
+```json
+{
+  "code": 403,
+  "message": "无权操作该角色",
+  "data": null
+}
+```
+
+---
+
 ## 前端数据结构参考
 
 ### 前端存储的用户对象
@@ -268,6 +532,41 @@ interface UserInfo {
 
 前端会将此对象以 `JSON.stringify` 存入 `localStorage`，key 为 `auth_user`。
 
+### 角色信息对象
+
+```typescript
+interface CharacterInfo {
+  id: string                // 角色 UUID
+  userId: string            // 所属用户 UUID
+  characterName: string     // 角色名
+  profession: number        // 职业类型：1-战士, 2-法师, 3-猎人
+  level: number             // 等级
+  experience: number        // 经验值
+  strength: number          // 力量
+  intelligence: number      // 智力
+  agility: number           // 敏捷
+  hp: number                // 生命值
+  mp: number                // 魔法值
+  physicalAttack: number    // 物理攻击力
+  magicAttack: number       // 魔法攻击力
+  defense: number           // 防御力
+  dodgeRate: number         // 闪避率
+  criticalRate: number      // 暴击率
+  createTime: string        // 创建时间（ISO 8601）
+  updateTime: string        // 更新时间（ISO 8601）
+}
+```
+
+> **字段命名说明**：后端使用 `snake_case`（如 `character_name`），JeecgBoot 自动转为 `camelCase`（如 `characterName`），前端统一使用 `camelCase`。
+
+### 职业编号对照表
+
+| profession 值 | 职业 | 主属性 | 初始属性 (STR/INT/AGI) |
+|:---:|------|------|------|
+| `1` | 战士 (Warrior) | 力量 | 10 / 3 / 5 |
+| `2` | 法师 (Mage) | 智力 | 2 / 12 / 4 |
+| `3` | 猎人 (Hunter) | 敏捷 | 5 / 4 / 11 |
+
 ### 前端校验规则汇总
 
 | 字段 | 前端校验 | 建议后端也校验 |
@@ -275,6 +574,9 @@ interface UserInfo {
 | 用户名 | 非空，3-20 字符 | ✅ |
 | 密码 | 非空，6-20 字符 | ✅ |
 | 确认密码 | 与密码一致（仅前端校验，不传后端） | — |
+| 角色名 | 非空，2-12 字符 | ✅ |
+| 职业类型 | 枚举值 1/2/3 | ✅ |
+| 角色数量 | ≤ 3 个（前端隐藏创建入口） | ✅（后端必须再次校验） |
 
 ---
 

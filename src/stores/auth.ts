@@ -35,6 +35,10 @@ export const useAuthStore = defineStore('auth', () => {
       if (res.code === 200) {
         user.value = res.data
         localStorage.setItem('auth_user', JSON.stringify(res.data))
+        // 单独存储 token，供请求拦截器读取
+        if (res.data.token) {
+          localStorage.setItem('access_token', res.data.token)
+        }
         return { success: true, message: res.message }
       }
       return { success: false, message: res.message }
@@ -72,6 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
     user.value = null
     localStorage.removeItem('auth_user')
+    localStorage.removeItem('access_token')
   }
 
   // 初始化

@@ -25,7 +25,7 @@ const request = axios.create({
 /** 不需要携带 token 的接口路径 */
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/check-username']
 
-// ── 请求拦截器：自动注入 JWT Token ──
+// ── 请求拦截器：自动注入 Token ──
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 公开接口不发 token，避免后端误校验
@@ -34,16 +34,10 @@ request.interceptors.request.use(
       return config
     }
 
-    const stored = localStorage.getItem('auth_user')
-    if (stored) {
-      try {
-        const user = JSON.parse(stored)
-        if (user?.token) {
-          config.headers.Authorization = `Bearer ${user.token}`
-        }
-      } catch {
-        // token 解析失败，忽略
-      }
+    // jeecg-boot 使用 X-Access-Token 请求头
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      config.headers['X-Access-Token'] = token
     }
     return config
   },
@@ -87,6 +81,7 @@ request.interceptors.response.use(
       // 401: Token 过期 → 清除登录状态，跳转登录页
       if (status === 401) {
         localStorage.removeItem('auth_user')
+        localStorage.removeItem('access_token')
         // 避免在登录页重复跳转
         if (window.location.pathname !== '/login') {
           window.location.href = '/login'

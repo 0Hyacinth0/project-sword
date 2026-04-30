@@ -7,6 +7,8 @@ import App from './App.vue'
 import './assets/styles/variables.css'
 import './assets/styles/base.css'
 import './assets/styles/login.css'
+import './assets/styles/character-select.css'
+import './assets/styles/character-create.css'
 
 const app = createApp(App)
 

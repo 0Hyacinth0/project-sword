@@ -11,15 +11,27 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
+      path: '/characters',
+      name: 'characters',
+      component: () => import('../views/CharacterSelectView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/characters/create',
+      name: 'character-create',
+      component: () => import('../views/CharacterCreateView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/',
       name: 'home',
       component: () => import('../views/HomeView.vue'),
       meta: { requiresAuth: true }
     },
     {
-      // 未匹配路由重定向到首页
+      // 未匹配路由重定向到角色选择
       path: '/:pathMatch(.*)*',
-      redirect: '/'
+      redirect: '/characters'
     }
   ]
 })
@@ -32,9 +44,9 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
 
-  // 已登录用户访问登录页时重定向到首页
+  // 已登录用户访问登录页时重定向到角色选择
   if (to.name === 'login' && auth.isLoggedIn) {
-    return { name: 'home' }
+    return { name: 'characters' }
   }
 })
 
