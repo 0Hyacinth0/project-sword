@@ -1,13 +1,19 @@
 <!-- 游戏主页 - 三栏布局 -->
 <template>
   <div class="game-home">
-    <!-- 顶部工具栏 -->
-    <div class="game-topbar">
-      <ThemeToggle />
-      <button class="game-topbar__btn" title="退出登录" @click="handleLogout">
-        <LogOut :size="16" :stroke-width="1.8" />
-      </button>
-    </div>
+    <!-- 顶部通栏 -->
+    <header class="game-header">
+      <div class="game-header__left">
+        <Swords :size="20" :stroke-width="1.5" class="game-header__logo" />
+        <span class="game-header__title">剑之传说</span>
+      </div>
+      <div class="game-header__right">
+        <button class="game-header__btn game-header__btn--round" title="退出登录" @click="handleLogout">
+          <LogOut :size="16" :stroke-width="1.8" />
+        </button>
+        <ThemeToggle />
+      </div>
+    </header>
 
     <!-- 加载状态 -->
     <div v-if="loading" class="game-loading game-panel">
@@ -15,7 +21,7 @@
       <span>正在加载角色数据...</span>
     </div>
 
-    <template v-else>
+    <div v-else class="game-body">
       <!-- ═══ 左侧面板 ═══ -->
       <div class="game-left">
         <!-- 装备栏 -->
@@ -248,7 +254,7 @@
           </div>
         </div>
       </div>
-    </template>
+    </div>
   </div>
 </template>
 
@@ -350,4 +356,21 @@ onMounted(() => {
 
 <style scoped>
 @import '../assets/styles/home.css';
+</style>
+
+<style>
+/* 在 header 中覆盖 ThemeToggle 的 fixed 定位和尺寸 */
+.game-header__right .theme-toggle {
+  position: static;
+}
+
+.game-header__right .theme-toggle__btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 980px;
+}
+
+.game-header__right .theme-toggle__btn:hover {
+  transform: scale(1.08) rotate(15deg);
+}
 </style>

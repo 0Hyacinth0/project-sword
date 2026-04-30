@@ -2,14 +2,13 @@
 <template>
   <div class="theme-toggle">
     <button
-      id="theme-toggle-btn"
       class="theme-toggle__btn"
       :title="isDark ? '切换到亮色模式' : '切换到暗色模式'"
       @click="toggleTheme"
     >
       <transition name="theme-icon" mode="out-in">
-        <Sun v-if="isDark" key="sun" :size="18" :stroke-width="1.8" />
-        <Moon v-else key="moon" :size="18" :stroke-width="1.8" />
+        <Sun v-if="isDark" key="sun" :size="16" :stroke-width="1.8" />
+        <Moon v-else key="moon" :size="16" :stroke-width="1.8" />
       </transition>
     </button>
   </div>

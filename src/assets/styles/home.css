@@ -1,22 +1,93 @@
 /* ============================================
    游戏主页样式
-   三栏布局：装备栏+角色详情 | 主显示区 | 背包
+   顶部通栏 + 三栏布局
    ============================================ */
 
 /* ── 页面容器 ── */
 .game-home {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
   height: 100vh;
   padding: 12px;
   box-sizing: border-box;
-  position: relative;
   overflow: hidden;
   background-image:
     radial-gradient(circle at 0% 0%, rgba(0, 113, 227, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 100% 100%, rgba(52, 199, 89, 0.25) 0%, transparent 50%),
     radial-gradient(circle at 100% 0%, rgba(255, 59, 48, 0.2) 0%, transparent 40%),
     radial-gradient(circle at 0% 100%, rgba(245, 158, 11, 0.2) 0%, transparent 40%);
+}
+
+/* ── 顶部通栏 ── */
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  margin-bottom: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-subtle);
+  flex-shrink: 0;
+}
+
+.game-header__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-header__logo {
+  color: var(--accent-blue);
+}
+
+.game-header__title {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.05em;
+}
+
+.game-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.game-header__btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel-light);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.game-header__btn--round {
+  width: 36px;
+  height: 36px;
+  border-radius: 980px;
+}
+
+.game-header__btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
+}
+
+/* ── 三栏内容区 ── */
+.game-body {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── 通用面板 ── */
@@ -418,7 +489,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  flex: 1;
   gap: 12px;
   color: var(--text-muted);
   font-size: var(--font-size-small);
@@ -433,46 +504,12 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── 顶部工具栏 ── */
-.game-topbar {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 10;
-}
-
-.game-topbar__btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-panel);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: all 0.2s ease;
-}
-
-.game-topbar__btn:hover {
-  color: var(--text-primary);
-  border-color: var(--accent-blue);
-}
-
 /* ══════════════════════════════════════════
    响应式
    ══════════════════════════════════════════ */
 @media (max-width: 960px) {
-  .game-home {
+  .game-body {
     flex-direction: column;
-    height: auto;
-    min-height: 100vh;
   }
 
   .game-left,
@@ -503,6 +540,9 @@
 @media (max-width: 720px) {
   .game-home {
     padding: 8px;
+  }
+
+  .game-body {
     gap: 8px;
   }
 
