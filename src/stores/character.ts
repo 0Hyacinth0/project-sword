@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi } from '../api'
-import type { CharacterInfo, CreateCharacterParams } from '../api'
+import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi, updateAttributesApi } from '../api'
+import type { CharacterInfo, CreateCharacterParams, UpdateAttributesParams } from '../api'
 
 /** 最大角色数 */
 const MAX_CHARACTERS = 3
@@ -128,6 +128,30 @@ export const useCharacterStore = defineStore('character', () => {
     }
   }
 
+  /** 属性加点 */
+  async function updateAttributes(params: UpdateAttributesParams): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const res = await updateAttributesApi(params)
+      if (res.code === 200) {
+        // 更新角色详情
+        characterDetail.value = res.data
+        // 同时更新角色列表中的对应角色
+        const index = characters.value.findIndex(c => c.id === params.characterId)
+        if (index !== -1) {
+          characters.value[index] = res.data
+        }
+        return { success: true, message: res.message }
+      }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '属性加点失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 清除（登出时调用） */
   function clear() {
     characters.value = []
@@ -152,6 +176,7 @@ export const useCharacterStore = defineStore('character', () => {
     fetchCharacterDetail,
     createCharacter,
     deleteCharacter,
+    updateAttributes,
     clear
   }
 })

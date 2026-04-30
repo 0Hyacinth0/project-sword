@@ -9,6 +9,7 @@ import './assets/styles/base.css'
 import './assets/styles/login.css'
 import './assets/styles/character-select.css'
 import './assets/styles/character-create.css'
+import './assets/styles/character-panel.css'
 
 const app = createApp(App)
 

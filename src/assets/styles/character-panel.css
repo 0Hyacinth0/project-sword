@@ -1,0 +1,23 @@
+/**
+ * 角色详情面板样式
+ * 包含装备稀有度颜色变量和通用样式
+ */
+
+/* 装备稀有度颜色变量 */
+:root {
+  --rarity-poor: #8e8e93;
+  --rarity-normal: #6e6e73;
+  --rarity-magic: #34c759;
+  --rarity-rare: #0071e3;
+  --rarity-epic: #af52de;
+  --rarity-legendary: #ff9500;
+}
+
+[data-theme='dark'] {
+  --rarity-poor: #8f93a3;
+  --rarity-normal: #f4f1ff;
+  --rarity-magic: #6dd39e;
+  --rarity-rare: #59a6ff;
+  --rarity-epic: #c282ff;
+  --rarity-legendary: #ff9b52;
+}
