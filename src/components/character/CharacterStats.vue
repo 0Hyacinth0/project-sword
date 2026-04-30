@@ -339,7 +339,7 @@ async function handleConfirm(points: { str: number; int: number; agi: number }) 
 }
 
 .stat-bar__max-tag {
-  font-size: 10px;
+  font-size: var(--font-size-caption, 11px);
   padding: 1px 4px;
   border-radius: 3px;
   background: var(--accent-gold, #f59e0b);

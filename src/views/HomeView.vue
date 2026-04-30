@@ -324,7 +324,32 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import '../assets/styles/home.css';
+/* HomeView 特定样式 */
+.char-info__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+/* 背包加载状态 */
+.backpack-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+}
+
+.backpack-loading__spinner {
+  animation: spin 1s linear infinite;
+  color: var(--text-muted);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 </style>
 
 <style>

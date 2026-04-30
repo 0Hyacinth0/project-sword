@@ -10,6 +10,7 @@ import './assets/styles/login.css'
 import './assets/styles/character-select.css'
 import './assets/styles/character-create.css'
 import './assets/styles/character-panel.css'
+import './assets/styles/home.css'
 
 const app = createApp(App)
 

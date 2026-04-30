@@ -211,6 +211,10 @@ function handlePetClick() {
   color: var(--text-primary, #1d1d1f);
 }
 
+.char-panel__tab:active {
+  transform: scale(0.97);
+}
+
 .char-panel__tab--active {
   background: rgba(255, 255, 255, 0.6);
   color: var(--text-primary, #1d1d1f);

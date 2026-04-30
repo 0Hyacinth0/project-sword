@@ -174,7 +174,7 @@ function cellStyle(rarity: ItemRarity) {
   position: absolute;
   right: 3px;
   bottom: 2px;
-  font-size: 10px;
+  font-size: var(--font-size-caption, 11px);
   font-weight: 600;
   line-height: 1;
   padding: 1px 4px;
@@ -216,14 +216,14 @@ function cellStyle(rarity: ItemRarity) {
 
 .backpack-cell__tooltip-name {
   display: block;
-  font-size: 13px;
+  font-size: var(--font-size-label, 13px);
   font-weight: 600;
   margin-bottom: 2px;
 }
 
 .backpack-cell__tooltip-rarity {
   display: block;
-  font-size: 11px;
+  font-size: var(--font-size-caption, 11px);
   color: rgba(255, 255, 255, 0.6);
 }
 

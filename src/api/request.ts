@@ -47,7 +47,7 @@ request.interceptors.request.use(
 // ── 响应拦截器：统一错误处理 ──
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    const raw = response.data as Record<string, unknown>
+    const raw = response.data as unknown as Record<string, unknown>
 
     // 兼容 jeecg-boot 响应格式：{ success, code, message, result }
     // 统一转换为前端约定格式：{ code, message, data }

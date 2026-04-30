@@ -15,6 +15,7 @@
 
 export * from './auth'
 export * from './character'
+export * from './inventory'
 
 // 导出请求实例和通用类型，供需要直接使用的场景
 export { default as request } from './request'

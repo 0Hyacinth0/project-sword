@@ -202,7 +202,7 @@ const radarOption = computed(() => {
   return {
     animation: true,
     animationDuration: 600,
-    animationEasing: 'cubicOut',
+    animationEasing: 'cubicOut' as const,
     radar: {
       indicator: [
         { name: '生存', max: 5 },

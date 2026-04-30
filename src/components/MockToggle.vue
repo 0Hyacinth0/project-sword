@@ -37,7 +37,7 @@ function handleToggle() {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
+  font-size: var(--font-size-label, 13px);
   font-family: var(--font-text, -apple-system, BlinkMacSystemFont, sans-serif);
   cursor: pointer;
   user-select: none;
@@ -53,7 +53,7 @@ function handleToggle() {
 .mock-toggle.active {
   background: rgba(52, 199, 89, 0.2);
   border-color: rgba(52, 199, 89, 0.4);
-  color: #34c759;
+  color: var(--accent-green, #34c759);
 }
 
 .mock-toggle.active:hover {
@@ -69,7 +69,7 @@ function handleToggle() {
 }
 
 .mock-toggle.active .mock-toggle__dot {
-  background: #34c759;
+  background: var(--accent-green, #34c759);
   box-shadow: 0 0 6px rgba(52, 199, 89, 0.6);
 }
 

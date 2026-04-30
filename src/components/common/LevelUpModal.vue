@@ -79,7 +79,6 @@ import {
 } from 'lucide-vue-next'
 import type { LevelUpResult } from '../../utils/levelConfig'
 import type { SkillInfo } from '../../config/job_config'
-import { calculateBaseStats } from '../../utils/attributeCalculator'
 
 /**
  * 升级结果弹窗组件
@@ -109,11 +108,7 @@ const emit = defineEmits<Emits>()
 /** 衍生属性变化 */
 const derivedChanges = computed(() => {
   if (props.result.levelsGained === 0) return null
-  const oldDerived = calculateBaseStats(props.baseAttrs, props.profession)
 
-  // 假设每级升级时基础属性不自动增长，由玩家手动分配属性点
-  // 衍生属性变化来自于职业加成系数下的等级间接影响
-  // 这里展示的是属性点带来的潜在变化
   const pointsPerLevel = 3
   const totalPoints = props.result.levelsGained * pointsPerLevel
 

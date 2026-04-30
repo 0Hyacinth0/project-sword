@@ -380,7 +380,7 @@ function handleSlotClick(slot: EquipmentSlotType) {
 }
 
 .equip-slot--empty:hover {
-  border-color: var(--accent-blue, #0071e3);
+  border-color: var(--accent-blue);
   background: rgba(0, 113, 227, 0.06);
 }
 
