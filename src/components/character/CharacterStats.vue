@@ -76,8 +76,10 @@
         :intelligence="character.intelligence"
         :agility="character.agility"
         :profession="character.profession"
+        :loading="isSubmitting"
+        :error-msg="errorMsg"
         @confirm="handleConfirm"
-        @cancel="isAllocating = false"
+        @cancel="handleCancel"
       />
 
       <!-- 正常显示模式 -->
@@ -149,7 +151,9 @@ import { computed, ref, watch } from 'vue'
 import { Sparkles } from 'lucide-vue-next'
 import type { CharacterInfo } from '../../api/character'
 import type { LevelUpResult } from '../../utils/levelConfig'
+import type { UpdateAttributesParams } from '../../api/character'
 import { getJobConfigByProfession } from '../../config/job_config'
+import { useCharacterStore } from '../../stores/character'
 import CharacterStatItem from './CharacterStatItem.vue'
 import CharacterAttributePoint from './CharacterAttributePoint.vue'
 import LevelUpEffect from '../common/LevelUpEffect.vue'
@@ -159,7 +163,7 @@ import LevelUpModal from '../common/LevelUpModal.vue'
  * 角色属性面板组件
  * @param character - 角色完整数据
  * @param levelUpResult - 升级结果（如有升级）
- * @emits refresh - 加点/升级后需要刷新数据
+ * @emits refresh - 加点/升级后需要刷新数据（已弃用，现由 store 直接更新）
  */
 
 interface Props {
@@ -174,8 +178,16 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const characterStore = useCharacterStore()
+
 /** 是否处于加点模式 */
 const isAllocating = ref(false)
+
+/** 加点处理中 */
+const isSubmitting = ref(false)
+
+/** 加点错误信息 */
+const errorMsg = ref<string | null>(null)
 
 /** 经验条闪烁状态（升级时触发） */
 const isExpFlashing = ref(false)
@@ -258,14 +270,46 @@ function handleModalClose() {
  */
 function startAllocating(_attr: 'strength' | 'intelligence' | 'agility') {
   isAllocating.value = true
+  errorMsg.value = null
+}
+
+/**
+ * 取消加点
+ */
+function handleCancel() {
+  isAllocating.value = false
+  errorMsg.value = null
 }
 
 /**
  * 确认加点
+ * 调用 store 的 updateAttributes 发起 API 请求
  */
-function handleConfirm(_points: { str: number; int: number; agi: number }) {
-  emit('refresh')
-  isAllocating.value = false
+async function handleConfirm(points: { str: number; int: number; agi: number }) {
+  const params: UpdateAttributesParams = {
+    characterId: props.character.id,
+    str: points.str,
+    int: points.int,
+    agi: points.agi
+  }
+
+  isSubmitting.value = true
+  errorMsg.value = null
+
+  const { success, message } = await characterStore.updateAttributes(params)
+
+  isSubmitting.value = false
+
+  if (success) {
+    isAllocating.value = false
+    emit('refresh')
+  } else {
+    errorMsg.value = message
+    // 3 秒后自动清除错误
+    setTimeout(() => {
+      if (errorMsg.value === message) errorMsg.value = null
+    }, 3000)
+  }
 }
 </script>
 

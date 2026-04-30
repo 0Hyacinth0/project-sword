@@ -140,16 +140,22 @@
 
     <!-- 确认/取消按钮 -->
     <div class="char-allocate__actions">
-      <button class="char-allocate__cancel" @click="$emit('cancel')">
+      <button class="char-allocate__cancel" :disabled="loading" @click="$emit('cancel')">
         取消
       </button>
       <button
         class="char-allocate__confirm"
-        :disabled="totalAllocated === 0"
+        :disabled="totalAllocated === 0 || loading"
         @click="handleConfirm"
       >
-        确认加点
+        <span v-if="loading" class="char-allocate__spinner" />
+        <span v-else>确认加点</span>
       </button>
+    </div>
+
+    <!-- 错误提示 -->
+    <div v-if="errorMsg" class="char-allocate__error">
+      {{ errorMsg }}
     </div>
   </div>
 </template>
@@ -166,6 +172,8 @@ import { calculateBaseStats } from '../../utils/attributeCalculator'
  * @param intelligence - 当前智力值
  * @param agility - 当前敏捷值
  * @param profession - 职业编号（用于计算衍生属性）
+ * @param loading - 是否正在提交
+ * @param errorMsg - 错误信息
  * @emits confirm - 确认加点，返回分配的点数
  * @emits cancel - 取消加点
  */
@@ -176,6 +184,8 @@ interface Props {
   intelligence: number
   agility: number
   profession: number
+  loading?: boolean
+  errorMsg?: string | null
 }
 
 interface Emits {
@@ -183,7 +193,10 @@ interface Emits {
   (e: 'cancel'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  loading: false,
+  errorMsg: null
+})
 const emit = defineEmits<Emits>()
 
 /** 待分配点数 */
@@ -371,6 +384,32 @@ function handleConfirm() {
 .char-allocate__confirm:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Loading 旋转动画 */
+.char-allocate__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 错误提示 */
+.char-allocate__error {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: rgba(255, 59, 48, 0.1);
+  font-size: var(--font-size-xs, 12px);
+  color: var(--accent-red, #ff3b30);
+  text-align: center;
 }
 
 /* 衍生属性变化预览 */
