@@ -7,6 +7,14 @@
         <Swords :size="20" :stroke-width="1.5" class="game-header__logo" />
         <span class="game-header__title">剑之传说</span>
       </div>
+      <div class="game-header__center" @mouseenter="pauseAnnouncement" @mouseleave="resumeAnnouncement">
+        <Transition name="announce" mode="out-in">
+          <div class="announcement" :key="currentAnnouncement.id">
+            <component :is="currentAnnouncement.icon" :size="14" class="announcement__icon" :style="{ color: currentAnnouncement.color }" />
+            <span class="announcement__text">{{ currentAnnouncement.text }}</span>
+          </div>
+        </Transition>
+      </div>
       <div class="game-header__right">
         <button class="game-header__btn game-header__btn--round" title="退出登录" @click="handleLogout">
           <LogOut :size="16" :stroke-width="1.8" />
@@ -259,7 +267,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, type Component } from 'vue'
+import { computed, markRaw, onMounted, onUnmounted, ref, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
@@ -268,7 +276,8 @@ import ThemeToggle from '../components/ThemeToggle.vue'
 import {
   Sword, Crown, Shield, Footprints, Gem,
   Map, Swords, Users, Store, Package,
-  LogOut, Loader2, Sparkles, Target
+  LogOut, Loader2, Sparkles, Target,
+  Bell, Lightbulb, Trophy, Wrench
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -276,6 +285,63 @@ const auth = useAuthStore()
 const charStore = useCharacterStore()
 
 const loading = ref(false)
+
+/* ── 公告轮播 ── */
+interface Announcement {
+  id: number
+  text: string
+  icon: Component
+  color: string
+}
+
+const announcements: Announcement[] = [
+  { id: 1, text: '服务器将于 5 月 2 日 02:00-06:00 进行维护，请提前下线', icon: markRaw(Wrench), color: 'var(--accent-gold)' },
+  { id: 2, text: '五一限时活动「勇者试炼」已开启，通关副本可获传说装备', icon: markRaw(Trophy), color: 'var(--accent-red)' },
+  { id: 3, text: '当前在线冒险者：1,284 人', icon: markRaw(Users), color: 'var(--accent-green)' },
+  { id: 4, text: '欢迎来到剑之传说！选择角色即可开始你的冒险之旅', icon: markRaw(Sparkles), color: 'var(--accent-blue)' },
+  { id: 5, text: '小贴士：闪避率影响被攻击时的回避概率，敏捷属性可提升闪避', icon: markRaw(Lightbulb), color: 'var(--accent-gold)' },
+  { id: 6, text: '公告：新赛季排位赛将于 5 月 5 日开放，敬请期待', icon: markRaw(Bell), color: 'var(--accent-blue)' },
+]
+
+const currentIndex = ref(0)
+let announceTimer: ReturnType<typeof setInterval> | null = null
+
+/**
+ * 当前显示的公告
+ */
+const currentAnnouncement = computed(() => announcements[currentIndex.value])
+
+/**
+ * 切换到下一条公告
+ */
+function nextAnnouncement() {
+  currentIndex.value = (currentIndex.value + 1) % announcements.length
+}
+
+/**
+ * 鼠标悬停时暂停轮播
+ */
+function pauseAnnouncement() {
+  if (announceTimer) {
+    clearInterval(announceTimer)
+    announceTimer = null
+  }
+}
+
+/**
+ * 鼠标离开时恢复轮播
+ */
+function resumeAnnouncement() {
+  startAnnouncementTimer()
+}
+
+/**
+ * 启动公告轮播定时器
+ */
+function startAnnouncementTimer() {
+  if (announceTimer) clearInterval(announceTimer)
+  announceTimer = setInterval(nextAnnouncement, 4000)
+}
 
 /**
  * 获取角色详情数据
@@ -351,6 +417,11 @@ async function loadCharacterDetail() {
 
 onMounted(() => {
   loadCharacterDetail()
+  startAnnouncementTimer()
+})
+
+onUnmounted(() => {
+  if (announceTimer) clearInterval(announceTimer)
 })
 </script>
 
