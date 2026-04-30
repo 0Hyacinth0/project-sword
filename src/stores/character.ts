@@ -85,9 +85,8 @@ export const useCharacterStore = defineStore('character', () => {
     }
 
     const trimmed = characterId.trim()
-    const UUID_REGEX = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/
-    if (!UUID_REGEX.test(trimmed)) {
-      return { success: false, message: '角色ID格式无效' }
+    if (!trimmed) {
+      return { success: false, message: '角色ID无效' }
     }
 
     loading.value = true
