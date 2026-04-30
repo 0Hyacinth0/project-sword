@@ -11,7 +11,7 @@
 ### Base URL
 
 ```
-待定，建议格式：https://api.example.com/v1
+/jeecg-boot/webgame
 ```
 
 ### 请求格式
