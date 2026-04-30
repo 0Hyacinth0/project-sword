@@ -14,17 +14,26 @@ export interface ApiResponse<T = unknown> {
 
 // ── 创建 Axios 实例 ──
 const request = axios.create({
-  // TODO: 后端部署后替换为真实地址
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  // 联调环境：通过 Vite 代理转发到后端
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/jeecg-boot/webgame',
   timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
+/** 不需要携带 token 的接口路径 */
+const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/check-username']
+
 // ── 请求拦截器：自动注入 JWT Token ──
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    // 公开接口不发 token，避免后端误校验
+    const isPublic = PUBLIC_PATHS.some(path => config.url?.includes(path))
+    if (isPublic) {
+      return config
+    }
+
     const stored = localStorage.getItem('auth_user')
     if (stored) {
       try {
@@ -44,13 +53,29 @@ request.interceptors.request.use(
 // ── 响应拦截器：统一错误处理 ──
 request.interceptors.response.use(
   (response: AxiosResponse<ApiResponse>) => {
-    const { data } = response
+    const raw = response.data as Record<string, unknown>
+
+    // 兼容 jeecg-boot 响应格式：{ success, code, message, result }
+    // 统一转换为前端约定格式：{ code, message, data }
+    if ('result' in raw && !('data' in raw)) {
+      raw.data = raw.result
+    }
+    if ('success' in raw && typeof raw.success === 'boolean') {
+      // jeecg-boot 的 code 可能是 200/0/500 等，以 success 为准
+      if (!raw.success && (raw.code === 200 || raw.code === 0)) {
+        raw.code = 400
+      }
+    }
+
+    const data = raw as unknown as ApiResponse
 
     // 业务层错误（code !== 200）
     if (data.code !== 200) {
       return Promise.reject(new ApiError(data.code, data.message))
     }
 
+    // 把标准化后的 data 写回
+    response.data = data
     return response
   },
   (error) => {

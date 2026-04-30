@@ -9,5 +9,14 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  server: {
+    // 开发环境代理 —— 将 /jeecg-boot 请求转发到后端
+    proxy: {
+      '/jeecg-boot': {
+        target: 'http://192.168.0.228:8080',
+        changeOrigin: true
+      }
+    }
   }
 })
