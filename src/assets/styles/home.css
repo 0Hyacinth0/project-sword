@@ -1,0 +1,520 @@
+/* ============================================
+   游戏主页样式
+   三栏布局：装备栏+角色详情 | 主显示区 | 背包
+   ============================================ */
+
+/* ── 页面容器 ── */
+.game-home {
+  display: flex;
+  gap: 12px;
+  height: 100vh;
+  padding: 12px;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background-image:
+    radial-gradient(circle at 0% 0%, rgba(0, 113, 227, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(52, 199, 89, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(255, 59, 48, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(245, 158, 11, 0.2) 0%, transparent 40%);
+}
+
+/* ── 通用面板 ── */
+.game-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.game-panel__title {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* ══════════════════════════════════════════
+   左侧面板 - 装备栏 + 角色详情
+   ══════════════════════════════════════════ */
+.game-left {
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── 装备栏 ── */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.equip-slot {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg-panel-light);
+  border: 1.5px dashed var(--border-light);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.equip-slot:hover {
+  border-color: var(--accent-blue);
+  background: rgba(0, 113, 227, 0.06);
+}
+
+.equip-slot__icon {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.equip-slot__label {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+/* ── 角色信息 ── */
+.char-info__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.char-info__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.char-info__name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.char-info__meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+
+.char-info__job-tag {
+  font-size: var(--font-size-caption);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* ── HP / MP / EXP 进度条 ── */
+.stat-bar {
+  margin-bottom: 8px;
+}
+
+.stat-bar__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.stat-bar__label {
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.stat-bar__value {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-bar__track {
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+[data-theme='dark'] .stat-bar__track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-bar__fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.stat-bar__fill--hp {
+  background: linear-gradient(90deg, var(--accent-green), #32d74b);
+}
+
+.stat-bar__fill--mp {
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-blue-dark));
+}
+
+.stat-bar__fill--exp {
+  background: linear-gradient(90deg, var(--accent-gold), #ffd60a);
+}
+
+.stat-bar__fill--hp.low {
+  background: linear-gradient(90deg, var(--accent-red), #ff453a);
+}
+
+.stat-bar__fill--hp.warning {
+  background: linear-gradient(90deg, var(--accent-gold), #ffd60a);
+}
+
+/* ── 属性面板 ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.stat-item__label {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+
+.stat-item__value {
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ══════════════════════════════════════════
+   中间面板 - 主显示区
+   ══════════════════════════════════════════ */
+.game-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.game-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.game-main__welcome {
+  font-size: var(--font-size-subheading);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.game-main__desc {
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+.game-main__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.game-main__btn {
+  padding: 10px 20px;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.game-main__btn--primary {
+  background: var(--accent-blue);
+  color: var(--button-text);
+}
+
+.game-main__btn--primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3);
+}
+
+.game-main__btn--secondary {
+  background: var(--bg-panel-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+.game-main__btn--secondary:hover {
+  background: var(--bg-panel);
+}
+
+.game-main__btn:active {
+  transform: scale(0.98);
+}
+
+/* ── 底部导航 ── */
+.game-bottom-nav {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-shrink: 0;
+}
+
+.game-bottom-nav .game-panel {
+  padding: 10px 14px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.game-bottom-nav .game-panel:hover {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+/* ══════════════════════════════════════════
+   右侧面板 - 背包
+   ══════════════════════════════════════════ */
+.game-right {
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 背包标签 ── */
+.backpack-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  background: var(--bg-panel-light);
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.backpack-tab {
+  flex: 1;
+  padding: 5px 4px;
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  text-align: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.backpack-tab:hover {
+  color: var(--text-primary);
+}
+
+.backpack-tab--active {
+  background: var(--accent-blue);
+  color: var(--button-text);
+}
+
+/* ── 背包网格 ── */
+.backpack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  flex: 1;
+  align-content: start;
+}
+
+.backpack-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel-light);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.backpack-cell:hover {
+  border-color: var(--accent-blue);
+  background: rgba(0, 113, 227, 0.06);
+}
+
+.backpack-cell--empty {
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.backpack-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+
+.backpack-empty__icon {
+  opacity: 0.3;
+}
+
+/* ── 加载状态 ── */
+.game-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-size-small);
+}
+
+.game-loading__spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── 顶部工具栏 ── */
+.game-topbar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+.game-topbar__btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.game-topbar__btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
+}
+
+/* ══════════════════════════════════════════
+   响应式
+   ══════════════════════════════════════════ */
+@media (max-width: 960px) {
+  .game-home {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .game-left,
+  .game-right {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .game-left {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .game-left .game-panel {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .game-home {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .equipment-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

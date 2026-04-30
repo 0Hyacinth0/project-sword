@@ -14,13 +14,18 @@ export interface CharacterInfo {
   userId: string
   characterName: string
   profession: number           // 职业类型：1-战士, 2-法师, 3-猎人
+  professionName: string       // 职业名称（后端返回）
   level: number
-  experience: number
+  experience: number           // 当前经验值
+  nextLevelExp: number         // 升级所需经验
+  availablePoints: number      // 可用属性点
   strength: number             // 力量
   intelligence: number         // 智力
   agility: number              // 敏捷
-  hp: number                   // 生命值
-  mp: number                   // 魔法值
+  hp: number                   // 当前生命值
+  maxHp: number                // 最大生命值
+  mp: number                   // 当前魔法值
+  maxMp: number                // 最大魔法值
   physicalAttack: number       // 物理攻击力
   magicAttack: number          // 魔法攻击力
   defense: number              // 防御力
@@ -48,8 +53,9 @@ export interface CheckNameResult {
 const MOCK = {
   list: false,          // 角色列表 —— 已联调
   create: false,        // 创建角色 —— 已联调
-  delete: false,         // 删除角色 —— 已联调
-  checkName: true       // 角色名检测 —— 待联调
+  delete: false,        // 删除角色 —— 已联调
+  checkName: true,      // 角色名检测 —— 待联调
+  info: false           // 角色详情 —— 已联调
 }
 
 // ──────────────────────────────────────────
@@ -63,18 +69,23 @@ const mockCharacters: CharacterInfo[] = [
     userId: 'mock-user',
     characterName: '剑圣无名',
     profession: 1,
+    professionName: '战士',
     level: 15,
     experience: 2340,
+    nextLevelExp: 3000,
+    availablePoints: 3,
     strength: 10,
     intelligence: 3,
     agility: 5,
     hp: 500,
+    maxHp: 500,
     mp: 50,
+    maxMp: 50,
     physicalAttack: 20,
     magicAttack: 6,
     defense: 15,
-    dodgeRate: 5,
-    criticalRate: 3,
+    dodgeRate: 0.05,
+    criticalRate: 0.03,
     createTime: '2026-04-20T08:00:00Z',
     updateTime: '2026-04-28T10:00:00Z'
   },
@@ -83,18 +94,23 @@ const mockCharacters: CharacterInfo[] = [
     userId: 'mock-user',
     characterName: '冰霜女王',
     profession: 2,
+    professionName: '法师',
     level: 8,
     experience: 860,
+    nextLevelExp: 1500,
+    availablePoints: 0,
     strength: 2,
     intelligence: 12,
     agility: 4,
     hp: 200,
+    maxHp: 200,
     mp: 300,
+    maxMp: 300,
     physicalAttack: 4,
     magicAttack: 24,
     defense: 5,
-    dodgeRate: 3,
-    criticalRate: 5,
+    dodgeRate: 0.03,
+    criticalRate: 0.05,
     createTime: '2026-04-25T12:30:00Z',
     updateTime: '2026-04-29T08:00:00Z'
   }
@@ -156,6 +172,20 @@ export async function deleteCharacterApi(characterId: string): Promise<ApiRespon
   return res.data
 }
 
+/** 获取角色详情 */
+export async function getCharacterInfoApi(characterId: string): Promise<ApiResponse<CharacterInfo>> {
+  if (MOCK.info) {
+    await delay(600)
+    const char = mockCharacters.find(c => c.id === characterId)
+    if (!char) {
+      return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
+    }
+    return { code: 200, message: '获取成功', data: { ...char } }
+  }
+  const res = await request.get<ApiResponse<CharacterInfo>>(`/character/info/${characterId}`)
+  return res.data
+}
+
 // ──────────────────────────────────────────
 // Mock 实现
 // ──────────────────────────────────────────
@@ -171,30 +201,37 @@ async function mockCreateCharacter(params: CreateCharacterParams): Promise<ApiRe
     return { code: 409, message: '该角色名已被使用', data: null as unknown as CharacterInfo }
   }
 
-  const baseStats: Record<number, { str: number; int: number; agi: number }> = {
-    1: { str: 10, int: 3, agi: 5 },
-    2: { str: 2, int: 12, agi: 4 },
-    3: { str: 5, int: 4, agi: 11 }
+  const baseStats: Record<number, { str: number; int: number; agi: number; professionName: string }> = {
+    1: { str: 10, int: 3, agi: 5, professionName: '战士' },
+    2: { str: 2, int: 12, agi: 4, professionName: '法师' },
+    3: { str: 5, int: 4, agi: 11, professionName: '猎人' }
   }
 
   const stats = baseStats[params.profession]
+  const maxHp = stats.str * 5 + 100
+  const maxMp = stats.int * 5 + 20
   const newChar: CharacterInfo = {
     id: crypto.randomUUID(),
     userId: 'mock-user',
     characterName: params.characterName,
     profession: params.profession,
+    professionName: stats.professionName,
     level: 1,
     experience: 0,
+    nextLevelExp: 100,
+    availablePoints: 0,
     strength: stats.str,
     intelligence: stats.int,
     agility: stats.agi,
-    hp: stats.str * 5 + 100,
-    mp: stats.int * 5 + 20,
+    hp: maxHp,
+    maxHp,
+    mp: maxMp,
+    maxMp,
     physicalAttack: stats.str * 2,
     magicAttack: stats.int * 2,
     defense: 5,
-    dodgeRate: Math.floor(stats.agi * 0.5),
-    criticalRate: Math.floor(stats.agi * 0.3),
+    dodgeRate: stats.agi * 0.01,
+    criticalRate: stats.agi * 0.008,
     createTime: new Date().toISOString(),
     updateTime: new Date().toISOString()
   }

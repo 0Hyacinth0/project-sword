@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getCharacterListApi, createCharacterApi, deleteCharacterApi } from '../api'
+import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi } from '../api'
 import type { CharacterInfo, CreateCharacterParams } from '../api'
 
 /** 最大角色数 */
@@ -14,6 +14,7 @@ export const useCharacterStore = defineStore('character', () => {
   // ── 状态 ──
   const characters = ref<CharacterInfo[]>([])
   const selectedCharacterId = ref<string | null>(null)
+  const characterDetail = ref<CharacterInfo | null>(null)
   const loading = ref(false)
 
   // ── 计算属性 ──
@@ -58,6 +59,24 @@ export const useCharacterStore = defineStore('character', () => {
   function selectCharacter(characterId: string) {
     selectedCharacterId.value = characterId
     sessionStorage.setItem('selected_character_id', characterId)
+  }
+
+  /** 获取角色详情 */
+  async function fetchCharacterDetail(characterId: string): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const res = await getCharacterInfoApi(characterId)
+      if (res.code === 200) {
+        characterDetail.value = res.data
+        return { success: true, message: res.message }
+      }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '获取角色详情失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
   }
 
   /** 创建角色 */
@@ -113,6 +132,7 @@ export const useCharacterStore = defineStore('character', () => {
   function clear() {
     characters.value = []
     selectedCharacterId.value = null
+    characterDetail.value = null
     sessionStorage.removeItem('selected_character_id')
   }
 
@@ -123,11 +143,13 @@ export const useCharacterStore = defineStore('character', () => {
     characters,
     selectedCharacterId,
     selectedCharacter,
+    characterDetail,
     loading,
     isFull,
     emptySlots,
     fetchCharacters,
     selectCharacter,
+    fetchCharacterDetail,
     createCharacter,
     deleteCharacter,
     clear
