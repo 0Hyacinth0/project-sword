@@ -37,7 +37,7 @@ const MOCK = {
   login: false,           // 登录 —— 已联调，走真实后端
   register: false,        // 注册 —— 已联调，走真实后端
   logout: false,           // 登出 —— 已联调，走真实后端
-  checkUsername: true      // 用户名检测 —— 待联调
+  checkUsername: false     // 用户名检测 —— 已联调，走真实后端
 }
 
 /** Mock 已注册用户列表 */
