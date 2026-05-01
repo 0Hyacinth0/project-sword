@@ -37,7 +37,7 @@
           <CharacterPanel
             v-if="charDetail"
             :character="charDetail"
-            @refresh="loadCharacterDetail"
+            @refresh="refreshCharacter"
           />
           <div v-else class="char-info__empty">
             <span style="color: var(--text-muted)">未选择角色</span>
@@ -104,6 +104,39 @@
               <span>{{ tab.label }}</span>
             </button>
           </div>
+          <!-- 搜索 + 排序工具栏 -->
+          <div class="backpack-toolbar">
+            <div class="backpack-search">
+              <Search :size="13" class="backpack-search__icon" />
+              <input
+                class="backpack-search__input"
+                type="text"
+                placeholder="搜索物品"
+                :value="inventory.searchQuery"
+                @input="inventory.setSearchQuery(($event.target as HTMLInputElement).value)"
+              />
+            </div>
+            <div class="backpack-filters">
+              <select
+                class="backpack-filter-select"
+                :value="inventory.rarityFilter"
+                @change="inventory.setRarityFilter(($event.target as HTMLSelectElement).value as any)"
+              >
+                <option value="all">全部品质</option>
+                <option v-for="r in RARITIES" :key="r" :value="r">{{ RARITY_LABELS[r] }}</option>
+              </select>
+              <button
+                class="backpack-sort-btn"
+                @click="inventory.setSortField(sortOptions[currentSortIndex].field)"
+                :title="sortLabel"
+              >
+                <component :is="sortOptions[currentSortIndex].icon" :size="12" />
+                {{ sortLabel }}
+                <ArrowUpDown v-if="inventory.sortOrder === 'asc'" :size="10" />
+                <ArrowDownUp v-else :size="10" />
+              </button>
+            </div>
+          </div>
           <!-- 加载状态 -->
           <div v-if="inventory.loading" class="backpack-loading">
             <Loader2 :size="20" class="backpack-loading__spinner" />
@@ -117,7 +150,7 @@
           <!-- 空背包提示 -->
           <div v-else class="backpack-empty">
             <Package :size="28" class="backpack-empty__icon" />
-            <span>暂无物品</span>
+            <span>{{ inventory.searchQuery || inventory.rarityFilter !== 'all' ? '无匹配物品' : '暂无物品' }}</span>
           </div>
         </div>
       </div>
@@ -154,13 +187,36 @@ import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
 import BackpackGrid from '../components/inventory/BackpackGrid.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
-import { BACKPACK_TABS } from '../config/item_config'
-import type { InventoryItem } from '../types/item'
+import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
+import type { InventoryItem, ItemRarity, SortField } from '../types/item'
 import {
   Map, Swords, Users, Store, Package,
   LogOut, Loader2, Sparkles,
-  Bell, Lightbulb, Trophy, Wrench
+  Bell, Lightbulb, Trophy, Wrench,
+  Search, ArrowUpDown, ArrowDownUp,
+  SortAsc, Hash, Clock, Coins
 } from 'lucide-vue-next'
+
+const RARITIES: ItemRarity[] = ['Normal', 'Rare', 'Epic', 'Legendary']
+
+/** 排序选项配置 */
+const sortOptions: { field: SortField; label: string; icon: Component }[] = [
+  { field: 'obtainedAt', label: '获取时间', icon: markRaw(Clock) },
+  { field: 'name', label: '名称', icon: markRaw(SortAsc) },
+  { field: 'rarity', label: '稀有度', icon: markRaw(Hash) },
+  { field: 'quantity', label: '数量', icon: markRaw(Hash) },
+  { field: 'sellPrice', label: '售价', icon: markRaw(Coins) }
+]
+
+/** 当前排序选项索引（根据 store.sortField 计算） */
+const currentSortIndex = computed(() =>
+  sortOptions.findIndex(opt => opt.field === inventory.sortField)
+)
+
+/** 排序按钮标签 */
+const sortLabel = computed(() =>
+  sortOptions[currentSortIndex.value]?.label || '排序'
+)
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -292,14 +348,13 @@ const charDetail = computed(() => charStore.characterDetail)
  * 退出登录
  */
 function handleLogout() {
-  auth.logout()
   charStore.clear()
   inventory.clear()
-  router.push({ name: 'login' })
+  router.push({ name: 'characters' })
 }
 
 /**
- * 加载角色详情
+ * 加载角色详情（初次进入或切换角色）
  */
 async function loadCharacterDetail() {
   const characterId = charStore.selectedCharacterId
@@ -311,6 +366,15 @@ async function loadCharacterDetail() {
   await charStore.fetchCharacterDetail(characterId)
   await inventory.fetchInventory(characterId)
   loading.value = false
+}
+
+/**
+ * 刷新角色数据（加点后，不重新加载背包）
+ */
+async function refreshCharacter() {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+  await charStore.fetchCharacterDetail(characterId)
 }
 
 onMounted(() => {

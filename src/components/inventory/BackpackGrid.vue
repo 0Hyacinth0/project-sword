@@ -70,7 +70,7 @@ interface Emits {
 const props = defineProps<Props>()
 defineEmits<Emits>()
 
-const TOTAL_SLOTS = 32
+const TOTAL_SLOTS = 50
 
 const emptySlots = computed(() => Math.max(0, TOTAL_SLOTS - props.items.length))
 
@@ -90,7 +90,7 @@ function cellStyle(rarity: ItemRarity) {
 <style scoped>
 .backpack-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   flex: 1;
   align-content: start;

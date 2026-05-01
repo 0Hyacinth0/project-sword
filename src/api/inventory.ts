@@ -37,6 +37,17 @@ const mockItemTemplates: BaseItem[] = [
   },
   {
     itemId: 1003,
+    name: '大型生命药水',
+    category: 'consumable',
+    rarity: 'Epic',
+    description: '恢复 400 点生命值。高强度战斗中的救命良药。',
+    iconUrl: null,
+    maxStack: 50,
+    sellPrice: 80,
+    effects: [{ type: 'heal_hp', value: 400, description: '恢复 400 HP' }]
+  },
+  {
+    itemId: 1004,
     name: '魔法药水',
     category: 'consumable',
     rarity: 'Normal',
@@ -47,7 +58,18 @@ const mockItemTemplates: BaseItem[] = [
     effects: [{ type: 'heal_mp', value: 30, description: '恢复 30 MP' }]
   },
   {
-    itemId: 1004,
+    itemId: 1005,
+    name: '高级魔法药水',
+    category: 'consumable',
+    rarity: 'Rare',
+    description: '恢复 80 点魔法值。施法者的进阶补给品。',
+    iconUrl: null,
+    maxStack: 99,
+    sellPrice: 40,
+    effects: [{ type: 'heal_mp', value: 80, description: '恢复 80 MP' }]
+  },
+  {
+    itemId: 1006,
     name: '经验卷轴（小）',
     category: 'consumable',
     rarity: 'Rare',
@@ -58,7 +80,7 @@ const mockItemTemplates: BaseItem[] = [
     effects: [{ type: 'add_exp', value: 100, description: '获得 100 EXP' }]
   },
   {
-    itemId: 1005,
+    itemId: 1007,
     name: '经验卷轴（中）',
     category: 'consumable',
     rarity: 'Epic',
@@ -67,6 +89,28 @@ const mockItemTemplates: BaseItem[] = [
     maxStack: 10,
     sellPrice: 200,
     effects: [{ type: 'add_exp', value: 500, description: '获得 500 EXP' }]
+  },
+  {
+    itemId: 1008,
+    name: '经验卷轴（大）',
+    category: 'consumable',
+    rarity: 'Legendary',
+    description: '使用后获得 2000 点经验值。极为珍贵的成长秘宝。',
+    iconUrl: null,
+    maxStack: 5,
+    sellPrice: 800,
+    effects: [{ type: 'add_exp', value: 2000, description: '获得 2000 EXP' }]
+  },
+  {
+    itemId: 1009,
+    name: '复活卷轴',
+    category: 'consumable',
+    rarity: 'Epic',
+    description: '使阵亡角色复活，并恢复 30% 最大生命值。稀有且珍贵的道具。',
+    iconUrl: null,
+    maxStack: 5,
+    sellPrice: 300,
+    effects: [{ type: 'revive', value: 30, description: '复活并恢复 30% HP' }]
   },
   // 材料
   {
@@ -157,19 +201,35 @@ const mockInventoryItems: InventoryItem[] = [
     characterId: 'mock-char-1',
     itemId: 1003,
     item: mockItemTemplates.find(i => i.itemId === 1003)!,
-    quantity: 8,
-    obtainedAt: '2026-04-22T12:00:00Z'
+    quantity: 2,
+    obtainedAt: '2026-04-30T11:00:00Z'
   },
   {
     id: 'inv-004',
     characterId: 'mock-char-1',
     itemId: 1004,
     item: mockItemTemplates.find(i => i.itemId === 1004)!,
+    quantity: 8,
+    obtainedAt: '2026-04-22T12:00:00Z'
+  },
+  {
+    id: 'inv-005',
+    characterId: 'mock-char-1',
+    itemId: 1006,
+    item: mockItemTemplates.find(i => i.itemId === 1006)!,
     quantity: 3,
     obtainedAt: '2026-04-28T15:00:00Z'
   },
   {
-    id: 'inv-005',
+    id: 'inv-006',
+    characterId: 'mock-char-1',
+    itemId: 1009,
+    item: mockItemTemplates.find(i => i.itemId === 1009)!,
+    quantity: 1,
+    obtainedAt: '2026-04-29T09:00:00Z'
+  },
+  {
+    id: 'inv-007',
     characterId: 'mock-char-1',
     itemId: 2001,
     item: mockItemTemplates.find(i => i.itemId === 2001)!,
@@ -177,7 +237,7 @@ const mockInventoryItems: InventoryItem[] = [
     obtainedAt: '2026-04-21T09:00:00Z'
   },
   {
-    id: 'inv-006',
+    id: 'inv-008',
     characterId: 'mock-char-1',
     itemId: 2002,
     item: mockItemTemplates.find(i => i.itemId === 2002)!,
@@ -185,7 +245,7 @@ const mockInventoryItems: InventoryItem[] = [
     obtainedAt: '2026-04-26T14:00:00Z'
   },
   {
-    id: 'inv-007',
+    id: 'inv-009',
     characterId: 'mock-char-1',
     itemId: 2003,
     item: mockItemTemplates.find(i => i.itemId === 2003)!,
@@ -193,7 +253,7 @@ const mockInventoryItems: InventoryItem[] = [
     obtainedAt: '2026-04-29T18:00:00Z'
   },
   {
-    id: 'inv-008',
+    id: 'inv-010',
     characterId: 'mock-char-1',
     itemId: 2005,
     item: mockItemTemplates.find(i => i.itemId === 2005)!,
@@ -312,6 +372,8 @@ async function mockUseItem(characterId: string, inventoryId: string, quantity: n
       } else if (eff.type === 'add_exp') {
         totalExp += totalValue
         effects.push(`获得 ${totalValue} EXP`)
+      } else if (eff.type === 'revive') {
+        effects.push(`复活并恢复 ${eff.value}% HP`)
       }
     }
   }
@@ -329,6 +391,8 @@ async function mockUseItem(characterId: string, inventoryId: string, quantity: n
   if (totalHealHp > 0) messageParts.push(`恢复 ${totalHealHp} 点生命值`)
   if (totalHealMp > 0) messageParts.push(`恢复 ${totalHealMp} 点魔法值`)
   if (totalExp > 0) messageParts.push(`获得 ${totalExp} 点经验值`)
+  const hasRevive = invItem.item.effects?.some(e => e.type === 'revive')
+  if (hasRevive) messageParts.push('角色已复活')
   const message = messageParts.length > 0 ? `成功使用 ${invItem.item.name}×${quantity}，${messageParts.join('、')}` : '使用成功'
 
   return { code: 200, message: '使用成功', data: { effects, message } }

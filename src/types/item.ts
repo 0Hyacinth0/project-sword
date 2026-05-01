@@ -64,6 +64,12 @@ export interface InventoryItem {
 /** 背包标签页类型 */
 export type BackpackTab = 'all' | ItemCategory
 
+/** 背包排序字段 */
+export type SortField = 'name' | 'rarity' | 'quantity' | 'obtainedAt' | 'sellPrice'
+
+/** 排序方向 */
+export type SortOrder = 'asc' | 'desc'
+
 /** 物品使用结果（后端返回） */
 export interface UseItemResult {
   /** 效果描述列表 */

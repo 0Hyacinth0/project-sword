@@ -295,10 +295,14 @@
    右侧面板 - 背包
    ══════════════════════════════════════════ */
 .game-right {
-  width: 280px;
-  min-width: 280px;
+  width: 360px;
+  min-width: 360px;
   display: flex;
   flex-direction: column;
+}
+
+.game-right > .game-panel {
+  flex: 1;
 }
 
 /* ── 背包标签 ── */
@@ -338,11 +342,85 @@
   color: var(--button-text);
 }
 
+/* ── 背包工具栏 ── */
+.backpack-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.backpack-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  background: rgba(128, 128, 128, 0.08);
+  border: 1px solid var(--border-light);
+}
+
+.backpack-search__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.backpack-search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: var(--font-size-small);
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.backpack-search__input::placeholder {
+  color: var(--text-muted);
+}
+
+.backpack-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.backpack-filter-select {
+  flex: 1;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: rgba(128, 128, 128, 0.08);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+}
+
+.backpack-sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+}
+
+.backpack-sort-btn:hover {
+  background: rgba(128, 128, 128, 0.16);
+  color: var(--text-primary);
+}
+
 /* ── 背包网格 ── */
 .backpack-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
   flex: 1;
   align-content: start;
 }
@@ -445,7 +523,7 @@
   }
 
   .backpack-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
