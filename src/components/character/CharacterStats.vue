@@ -118,11 +118,33 @@
     <div class="char-stats__section">
       <div class="char-stats__title">衍生属性</div>
       <div class="char-stats__grid">
-        <CharacterStatItem label="物攻" :value="character.physicalAttack" />
-        <CharacterStatItem label="魔攻" :value="character.magicAttack" />
-        <CharacterStatItem label="防御" :value="character.defense" />
-        <CharacterStatItem label="闪避" :value="character.dodgeRate" :show-percent="true" />
-        <CharacterStatItem label="暴击" :value="character.criticalRate" :show-percent="true" />
+        <CharacterStatItem label="物攻" :value="statsBreakdown.total.physicalAttack" />
+        <CharacterStatItem label="魔攻" :value="statsBreakdown.total.magicAttack" />
+        <CharacterStatItem label="防御" :value="statsBreakdown.total.defense" />
+        <CharacterStatItem label="闪避" :value="statsBreakdown.total.dodgeRate" :show-percent="true" />
+        <CharacterStatItem label="暴击" :value="statsBreakdown.total.criticalRate" :show-percent="true" />
+      </div>
+
+      <!-- 属性加成明细 -->
+      <div class="char-stats__breakdown">
+        <div class="char-stats__breakdown-row">
+          <span class="char-stats__breakdown-label">基础</span>
+          <span class="char-stats__breakdown-value">物攻 {{ statsBreakdown.base.physicalAttack }} · 魔攻 {{ statsBreakdown.base.magicAttack }} · 防御 {{ statsBreakdown.base.defense }}</span>
+        </div>
+        <div class="char-stats__breakdown-row">
+          <span class="char-stats__breakdown-label">装备</span>
+          <span class="char-stats__breakdown-value char-stats__breakdown-value--equip">物攻 +{{ statsBreakdown.equipment.physicalAttack }} · 防御 +{{ statsBreakdown.equipment.defense }}</span>
+        </div>
+        <div v-if="hasPetBonus" class="char-stats__breakdown-row">
+          <span class="char-stats__breakdown-label">战宠</span>
+          <span class="char-stats__breakdown-value char-stats__breakdown-value--pet">
+            <template v-if="statsBreakdown.pet.hp">生命 +{{ statsBreakdown.pet.hp }}</template>
+            <template v-if="statsBreakdown.pet.attack"> · 攻击 +{{ statsBreakdown.pet.attack }}</template>
+            <template v-if="statsBreakdown.pet.defense"> · 防御 +{{ statsBreakdown.pet.defense }}</template>
+            <template v-if="statsBreakdown.pet.criticalRate"> · 暴击 +{{ (statsBreakdown.pet.criticalRate * 100).toFixed(1) }}%</template>
+            <template v-if="statsBreakdown.pet.dodgeRate"> · 闪避 +{{ (statsBreakdown.pet.dodgeRate * 100).toFixed(1) }}%</template>
+          </span>
+        </div>
       </div>
     </div>
 
@@ -152,7 +174,9 @@ import { Sparkles } from 'lucide-vue-next'
 import type { CharacterInfo } from '../../api/character'
 import type { LevelUpResult } from '../../utils/levelConfig'
 import type { UpdateAttributesParams } from '../../api/character'
+import type { PetInfo } from '../../types/pet'
 import { getJobConfigByProfession } from '../../config/job_config'
+import { calculateFullStats } from '../../utils/attributeCalculator'
 import { useCharacterStore } from '../../stores/character'
 import CharacterStatItem from './CharacterStatItem.vue'
 import CharacterAttributePoint from './CharacterAttributePoint.vue'
@@ -168,6 +192,7 @@ import LevelUpModal from '../common/LevelUpModal.vue'
 
 interface Props {
   character: CharacterInfo
+  activePet?: PetInfo | null
   levelUpResult?: LevelUpResult | null
 }
 
@@ -229,6 +254,22 @@ const hpPercent = computed(() => {
 /** MP百分比 */
 const mpPercent = computed(() => {
   return Math.max(0, Math.min(100, (props.character.mp / props.character.maxMp) * 100))
+})
+
+/** 属性加成明细（基础 + 装备 + 战宠） */
+const statsBreakdown = computed(() => {
+  return calculateFullStats(
+    { strength: props.character.strength, intelligence: props.character.intelligence, agility: props.character.agility },
+    props.character.profession,
+    props.character.equipment,
+    props.activePet?.bonusToOwner ?? null
+  )
+})
+
+/** 战宠加成是否有值 */
+const hasPetBonus = computed(() => {
+  const p = statsBreakdown.value.pet
+  return !!(p.hp || p.attack || p.defense || p.criticalRate || p.dodgeRate)
 })
 
 /**
@@ -439,5 +480,40 @@ async function handleConfirm(points: { str: number; int: number; agi: number }) 
   background: rgba(245, 158, 11, 0.1);
   font-size: var(--font-size-xs, 12px);
   color: var(--accent-gold, #f59e0b);
+}
+
+/* 属性加成明细 */
+.char-stats__breakdown {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.char-stats__breakdown-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.char-stats__breakdown-label {
+  color: var(--text-muted, rgba(0, 0, 0, 0.4));
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.char-stats__breakdown-value {
+  color: var(--text-muted, rgba(0, 0, 0, 0.5));
+}
+
+.char-stats__breakdown-value--equip {
+  color: var(--accent-blue, #0071e3);
+}
+
+.char-stats__breakdown-value--pet {
+  color: var(--accent-green, #34c759);
 }
 </style>

@@ -118,10 +118,11 @@ const mockCharacters: CharacterInfo[] = [
           { key: 'criticalRate', value: 0.02 },
           { key: 'agility', value: 2 }
         ],
+        enhanceLevel: 3,
         setId: 'set-001',
         setName: '勇者之证'
       },
-      helmet: { id: 'eq-005', name: '铁盔', rarity: 'Normal', slotType: 'helmet', stats: { defense: 3, hp: 20 } },
+      helmet: { id: 'eq-005', name: '铁盔', rarity: 'Normal', slotType: 'helmet', stats: { defense: 3, hp: 20 }, enhanceLevel: 1 },
       chest: { id: 'eq-002', name: '铁甲胸铠', rarity: 'Normal', slotType: 'chest', stats: { defense: 8, hp: 50 } },
       legs: { id: 'eq-006', name: '战靴', rarity: 'Normal', slotType: 'legs', stats: { defense: 4, agility: 2 } },
       accessory1: {
@@ -186,6 +187,7 @@ const mockCharacters: CharacterInfo[] = [
           { key: 'criticalRate', value: 0.03 },
           { key: 'hp', value: 35 }
         ],
+        enhanceLevel: 5,
         setId: 'set-002',
         setName: '冰霜之心'
       },
@@ -477,6 +479,72 @@ async function mockAddExperience(params: AddExperienceParams): Promise<ApiRespon
     data: {
       character: { ...char },
       levelUp: levelUpResult.levelsGained > 0 ? levelUpResult : null
+    }
+  }
+}
+
+// ──────────────────────────────────────────
+// 装备强化
+// ──────────────────────────────────────────
+
+/** 强化结果 */
+export interface EnhanceResult {
+  success: boolean
+  newLevel: number
+  message: string
+  character: CharacterInfo
+}
+
+/**
+ * 强化装备
+ * @param characterId - 角色 UUID
+ * @param slotType - 要强化的装备槽位
+ */
+export async function enhanceEquipmentApi(characterId: string, slotType: string): Promise<ApiResponse<EnhanceResult>> {
+  if (isMockEnabled()) {
+    return mockEnhanceEquipment(characterId, slotType)
+  }
+  const res = await request.post<ApiResponse<EnhanceResult>>('/equipment/enhance', {
+    characterId,
+    slotType
+  })
+  return res.data
+}
+
+/**
+ * Mock：强化装备
+ */
+async function mockEnhanceEquipment(characterId: string, slotType: string): Promise<ApiResponse<EnhanceResult>> {
+  await delay(600)
+
+  const char = mockCharacters.find(c => c.id === characterId)
+  if (!char) {
+    return { code: 404, message: '角色不存在', data: null as unknown as EnhanceResult }
+  }
+
+  const slot = slotType as keyof EquipmentSlots
+  const equip = char.equipment[slot]
+  if (!equip) {
+    return { code: 400, message: '该槽位没有装备', data: null as unknown as EnhanceResult }
+  }
+
+  const currentLevel = equip.enhanceLevel || 0
+  if (currentLevel >= 10) {
+    return { code: 400, message: '已达最大强化等级', data: null as unknown as EnhanceResult }
+  }
+
+  // Mock 简化：直接强化成功
+  const newLevel = currentLevel + 1
+  equip.enhanceLevel = newLevel
+
+  return {
+    code: 200,
+    message: `强化成功！当前等级 +${newLevel}`,
+    data: {
+      success: true,
+      newLevel,
+      message: `强化成功！${equip.name} 强化至 +${newLevel}`,
+      character: { ...char }
     }
   }
 }

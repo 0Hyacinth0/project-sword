@@ -42,6 +42,7 @@
       <CharacterStats
         v-if="activeTab === 'stats'"
         :character="character"
+        :active-pet="activePet"
         :level-up-result="levelUpResult"
         @refresh="handleRefresh"
       />
@@ -55,13 +56,25 @@
         :set-bonuses="setBonuses"
         @click-slot="handleClickSlot"
         @unequip="handleUnequip"
+        @enhance="handleEnhance"
       />
 
-      <!-- 战宠概览 -->
-      <CharacterPetCard
+      <!-- 战宠列表 -->
+      <PetListPanel
         v-if="activeTab === 'pet'"
-        :pet="character?.activePet ?? null"
-        @click="handlePetClick"
+        :pets="petList"
+        :capacity="petCapacity"
+        :exp-items="expItems"
+        :equip-items="equipItems"
+        :loading="petLoading"
+        @set-active="handleSetActivePet"
+        @feed="handleFeedPet"
+        @evolve="handleEvolvePet"
+        @rename="handleRenamePet"
+        @equip-skill="handleEquipSkill"
+        @unequip-skill="handleUnequipSkill"
+        @equip-item="handleEquipItem"
+        @unequip-item="handleUnequipItem"
       />
     </div>
   </div>
@@ -72,9 +85,11 @@ import { ref, computed, type Component } from 'vue'
 import { Activity, Shirt, PawPrint } from 'lucide-vue-next'
 import CharacterStats from './CharacterStats.vue'
 import CharacterEquipmentGrid from './CharacterEquipmentGrid.vue'
-import CharacterPetCard from './CharacterPetCard.vue'
+import PetListPanel from '../pet/PetListPanel.vue'
 import type { CharacterInfo } from '../../api/character'
 import type { EquipmentSlotType, SetBonus } from '../../types/equipment'
+import type { PetInfo, PetCapacity } from '../../types/pet'
+import type { InventoryItem } from '../../types/item'
 import type { LevelUpResult } from '../../utils/levelConfig'
 import { getJobConfigByProfession } from '../../config/job_config'
 
@@ -91,6 +106,11 @@ import { getJobConfigByProfession } from '../../config/job_config'
 interface Props {
   character: CharacterInfo
   setBonuses?: SetBonus[]
+  petList?: PetInfo[]
+  petCapacity?: PetCapacity
+  petLoading?: boolean
+  expItems?: InventoryItem[]
+  equipItems?: InventoryItem[]
   levelUpResult?: LevelUpResult | null
 }
 
@@ -98,11 +118,27 @@ interface Emits {
   (e: 'refresh'): void
   (e: 'clickSlot', slot: EquipmentSlotType): void
   (e: 'unequip-slot', slotType: EquipmentSlotType): void
-  (e: 'clickPet'): void
+  (e: 'enhance-slot', slotType: EquipmentSlotType): void
+  (e: 'set-active-pet', petId: string): void
+  (e: 'feed-pet', petId: string, inventoryId: string, quantity: number): void
+  (e: 'evolve-pet', petId: string): void
+  (e: 'rename-pet', petId: string, nickname: string): void
+  (e: 'equip-skill', petId: string, skillId: number, slotIndex: number): void
+  (e: 'unequip-skill', petId: string, slotIndex: number): void
+  (e: 'equip-item', petId: string, inventoryId: string, slotType: 'armor' | 'accessory'): void
+  (e: 'unequip-item', petId: string, slotType: 'armor' | 'accessory'): void
   (e: 'levelUpHandled'): void
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  setBonuses: () => [],
+  petList: () => [],
+  petCapacity: () => ({ max: 3, current: 0 }),
+  petLoading: false,
+  expItems: () => [],
+  equipItems: () => [],
+  levelUpResult: null
+})
 const emit = defineEmits<Emits>()
 
 /** 当前激活的标签页 */
@@ -119,6 +155,9 @@ const tabs: Array<{ key: 'stats' | 'equipment' | 'pet'; label: string; icon: Com
 const jobConfig = computed(() => {
   return getJobConfigByProfession(props.character.profession)
 })
+
+/** 出战战宠（从 petList 中找到 isActive 的那只） */
+const activePet = computed(() => props.petList.find(p => p.isActive) ?? null)
 
 /**
  * 刷新角色数据
@@ -142,10 +181,66 @@ function handleUnequip(slotType: EquipmentSlotType) {
 }
 
 /**
- * 点击战宠卡片
+ * 强化装备
  */
-function handlePetClick() {
-  emit('clickPet')
+function handleEnhance(slotType: EquipmentSlotType) {
+  emit('enhance-slot', slotType)
+}
+
+/**
+ * 设置出战战宠
+ */
+function handleSetActivePet(petId: string) {
+  emit('set-active-pet', petId)
+}
+
+/**
+ * 喂食战宠
+ */
+function handleFeedPet(petId: string, inventoryId: string, quantity: number) {
+  emit('feed-pet', petId, inventoryId, quantity)
+}
+
+/**
+ * 进化战宠
+ */
+function handleEvolvePet(petId: string) {
+  emit('evolve-pet', petId)
+}
+
+/**
+ * 重命名战宠
+ */
+function handleRenamePet(petId: string, nickname: string) {
+  emit('rename-pet', petId, nickname)
+}
+
+/**
+ * 装备技能
+ */
+function handleEquipSkill(petId: string, skillId: number, slotIndex: number) {
+  emit('equip-skill', petId, skillId, slotIndex)
+}
+
+/**
+ * 卸下技能
+ */
+function handleUnequipSkill(petId: string, slotIndex: number) {
+  emit('unequip-skill', petId, slotIndex)
+}
+
+/**
+ * 穿戴战宠装备
+ */
+function handleEquipItem(petId: string, inventoryId: string, slotType: 'armor' | 'accessory') {
+  emit('equip-item', petId, inventoryId, slotType)
+}
+
+/**
+ * 卸下战宠装备
+ */
+function handleUnequipItem(petId: string, slotType: 'armor' | 'accessory') {
+  emit('unequip-item', petId, slotType)
 }
 </script>
 

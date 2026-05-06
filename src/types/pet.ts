@@ -2,6 +2,7 @@
  * 战宠相关类型定义
  * 与后端战宠数据结构对应
  */
+import type { Equipment } from './equipment'
 
 /** 战宠稀有度（品质）：N/R/SR/SSR */
 export type PetRarity = 1 | 2 | 3 | 4
@@ -31,13 +32,14 @@ export interface PetSkill {
   type: string               // 技能类型（主动攻击/被动）
   power?: number             // 技能威力
   cooldown?: number          // 冷却回合数
+  learnLevel?: number        // 习得所需等级（0 = 进化专属）
   description?: string       // 技能描述
 }
 
 /** 战宠装备 */
 export interface PetEquipment {
-  armor: string | null       // 护甲装备 ID
-  accessory: string | null   // 饰品装备 ID
+  armor: Equipment | null       // 护甲装备
+  accessory: Equipment | null   // 饰品装备
 }
 
 /** 战宠基本信息（概览用） */
@@ -52,7 +54,8 @@ export interface PetInfo {
   isActive: boolean          // 是否出战
   stats: PetStats            // 战宠属性
   bonusToOwner: PetOwnerBonus // 给主人的加成
-  skills?: PetSkill[]        // 技能列表（可选）
+  skills?: PetSkill[]        // 已装备技能（最多3个）
+  learnedSkills?: PetSkill[] // 已学会的全部技能
   equipment?: PetEquipment   // 装备（可选）
 }
 

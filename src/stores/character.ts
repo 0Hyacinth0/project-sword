@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi, updateAttributesApi, equipItemApi, unequipItemApi } from '../api'
+import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi, updateAttributesApi, equipItemApi, unequipItemApi, enhanceEquipmentApi } from '../api'
 import type { CharacterInfo, CreateCharacterParams, UpdateAttributesParams } from '../api'
 import type { EquipmentSlotType } from '../types/equipment'
 
@@ -197,6 +197,28 @@ export const useCharacterStore = defineStore('character', () => {
     }
   }
 
+  /** 强化装备 */
+  async function enhanceItem(characterId: string, slotType: EquipmentSlotType): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const res = await enhanceEquipmentApi(characterId, slotType)
+      if (res.code === 200 && res.data.success) {
+        characterDetail.value = res.data.character
+        const index = characters.value.findIndex(c => c.id === characterId)
+        if (index !== -1) {
+          characters.value[index] = res.data.character
+        }
+        return { success: true, message: res.data.message }
+      }
+      return { success: false, message: res.data?.message || res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '强化失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 清除（登出时调用） */
   function clear() {
     characters.value = []
@@ -224,6 +246,7 @@ export const useCharacterStore = defineStore('character', () => {
     updateAttributes,
     equipItem,
     unequipItem,
+    enhanceItem,
     clear
   }
 })

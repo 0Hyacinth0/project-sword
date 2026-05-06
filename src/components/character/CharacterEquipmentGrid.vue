@@ -150,13 +150,19 @@
         <div class="equip-detail__header">
           <span class="equip-detail__name" :style="{ color: rarityColor(selectedEquipment.rarity) }">
             {{ selectedEquipment.name }}
+            <span v-if="selectedEquipment.enhanceLevel" class="equip-detail__enhance">
+              +{{ selectedEquipment.enhanceLevel }}
+            </span>
           </span>
           <span class="equip-detail__rarity">{{ rarityLabel(selectedEquipment.rarity) }}</span>
         </div>
         <div class="equip-detail__stats">
           <div v-for="(value, key) in selectedEquipment.stats" :key="key" class="equip-detail__stat">
             <span class="equip-detail__stat-label">{{ statLabel(key as string) }}</span>
-            <span class="equip-detail__stat-value">+{{ value }}</span>
+            <span class="equip-detail__stat-value">
+              +{{ getEnhancedValue(value, selectedEquipment.enhanceLevel || 0, selectedEquipment.rarity) }}
+              <span v-if="selectedEquipment.enhanceLevel" class="equip-detail__stat-base">({{ value }})</span>
+            </span>
           </div>
         </div>
         <!-- 随机词条 -->
@@ -171,6 +177,30 @@
         </div>
         <div v-if="selectedEquipment.description" class="equip-detail__desc">
           {{ selectedEquipment.description }}
+        </div>
+        <!-- 强化区域 -->
+        <div class="equip-detail__enhance-section">
+          <div class="equip-detail__enhance-info">
+            <span class="equip-detail__enhance-label">强化等级</span>
+            <span class="equip-detail__enhance-value">{{ selectedEquipment.enhanceLevel || 0 }}/{{ MAX_ENHANCE_LEVEL }}</span>
+          </div>
+          <div v-if="enhanceCostPreview" class="equip-detail__enhance-cost">
+            <div v-for="(qty, materialId) in enhanceCostPreview.materials" :key="materialId" class="equip-detail__enhance-cost-item">
+              {{ ENHANCE_MATERIAL_NAMES[materialId as unknown as number] || '材料' }} ×{{ qty }}
+            </div>
+            <div class="equip-detail__enhance-cost-item">{{ enhanceCostPreview.gold }} 金币</div>
+            <div class="equip-detail__enhance-cost-item equip-detail__enhance-rate">
+              成功率 {{ (enhanceCostPreview.successRate * 100).toFixed(0) }}%
+            </div>
+          </div>
+          <button
+            v-if="enhanceCostPreview"
+            class="equip-detail__enhance-btn"
+            @click="handleEnhance"
+          >
+            强化 +{{ (selectedEquipment.enhanceLevel || 0) + 1 }}
+          </button>
+          <div v-else class="equip-detail__enhance-max">已达最大强化等级</div>
         </div>
         <button class="equip-detail__unequip-btn" @click="handleUnequip">
           卸下装备
@@ -219,6 +249,7 @@ import { Sword, Sparkles, Target } from 'lucide-vue-next'
 import type { EquipmentSlots, EquipmentSlotType, EquipmentRarity, SetBonus } from '../../types/equipment'
 import { getSlotConfig, RARITY_COLORS, RARITY_LABELS, RARITY_CSS_VAR, RARITY_LEVEL } from '../../config/equipment_config'
 import { formatAffixValue } from '../../config/affix_config'
+import { getEnhancedValue, formatEnhanceLevel, getEnhanceCost, ENHANCE_MATERIAL_NAMES, MAX_ENHANCE_LEVEL } from '../../config/enhance_config'
 import { getJobConfigByProfession } from '../../config/job_config'
 
 /**
@@ -241,6 +272,7 @@ interface Props {
 interface Emits {
   (e: 'clickSlot', slot: EquipmentSlotType): void
   (e: 'unequip', slotType: EquipmentSlotType): void
+  (e: 'enhance', slotType: EquipmentSlotType): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -354,6 +386,24 @@ function handleUnequip() {
   emit('unequip', selectedSlot.value)
   selectedSlot.value = null
 }
+
+/**
+ * 强化当前选中的装备
+ */
+function handleEnhance() {
+  if (!selectedSlot.value) return
+  emit('enhance', selectedSlot.value)
+}
+
+/**
+ * 获取当前装备的强化消耗预览
+ */
+const enhanceCostPreview = computed(() => {
+  if (!selectedEquipment.value) return null
+  const level = selectedEquipment.value.enhanceLevel || 0
+  if (level >= MAX_ENHANCE_LEVEL) return null
+  return getEnhanceCost(level)
+})
 </script>
 
 <style scoped>
@@ -567,6 +617,20 @@ function handleUnequip() {
   font-weight: 600;
 }
 
+.equip-detail__enhance {
+  font-size: var(--font-size-xs, 12px);
+  color: var(--accent-gold, #f59e0b);
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.equip-detail__stat-base {
+  font-size: 9px;
+  color: var(--text-muted, rgba(0, 0, 0, 0.4));
+  font-weight: 400;
+  margin-left: 2px;
+}
+
 .equip-detail__rarity {
   font-size: var(--font-size-xs, 12px);
   color: var(--text-muted, rgba(0, 0, 0, 0.5));
@@ -644,6 +708,75 @@ function handleUnequip() {
 
 .equip-detail__unequip-btn:hover {
   background: rgba(255, 59, 48, 0.2);
+}
+
+/* ── 强化区域 ── */
+.equip-detail__enhance-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.equip-detail__enhance-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: var(--font-size-xs, 12px);
+}
+
+.equip-detail__enhance-label {
+  color: var(--text-muted, rgba(0, 0, 0, 0.5));
+}
+
+.equip-detail__enhance-value {
+  color: var(--accent-gold, #f59e0b);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.equip-detail__enhance-cost {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.equip-detail__enhance-cost-item {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.1);
+  color: var(--text-primary);
+}
+
+.equip-detail__enhance-rate {
+  color: var(--accent-green, #34c759);
+  background: rgba(52, 199, 89, 0.1);
+}
+
+.equip-detail__enhance-btn {
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent-gold, #f59e0b);
+  color: #fff;
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.equip-detail__enhance-btn:hover {
+  opacity: 0.85;
+}
+
+.equip-detail__enhance-max {
+  text-align: center;
+  font-size: var(--font-size-xs, 12px);
+  color: var(--text-muted, rgba(0, 0, 0, 0.4));
+  padding: 4px 0;
 }
 
 /* ── 详情过渡动画 ── */

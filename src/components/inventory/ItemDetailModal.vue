@@ -59,6 +59,9 @@
             <div v-if="!currentEquipment" class="item-modal__compare-empty">
               该槽位当前空闲，装备后直接获得以上属性
             </div>
+            <div v-if="currentEquipment?.enhanceLevel" class="item-modal__compare-enhance">
+              当前装备已强化至 +{{ currentEquipment.enhanceLevel }}，属性已包含强化加成
+            </div>
           </div>
 
           <!-- 随机词条（稀有以上装备） -->
@@ -203,10 +206,10 @@
 import { computed, ref } from 'vue'
 import { X, Sparkles, Trash2, Minus, Plus } from 'lucide-vue-next'
 import type { InventoryItem } from '../../types/item'
-import type { Equipment } from '../../types/equipment'
 import { getRarityColor, getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel, RARITY_COLORS } from '../../config/item_config'
 import { AFFIX_LABELS, formatAffixValue } from '../../config/affix_config'
-import type { ExtraStat } from '../../types/equipment'
+import { getEnhancedValue } from '../../config/enhance_config'
+import type { ExtraStat, Equipment, EquipmentRarity } from '../../types/equipment'
 
 /**
  * 物品详情弹窗组件
@@ -285,13 +288,21 @@ const STAT_LABELS: Record<string, string> = {
 }
 
 /**
- * 获取装备某属性的总值（基础 stats + extraStats）
+ * 获取装备某属性的总值（基础 stats + 强化加成 + extraStats）
  */
-function getTotalStat(stats: Record<string, number | undefined> | undefined, extraStats?: ExtraStat[]): (key: string) => number {
+function getTotalStat(
+  stats: Record<string, number | undefined> | undefined,
+  extraStats?: ExtraStat[],
+  enhanceLevel?: number,
+  rarity?: EquipmentRarity
+): (key: string) => number {
   return (key: string) => {
     const base = stats?.[key] ?? 0
+    // 强化加成（仅对基础属性生效）
+    const enhanced = getEnhancedValue(base, enhanceLevel || 0, rarity || 'Normal')
+    // 随机词条加成
     const extra = extraStats?.filter(s => s.key === key).reduce((sum, s) => sum + s.value, 0) ?? 0
-    return base + extra
+    return enhanced + extra
   }
 }
 
@@ -311,15 +322,20 @@ const allStatKeys = computed(() => {
   return [...keys]
 })
 
-/** 属性对比数据（合并基础属性 + 随机词条） */
+/** 属性对比数据（合并基础属性 + 强化加成 + 随机词条） */
 const compareStats = computed(() => {
   const getCurrent = getTotalStat(
     props.currentEquipment?.stats,
-    props.currentEquipment?.extraStats
+    props.currentEquipment?.extraStats,
+    props.currentEquipment?.enhanceLevel,
+    props.currentEquipment?.rarity
   )
+  // 背包中的装备暂无强化等级（新获取的装备）
   const getPending = getTotalStat(
     props.item?.item.stats as Record<string, number | undefined> | undefined,
-    props.item?.extraStats
+    props.item?.extraStats,
+    0,
+    props.item?.item.rarity as EquipmentRarity
   )
   return allStatKeys.value.map(key => {
     const current = getCurrent(key)
@@ -542,6 +558,14 @@ function handleEquip() {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
   text-align: center;
+}
+
+.item-modal__compare-enhance {
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--accent-gold, #f59e0b);
+  text-align: center;
+  border-top: 1px solid var(--border-light);
 }
 
 /* ── 随机词条 ── */

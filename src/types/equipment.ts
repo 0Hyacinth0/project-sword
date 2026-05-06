@@ -39,6 +39,7 @@ export interface Equipment {
   slotType: EquipmentSlotType // 槽位类型
   stats: EquipmentStats      // 装备基础属性
   extraStats?: ExtraStat[]   // 随机词条（稀有以上装备）
+  enhanceLevel?: number      // 强化等级（0-10，默认0）
   setId?: string             // 套装 ID（可选）
   setName?: string           // 套装名称（可选）
   iconUrl?: string           // 图标 URL（可选）

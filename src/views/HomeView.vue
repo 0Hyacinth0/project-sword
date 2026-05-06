@@ -38,8 +38,22 @@
             v-if="charDetail"
             :character="charDetail"
             :set-bonuses="activeSetBonuses"
+            :pet-list="petList"
+            :pet-capacity="petCapacity"
+            :pet-loading="petLoading"
+            :exp-items="expItems"
+            :equip-items="equipItems"
             @refresh="refreshCharacter"
             @unequip-slot="handleUnequip"
+            @enhance-slot="handleEnhance"
+            @set-active-pet="handleSetActivePet"
+            @feed-pet="handleFeedPet"
+            @evolve-pet="handleEvolvePet"
+            @rename-pet="handleRenamePet"
+            @equip-skill="handleEquipSkill"
+            @unequip-skill="handleUnequipSkill"
+            @equip-item="handleEquipPetItem"
+            @unequip-item="handleUnequipPetItem"
           />
           <div v-else class="char-info__empty">
             <span style="color: var(--text-muted)">未选择角色</span>
@@ -187,6 +201,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
 import { useInventoryStore } from '../stores/inventory'
+import { getPetListApi, setActivePetApi, feedPetApi, evolvePetApi, renamePetApi, equipSkillApi, unequipSkillApi, equipPetItemApi, unequipPetItemApi } from '../api/pet'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
 import BackpackGrid from '../components/inventory/BackpackGrid.vue'
@@ -195,6 +210,7 @@ import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
 import { calculateSetBonuses } from '../config/set_config'
 import type { InventoryItem, ItemRarity, SortField } from '../types/item'
 import type { EquipmentSlotType } from '../types/equipment'
+import type { PetInfo, PetCapacity } from '../types/pet'
 import {
   Map, Swords, Users, Store, Package,
   LogOut, Loader2, Sparkles,
@@ -233,6 +249,24 @@ const loading = ref(false)
 
 /** 当前选中的物品（弹窗用） */
 const selectedItem = ref<InventoryItem | null>(null)
+
+/** 战宠列表 */
+const petList = ref<PetInfo[]>([])
+const petCapacity = ref<PetCapacity>({ max: 3, current: 0 })
+const petLoading = ref(false)
+
+/** 经验道具列表（喂食用） */
+const expItems = computed(() =>
+  inventory.items.filter(i =>
+    i.item.category === 'consumable' &&
+    i.item.effects?.some(e => e.type === 'add_exp')
+  )
+)
+
+/** 装备类物品列表（战宠穿脱用） */
+const equipItems = computed(() =>
+  inventory.items.filter(i => i.item.category === 'equipment')
+)
 
 /** 根据选中物品的 slotType 获取当前装备 */
 const currentEquipForSlot = computed(() => {
@@ -331,6 +365,22 @@ async function handleUnequip(slotType: EquipmentSlotType) {
   }
 }
 
+/**
+ * 强化装备
+ */
+async function handleEnhance(slotType: EquipmentSlotType) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await charStore.enhanceItem(characterId, slotType)
+  if (result.success) {
+    showToast(result.message)
+    await inventory.fetchInventory(characterId)
+  } else {
+    showToast(result.message)
+  }
+}
+
 /* ── 公告轮播 ── */
 interface Announcement {
   id: number
@@ -422,7 +472,205 @@ async function loadCharacterDetail() {
   loading.value = true
   await charStore.fetchCharacterDetail(characterId)
   await inventory.fetchInventory(characterId)
+  await fetchPetList(characterId)
   loading.value = false
+}
+
+/**
+ * 获取战宠列表
+ */
+async function fetchPetList(characterId: string) {
+  petLoading.value = true
+  try {
+    const res = await getPetListApi(characterId)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 设置出战战宠
+ */
+async function handleSetActivePet(petId: string) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await setActivePetApi(characterId, petId)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      await refreshCharacter()
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 喂食战宠
+ */
+async function handleFeedPet(petId: string, inventoryId: string, quantity: number) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await feedPetApi(characterId, petId, inventoryId, quantity)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      await inventory.fetchInventory(characterId)
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 进化战宠
+ */
+async function handleEvolvePet(petId: string) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await evolvePetApi(characterId, petId)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      await refreshCharacter()
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 重命名战宠
+ */
+async function handleRenamePet(petId: string, nickname: string) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await renamePetApi(characterId, petId, nickname)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 装备技能到槽位
+ */
+async function handleEquipSkill(petId: string, skillId: number, slotIndex: number) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await equipSkillApi(characterId, petId, skillId, slotIndex)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 卸下技能
+ */
+async function handleUnequipSkill(petId: string, slotIndex: number) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await unequipSkillApi(characterId, petId, slotIndex)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 给战宠穿戴装备
+ */
+async function handleEquipPetItem(petId: string, inventoryId: string, slotType: 'armor' | 'accessory') {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await equipPetItemApi(characterId, petId, inventoryId, slotType)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      await inventory.fetchInventory(characterId)
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
+}
+
+/**
+ * 卸下战宠装备
+ */
+async function handleUnequipPetItem(petId: string, slotType: 'armor' | 'accessory') {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  petLoading.value = true
+  try {
+    const res = await unequipPetItemApi(characterId, petId, slotType)
+    if (res.code === 200) {
+      petList.value = res.data.pets
+      petCapacity.value = res.data.capacity
+      await inventory.fetchInventory(characterId)
+      showToast(res.message)
+    } else {
+      showToast(res.message)
+    }
+  } finally {
+    petLoading.value = false
+  }
 }
 
 /**
