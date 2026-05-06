@@ -38,6 +38,7 @@
             v-if="charDetail"
             :character="charDetail"
             @refresh="refreshCharacter"
+            @unequip-slot="handleUnequip"
           />
           <div v-else class="char-info__empty">
             <span style="color: var(--text-muted)">未选择角色</span>
@@ -163,6 +164,7 @@
       @close="selectedItem = null"
       @use="handleUseItem"
       @discard="handleDiscardItem"
+      @equip="handleEquipItem"
     />
 
     <!-- Toast 提示 -->
@@ -189,6 +191,7 @@ import BackpackGrid from '../components/inventory/BackpackGrid.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
 import type { InventoryItem, ItemRarity, SortField } from '../types/item'
+import type { EquipmentSlotType } from '../types/equipment'
 import {
   Map, Swords, Users, Store, Package,
   LogOut, Loader2, Sparkles,
@@ -279,6 +282,41 @@ async function handleDiscardItem(inventoryId: string, quantity: number) {
     selectedItem.value = null
   } else if (inventory.actionErrorMsg) {
     showToast(inventory.actionErrorMsg)
+  }
+}
+
+/**
+ * 穿戴装备
+ */
+async function handleEquipItem(inventoryId: string) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await charStore.equipItem(characterId, inventoryId)
+  if (result.success) {
+    showToast('装备成功')
+    selectedItem.value = null
+    // 刷新背包（装备从背包移除）
+    await inventory.fetchInventory(characterId)
+  } else {
+    showToast(result.message)
+  }
+}
+
+/**
+ * 卸下装备
+ */
+async function handleUnequip(slotType: EquipmentSlotType) {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await charStore.unequipItem(characterId, slotType)
+  if (result.success) {
+    showToast('卸下成功')
+    // 刷新背包（装备回到背包）
+    await inventory.fetchInventory(characterId)
+  } else {
+    showToast(result.message)
   }
 }
 

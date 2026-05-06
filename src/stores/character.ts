@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi, updateAttributesApi } from '../api'
+import { getCharacterListApi, createCharacterApi, deleteCharacterApi, getCharacterInfoApi, updateAttributesApi, equipItemApi, unequipItemApi } from '../api'
 import type { CharacterInfo, CreateCharacterParams, UpdateAttributesParams } from '../api'
+import type { EquipmentSlotType } from '../types/equipment'
 
 /** 最大角色数 */
 const MAX_CHARACTERS = 3
@@ -152,6 +153,50 @@ export const useCharacterStore = defineStore('character', () => {
     }
   }
 
+  /** 穿戴装备 */
+  async function equipItem(characterId: string, inventoryId: string): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const res = await equipItemApi(characterId, inventoryId)
+      if (res.code === 200) {
+        characterDetail.value = res.data
+        const index = characters.value.findIndex(c => c.id === characterId)
+        if (index !== -1) {
+          characters.value[index] = res.data
+        }
+        return { success: true, message: res.message }
+      }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '穿戴装备失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /** 卸下装备 */
+  async function unequipItem(characterId: string, slotType: EquipmentSlotType): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const res = await unequipItemApi(characterId, slotType)
+      if (res.code === 200) {
+        characterDetail.value = res.data
+        const index = characters.value.findIndex(c => c.id === characterId)
+        if (index !== -1) {
+          characters.value[index] = res.data
+        }
+        return { success: true, message: res.message }
+      }
+      return { success: false, message: res.message }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '卸下装备失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   /** 清除（登出时调用） */
   function clear() {
     characters.value = []
@@ -177,6 +222,8 @@ export const useCharacterStore = defineStore('character', () => {
     createCharacter,
     deleteCharacter,
     updateAttributes,
+    equipItem,
+    unequipItem,
     clear
   }
 })

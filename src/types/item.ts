@@ -3,6 +3,8 @@
  * 消耗品、材料、装备的通用数据结构
  */
 
+import type { EquipmentSlotType, EquipmentStats } from './equipment'
+
 /** 物品分类 */
 export type ItemCategory = 'consumable' | 'material' | 'equipment'
 
@@ -43,6 +45,12 @@ export interface BaseItem {
   source?: string
   /** 材料用途描述（仅 category='material'） */
   usage?: string
+  /** 装备槽位类型（仅 category='equipment'） */
+  slotType?: EquipmentSlotType
+  /** 装备属性（仅 category='equipment'） */
+  stats?: EquipmentStats
+  /** 等级需求（仅 category='equipment'） */
+  levelRequirement?: number
 }
 
 /** 背包物品实例（对应后端 character_inventory 表） */

@@ -172,6 +172,67 @@ const mockItemTemplates: BaseItem[] = [
     sellPrice: 150,
     source: '精英副本、团队副本掉落',
     usage: '战宠进化（所有品质）'
+  },
+  // 装备
+  {
+    itemId: 3001,
+    name: '烈焰之刃',
+    category: 'equipment',
+    rarity: 'Epic',
+    description: '蕴含火焰之力的长剑，攻击时附带灼热效果。',
+    iconUrl: null,
+    maxStack: 1,
+    sellPrice: 500,
+    slotType: 'weapon',
+    stats: { physicalAttack: 25, strength: 5 }
+  },
+  {
+    itemId: 3002,
+    name: '秘银头盔',
+    category: 'equipment',
+    rarity: 'Rare',
+    description: '轻便坚固的秘银头盔，提供良好的头部防护。',
+    iconUrl: null,
+    maxStack: 1,
+    sellPrice: 150,
+    slotType: 'helmet',
+    stats: { defense: 6, hp: 40 }
+  },
+  {
+    itemId: 3003,
+    name: '守护胸甲',
+    category: 'equipment',
+    rarity: 'Rare',
+    description: '刻有守护符文的精良胸甲，能有效抵挡攻击。',
+    iconUrl: null,
+    maxStack: 1,
+    sellPrice: 200,
+    slotType: 'chest',
+    stats: { defense: 12, hp: 80 }
+  },
+  {
+    itemId: 3004,
+    name: '疾风护腿',
+    category: 'equipment',
+    rarity: 'Normal',
+    description: '轻便灵活的护腿，不影响行动速度。',
+    iconUrl: null,
+    maxStack: 1,
+    sellPrice: 80,
+    slotType: 'legs',
+    stats: { defense: 5, agility: 3 }
+  },
+  {
+    itemId: 3005,
+    name: '灵巧之戒',
+    category: 'equipment',
+    rarity: 'Epic',
+    description: '蕴含灵巧之力的戒指，提升闪避与暴击能力。',
+    iconUrl: null,
+    maxStack: 1,
+    sellPrice: 300,
+    slotType: 'accessory1',
+    stats: { criticalRate: 0.05, dodgeRate: 0.03, agility: 4 }
   }
 ]
 
@@ -259,6 +320,31 @@ const mockInventoryItems: InventoryItem[] = [
     item: mockItemTemplates.find(i => i.itemId === 2005)!,
     quantity: 1,
     obtainedAt: '2026-04-30T20:00:00Z'
+  },
+  // 背包中的装备物品
+  {
+    id: 'inv-011',
+    characterId: 'mock-char-1',
+    itemId: 3002,
+    item: mockItemTemplates.find(i => i.itemId === 3002)!,
+    quantity: 1,
+    obtainedAt: '2026-05-01T10:00:00Z'
+  },
+  {
+    id: 'inv-012',
+    characterId: 'mock-char-1',
+    itemId: 3004,
+    item: mockItemTemplates.find(i => i.itemId === 3004)!,
+    quantity: 1,
+    obtainedAt: '2026-05-01T12:00:00Z'
+  },
+  {
+    id: 'inv-013',
+    characterId: 'mock-char-1',
+    itemId: 3005,
+    item: mockItemTemplates.find(i => i.itemId === 3005)!,
+    quantity: 1,
+    obtainedAt: '2026-05-01T14:00:00Z'
   }
 ]
 

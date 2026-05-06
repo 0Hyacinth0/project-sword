@@ -76,6 +76,15 @@
               使用
             </button>
             <button
+              v-if="item.item.category === 'equipment'"
+              class="item-modal__btn item-modal__btn--use"
+              :disabled="actionLoading"
+              @click="handleEquip"
+            >
+              <Sparkles :size="14" />
+              装备
+            </button>
+            <button
               class="item-modal__btn item-modal__btn--discard"
               :disabled="actionLoading"
               @click="startAction('discard')"
@@ -174,6 +183,7 @@ interface Emits {
   (e: 'close'): void
   (e: 'use', inventoryId: string, quantity: number): void
   (e: 'discard', inventoryId: string, quantity: number): void
+  (e: 'equip', inventoryId: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -259,6 +269,14 @@ function executeDiscard() {
 function cancelAction() {
   activeAction.value = null
   selectedQuantity.value = 1
+}
+
+/**
+ * 装备物品
+ */
+function handleEquip() {
+  if (!props.item) return
+  emit('equip', props.item.id)
 }
 </script>
 

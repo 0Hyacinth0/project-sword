@@ -141,6 +141,9 @@
         <div v-if="selectedEquipment.description" class="equip-detail__desc">
           {{ selectedEquipment.description }}
         </div>
+        <button class="equip-detail__unequip-btn" @click="handleUnequip">
+          卸下装备
+        </button>
       </div>
     </Transition>
 
@@ -205,6 +208,7 @@ interface Props {
 
 interface Emits {
   (e: 'clickSlot', slot: EquipmentSlotType): void
+  (e: 'unequip', slotType: EquipmentSlotType): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -295,6 +299,15 @@ function handleSlotClick(slot: EquipmentSlotType) {
     selectedSlot.value = slot
     emit('clickSlot', slot)
   }
+}
+
+/**
+ * 卸下当前选中的装备
+ */
+function handleUnequip() {
+  if (!selectedSlot.value) return
+  emit('unequip', selectedSlot.value)
+  selectedSlot.value = null
 }
 </script>
 
@@ -489,6 +502,25 @@ function handleSlotClick(slot: EquipmentSlotType) {
   font-size: var(--font-size-xs, 12px);
   color: var(--text-muted, rgba(0, 0, 0, 0.5));
   line-height: 1.5;
+}
+
+/* 卸下按钮 */
+.equip-detail__unequip-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--accent-red, #ff3b30);
+  font-size: var(--font-size-xs, 12px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.equip-detail__unequip-btn:hover {
+  background: rgba(255, 59, 48, 0.2);
 }
 
 /* ── 详情过渡动画 ── */

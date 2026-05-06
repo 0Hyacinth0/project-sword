@@ -4,7 +4,7 @@
  */
 import request from './request'
 import type { ApiResponse } from './request'
-import type { EquipmentSlots } from '../types/equipment'
+import type { EquipmentSlots, EquipmentSlotType, Equipment } from '../types/equipment'
 import type { PetInfo } from '../types/pet'
 import { calculateBaseStats } from '../utils/attributeCalculator'
 import { calculateNextLevelExp, type LevelUpResult, calculateLevelUp } from '../utils/levelConfig'
@@ -107,11 +107,11 @@ const mockCharacters: CharacterInfo[] = [
     createTime: '2026-04-20T08:00:00Z',
     updateTime: '2026-04-28T10:00:00Z',
     equipment: {
-      weapon: { id: 'eq-001', name: '精钢长剑', rarity: 'Rare', slotType: 'weapon', stats: { physicalAttack: 15 } },
-      helmet: null,
+      weapon: { id: 'eq-001', name: '精钢长剑', rarity: 'Rare', slotType: 'weapon', stats: { physicalAttack: 15, strength: 3 }, setId: 'set-001', setName: '勇者之证' },
+      helmet: { id: 'eq-005', name: '铁盔', rarity: 'Normal', slotType: 'helmet', stats: { defense: 3, hp: 20 } },
       chest: { id: 'eq-002', name: '铁甲胸铠', rarity: 'Normal', slotType: 'chest', stats: { defense: 8, hp: 50 } },
-      legs: null,
-      accessory1: null,
+      legs: { id: 'eq-006', name: '战靴', rarity: 'Normal', slotType: 'legs', stats: { defense: 4, agility: 2 } },
+      accessory1: { id: 'eq-007', name: '力量戒指', rarity: 'Rare', slotType: 'accessory1', stats: { strength: 5, physicalAttack: 5 } },
       accessory2: null
     },
     activePet: {
@@ -153,12 +153,12 @@ const mockCharacters: CharacterInfo[] = [
     createTime: '2026-04-25T12:30:00Z',
     updateTime: '2026-04-29T08:00:00Z',
     equipment: {
-      weapon: { id: 'eq-003', name: '冰晶法杖', rarity: 'Epic', slotType: 'weapon', stats: { magicAttack: 20 } },
-      helmet: null,
-      chest: null,
+      weapon: { id: 'eq-003', name: '冰晶法杖', rarity: 'Epic', slotType: 'weapon', stats: { magicAttack: 25, intelligence: 8, mp: 50 }, setId: 'set-002', setName: '冰霜之心' },
+      helmet: { id: 'eq-008', name: '魔力冠', rarity: 'Rare', slotType: 'helmet', stats: { intelligence: 5, mp: 30 }, setId: 'set-002', setName: '冰霜之心' },
+      chest: { id: 'eq-009', name: '法师长袍', rarity: 'Epic', slotType: 'chest', stats: { defense: 5, mp: 80, magicAttack: 10 }, setId: 'set-002', setName: '冰霜之心' },
       legs: null,
-      accessory1: { id: 'eq-004', name: '魔力指环', rarity: 'Rare', slotType: 'accessory1', stats: { mp: 30 } },
-      accessory2: null
+      accessory1: { id: 'eq-004', name: '魔力指环', rarity: 'Rare', slotType: 'accessory1', stats: { mp: 30, intelligence: 3 } },
+      accessory2: { id: 'eq-010', name: '智慧耳环', rarity: 'Normal', slotType: 'accessory2', stats: { intelligence: 2 } }
     },
     activePet: null
   }
@@ -409,4 +409,105 @@ async function mockAddExperience(params: AddExperienceParams): Promise<ApiRespon
       levelUp: levelUpResult.levelsGained > 0 ? levelUpResult : null
     }
   }
+}
+
+// ──────────────────────────────────────────
+// 装备穿戴/卸下
+// ──────────────────────────────────────────
+
+/**
+ * 穿戴装备（从背包到装备栏）
+ * @param characterId - 角色 UUID
+ * @param inventoryId - 背包记录 ID
+ */
+export async function equipItemApi(characterId: string, inventoryId: string): Promise<ApiResponse<CharacterInfo>> {
+  if (isMockEnabled()) {
+    return mockEquipItem(characterId, inventoryId)
+  }
+  const res = await request.post<ApiResponse<CharacterInfo>>('/equipment/equip', {
+    characterId,
+    inventoryId
+  })
+  return res.data
+}
+
+/**
+ * 卸下装备（从装备栏到背包）
+ * @param characterId - 角色 UUID
+ * @param slotType - 要卸下的槽位类型
+ */
+export async function unequipItemApi(characterId: string, slotType: EquipmentSlotType): Promise<ApiResponse<CharacterInfo>> {
+  if (isMockEnabled()) {
+    return mockUnequipItem(characterId, slotType)
+  }
+  const res = await request.post<ApiResponse<CharacterInfo>>('/equipment/unequip', {
+    characterId,
+    slotType
+  })
+  return res.data
+}
+
+/**
+ * Mock：穿戴装备
+ */
+async function mockEquipItem(characterId: string, inventoryId: string): Promise<ApiResponse<CharacterInfo>> {
+  await delay(400)
+
+  const char = mockCharacters.find(c => c.id === characterId)
+  if (!char) {
+    return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
+  }
+
+  // 从 mockInventoryItems 中查找物品（需要跨模块访问，这里用简单匹配）
+  // 由于 inventory mock 在另一个文件中，这里模拟穿戴逻辑：
+  // 根据传入的 inventoryId 模拟装备结果
+  const mockEquipMap: Record<string, { slotType: EquipmentSlotType; name: string; rarity: string; stats: Record<string, number> }> = {
+    'inv-011': { slotType: 'helmet', name: '秘银头盔', rarity: 'Rare', stats: { defense: 6, hp: 40 } },
+    'inv-012': { slotType: 'legs', name: '疾风护腿', rarity: 'Normal', stats: { defense: 5, agility: 3 } },
+    'inv-013': { slotType: 'accessory1', name: '灵巧之戒', rarity: 'Epic', stats: { criticalRate: 0.05, dodgeRate: 0.03, agility: 4 } }
+  }
+
+  const equipInfo = mockEquipMap[inventoryId]
+  if (!equipInfo) {
+    return { code: 400, message: '无效的装备物品', data: null as unknown as CharacterInfo }
+  }
+
+  const { slotType, name, rarity, stats } = equipInfo
+  const slot = slotType as keyof EquipmentSlots
+
+  // 如果槽位已有装备，先"放回背包"（这里只更新角色数据）
+  const newEquip: Equipment = {
+    id: `eq-new-${Date.now()}`,
+    name,
+    rarity: rarity as Equipment['rarity'],
+    slotType,
+    stats
+  }
+
+  ;(char.equipment as Record<string, Equipment | null>)[slot] = newEquip
+
+  return { code: 200, message: '装备成功', data: { ...char } }
+}
+
+/**
+ * Mock：卸下装备
+ */
+async function mockUnequipItem(characterId: string, slotType: EquipmentSlotType): Promise<ApiResponse<CharacterInfo>> {
+  await delay(400)
+
+  const char = mockCharacters.find(c => c.id === characterId)
+  if (!char) {
+    return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
+  }
+
+  const slot = slotType as keyof EquipmentSlots
+  const currentEquip = char.equipment[slot]
+  if (!currentEquip) {
+    return { code: 400, message: '该槽位没有装备', data: null as unknown as CharacterInfo }
+  }
+
+  // 清空槽位（装备回到背包由前端刷新背包数据体现）
+  ;(char.equipment as Record<string, Equipment | null>)[slot] = null
+
+  return { code: 200, message: '卸下成功', data: { ...char } }
 }

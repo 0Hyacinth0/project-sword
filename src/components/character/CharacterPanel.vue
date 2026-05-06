@@ -54,6 +54,7 @@
         :profession="character.profession"
         :set-bonuses="setBonuses"
         @click-slot="handleClickSlot"
+        @unequip="handleUnequip"
       />
 
       <!-- 战宠概览 -->
@@ -96,6 +97,7 @@ interface Props {
 interface Emits {
   (e: 'refresh'): void
   (e: 'clickSlot', slot: EquipmentSlotType): void
+  (e: 'unequip-slot', slotType: EquipmentSlotType): void
   (e: 'clickPet'): void
   (e: 'levelUpHandled'): void
 }
@@ -130,6 +132,13 @@ function handleRefresh() {
  */
 function handleClickSlot(slot: EquipmentSlotType) {
   emit('clickSlot', slot)
+}
+
+/**
+ * 卸下装备
+ */
+function handleUnequip(slotType: EquipmentSlotType) {
+  emit('unequip-slot', slotType)
 }
 
 /**
