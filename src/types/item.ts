@@ -3,7 +3,7 @@
  * 消耗品、材料、装备的通用数据结构
  */
 
-import type { EquipmentSlotType, EquipmentStats } from './equipment'
+import type { EquipmentSlotType, EquipmentStats, ExtraStat } from './equipment'
 
 /** 物品分类 */
 export type ItemCategory = 'consumable' | 'material' | 'equipment'
@@ -67,6 +67,8 @@ export interface InventoryItem {
   quantity: number
   /** 获取时间 */
   obtainedAt: string
+  /** 随机词条（仅装备类物品，稀有以上） */
+  extraStats?: ExtraStat[]
 }
 
 /** 背包标签页类型 */

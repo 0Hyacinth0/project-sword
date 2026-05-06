@@ -3,6 +3,7 @@
  * 角色列表、创建、删除、名称检测、属性加点
  */
 import request from './request'
+import { mockInventoryItems, mockItemTemplates } from './inventory'
 import type { ApiResponse } from './request'
 import type { EquipmentSlots, EquipmentSlotType, Equipment } from '../types/equipment'
 import type { PetInfo } from '../types/pet'
@@ -107,11 +108,32 @@ const mockCharacters: CharacterInfo[] = [
     createTime: '2026-04-20T08:00:00Z',
     updateTime: '2026-04-28T10:00:00Z',
     equipment: {
-      weapon: { id: 'eq-001', name: '精钢长剑', rarity: 'Rare', slotType: 'weapon', stats: { physicalAttack: 15, strength: 3 }, setId: 'set-001', setName: '勇者之证' },
+      weapon: {
+        id: 'eq-001',
+        name: '精钢长剑',
+        rarity: 'Rare',
+        slotType: 'weapon',
+        stats: { physicalAttack: 15, strength: 3 },
+        extraStats: [
+          { key: 'criticalRate', value: 0.02 },
+          { key: 'agility', value: 2 }
+        ],
+        setId: 'set-001',
+        setName: '勇者之证'
+      },
       helmet: { id: 'eq-005', name: '铁盔', rarity: 'Normal', slotType: 'helmet', stats: { defense: 3, hp: 20 } },
       chest: { id: 'eq-002', name: '铁甲胸铠', rarity: 'Normal', slotType: 'chest', stats: { defense: 8, hp: 50 } },
       legs: { id: 'eq-006', name: '战靴', rarity: 'Normal', slotType: 'legs', stats: { defense: 4, agility: 2 } },
-      accessory1: { id: 'eq-007', name: '力量戒指', rarity: 'Rare', slotType: 'accessory1', stats: { strength: 5, physicalAttack: 5 } },
+      accessory1: {
+        id: 'eq-007',
+        name: '力量戒指',
+        rarity: 'Rare',
+        slotType: 'accessory1',
+        stats: { strength: 5, physicalAttack: 5 },
+        extraStats: [
+          { key: 'hp', value: 15 }
+        ]
+      },
       accessory2: null
     },
     activePet: {
@@ -153,11 +175,59 @@ const mockCharacters: CharacterInfo[] = [
     createTime: '2026-04-25T12:30:00Z',
     updateTime: '2026-04-29T08:00:00Z',
     equipment: {
-      weapon: { id: 'eq-003', name: '冰晶法杖', rarity: 'Epic', slotType: 'weapon', stats: { magicAttack: 25, intelligence: 8, mp: 50 }, setId: 'set-002', setName: '冰霜之心' },
-      helmet: { id: 'eq-008', name: '魔力冠', rarity: 'Rare', slotType: 'helmet', stats: { intelligence: 5, mp: 30 }, setId: 'set-002', setName: '冰霜之心' },
-      chest: { id: 'eq-009', name: '法师长袍', rarity: 'Epic', slotType: 'chest', stats: { defense: 5, mp: 80, magicAttack: 10 }, setId: 'set-002', setName: '冰霜之心' },
+      weapon: {
+        id: 'eq-003',
+        name: '冰晶法杖',
+        rarity: 'Epic',
+        slotType: 'weapon',
+        stats: { magicAttack: 25, intelligence: 8, mp: 50 },
+        extraStats: [
+          { key: 'physicalAttack', value: 6 },
+          { key: 'criticalRate', value: 0.03 },
+          { key: 'hp', value: 35 }
+        ],
+        setId: 'set-002',
+        setName: '冰霜之心'
+      },
+      helmet: {
+        id: 'eq-008',
+        name: '魔力冠',
+        rarity: 'Rare',
+        slotType: 'helmet',
+        stats: { intelligence: 5, mp: 30 },
+        extraStats: [
+          { key: 'dodgeRate', value: 0.02 },
+          { key: 'defense', value: 2 }
+        ],
+        setId: 'set-002',
+        setName: '冰霜之心'
+      },
+      chest: {
+        id: 'eq-009',
+        name: '法师长袍',
+        rarity: 'Epic',
+        slotType: 'chest',
+        stats: { defense: 5, mp: 80, magicAttack: 10 },
+        extraStats: [
+          { key: 'hp', value: 45 },
+          { key: 'agility', value: 3 },
+          { key: 'dodgeRate', value: 0.02 },
+          { key: 'intelligence', value: 4 }
+        ],
+        setId: 'set-002',
+        setName: '冰霜之心'
+      },
       legs: null,
-      accessory1: { id: 'eq-004', name: '魔力指环', rarity: 'Rare', slotType: 'accessory1', stats: { mp: 30, intelligence: 3 } },
+      accessory1: {
+        id: 'eq-004',
+        name: '魔力指环',
+        rarity: 'Rare',
+        slotType: 'accessory1',
+        stats: { mp: 30, intelligence: 3 },
+        extraStats: [
+          { key: 'magicAttack', value: 4 }
+        ]
+      },
       accessory2: { id: 'eq-010', name: '智慧耳环', rarity: 'Normal', slotType: 'accessory2', stats: { intelligence: 2 } }
     },
     activePet: null
@@ -458,33 +528,61 @@ async function mockEquipItem(characterId: string, inventoryId: string): Promise<
     return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
   }
 
-  // 从 mockInventoryItems 中查找物品（需要跨模块访问，这里用简单匹配）
-  // 由于 inventory mock 在另一个文件中，这里模拟穿戴逻辑：
-  // 根据传入的 inventoryId 模拟装备结果
-  const mockEquipMap: Record<string, { slotType: EquipmentSlotType; name: string; rarity: string; stats: Record<string, number> }> = {
-    'inv-011': { slotType: 'helmet', name: '秘银头盔', rarity: 'Rare', stats: { defense: 6, hp: 40 } },
-    'inv-012': { slotType: 'legs', name: '疾风护腿', rarity: 'Normal', stats: { defense: 5, agility: 3 } },
-    'inv-013': { slotType: 'accessory1', name: '灵巧之戒', rarity: 'Epic', stats: { criticalRate: 0.05, dodgeRate: 0.03, agility: 4 } }
+  // 从背包中查找物品
+  const invIndex = mockInventoryItems.findIndex(i => i.id === inventoryId && i.characterId === characterId)
+  if (invIndex === -1) {
+    return { code: 404, message: '物品不存在', data: null as unknown as CharacterInfo }
   }
 
-  const equipInfo = mockEquipMap[inventoryId]
-  if (!equipInfo) {
-    return { code: 400, message: '无效的装备物品', data: null as unknown as CharacterInfo }
+  const invItem = mockInventoryItems[invIndex]
+  if (invItem.item.category !== 'equipment' || !invItem.item.slotType) {
+    return { code: 400, message: '该物品不是装备', data: null as unknown as CharacterInfo }
   }
 
-  const { slotType, name, rarity, stats } = equipInfo
-  const slot = slotType as keyof EquipmentSlots
+  const slot = invItem.item.slotType as keyof EquipmentSlots
 
-  // 如果槽位已有装备，先"放回背包"（这里只更新角色数据）
+  // 构建装备数据
   const newEquip: Equipment = {
-    id: `eq-new-${Date.now()}`,
-    name,
-    rarity: rarity as Equipment['rarity'],
-    slotType,
-    stats
+    id: invItem.item.itemId.toString(),
+    name: invItem.item.name,
+    rarity: invItem.item.rarity as Equipment['rarity'],
+    slotType: invItem.item.slotType,
+    stats: invItem.item.stats || {},
+    extraStats: invItem.extraStats,
+    description: invItem.item.description
   }
 
+  // 若槽位已有装备，放回背包
+  const oldEquip = char.equipment[slot]
+  if (oldEquip) {
+    const oldTemplate = mockItemTemplates.find(t => t.name === oldEquip.name)
+    mockInventoryItems.push({
+      id: `inv-${Date.now()}`,
+      characterId,
+      itemId: oldTemplate?.itemId || 0,
+      item: oldTemplate || {
+        itemId: 0,
+        name: oldEquip.name,
+        category: 'equipment',
+        rarity: oldEquip.rarity,
+        description: oldEquip.description || '',
+        iconUrl: null,
+        maxStack: 1,
+        sellPrice: 0,
+        slotType: oldEquip.slotType,
+        stats: oldEquip.stats
+      },
+      quantity: 1,
+      obtainedAt: new Date().toISOString(),
+      extraStats: oldEquip.extraStats
+    })
+  }
+
+  // 更新角色装备
   ;(char.equipment as Record<string, Equipment | null>)[slot] = newEquip
+
+  // 从背包移除
+  mockInventoryItems.splice(invIndex, 1)
 
   return { code: 200, message: '装备成功', data: { ...char } }
 }
@@ -506,7 +604,30 @@ async function mockUnequipItem(characterId: string, slotType: EquipmentSlotType)
     return { code: 400, message: '该槽位没有装备', data: null as unknown as CharacterInfo }
   }
 
-  // 清空槽位（装备回到背包由前端刷新背包数据体现）
+  // 将装备放回背包
+  const template = mockItemTemplates.find(t => t.name === currentEquip.name)
+  mockInventoryItems.push({
+    id: `inv-${Date.now()}`,
+    characterId,
+    itemId: template?.itemId || 0,
+    item: template || {
+      itemId: 0,
+      name: currentEquip.name,
+      category: 'equipment',
+      rarity: currentEquip.rarity,
+      description: currentEquip.description || '',
+      iconUrl: null,
+      maxStack: 1,
+      sellPrice: 0,
+      slotType: currentEquip.slotType,
+      stats: currentEquip.stats
+    },
+    quantity: 1,
+    obtainedAt: new Date().toISOString(),
+    extraStats: currentEquip.extraStats
+  })
+
+  // 清空槽位
   ;(char.equipment as Record<string, Equipment | null>)[slot] = null
 
   return { code: 200, message: '卸下成功', data: { ...char } }

@@ -6,12 +6,28 @@ import type { ItemCategory, ItemRarity, BackpackTab } from '../types/item'
 import { Droplet, Sparkles, Gem, Shirt } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
-/** 稀有度颜色（与装备系统统一） */
+/** 稀有度颜色（JS 内使用，CSS 变量在 variables.css 统一定义） */
 export const RARITY_COLORS: Record<ItemRarity, { light: string; dark: string }> = {
   Normal: { light: '#6e6e73', dark: '#f4f1ff' },
   Rare: { light: '#0071e3', dark: '#59a6ff' },
   Epic: { light: '#af52de', dark: '#c282ff' },
   Legendary: { light: '#ff9500', dark: '#ff9b52' }
+}
+
+/** 稀有度对应的 CSS 变量名 */
+export const RARITY_CSS_VAR: Record<ItemRarity, string> = {
+  Normal: '--rarity-normal',
+  Rare: '--rarity-rare',
+  Epic: '--rarity-epic',
+  Legendary: '--rarity-legendary'
+}
+
+/** 稀有度等级数值（用于排序和判断光效强度） */
+export const RARITY_LEVEL: Record<ItemRarity, number> = {
+  Normal: 0,
+  Rare: 1,
+  Epic: 2,
+  Legendary: 3
 }
 
 /** 稀有度标签（中文） */
@@ -80,7 +96,15 @@ export const EFFECT_TYPE_DESCRIPTIONS: Record<string, string> = {
 }
 
 /**
- * 获取稀有度颜色
+ * 获取稀有度颜色（返回 CSS 变量引用，自动适配暗色模式）
+ */
+export function getRarityColorVar(rarity: ItemRarity): string {
+  return `var(${RARITY_CSS_VAR[rarity]})`
+}
+
+/**
+ * 获取稀有度颜色（JS 内使用，需要明确指定 isDark）
+ * 注意：CSS 样式中推荐使用 getRarityColorVar() 获取 CSS 变量
  */
 export function getRarityColor(rarity: ItemRarity, isDark: boolean = false): string {
   return isDark ? RARITY_COLORS[rarity].dark : RARITY_COLORS[rarity].light

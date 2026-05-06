@@ -14,7 +14,8 @@
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.helmet,
-            'equip-slot--selected': selectedSlot === 'helmet'
+            'equip-slot--selected': selectedSlot === 'helmet',
+            ...getRarityGlowClass(equipment.helmet?.rarity)
           }"
           :style="equipment.helmet ? slotStyle(equipment.helmet.rarity) : {}"
           @click="handleSlotClick('helmet')"
@@ -24,12 +25,16 @@
             :size="20"
             :style="equipment.helmet ? { color: rarityColor(equipment.helmet.rarity) } : {}"
           />
+          <span v-if="equipment.helmet" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.helmet.rarity) }">
+            {{ rarityLabel(equipment.helmet.rarity) }}
+          </span>
         </div>
         <div
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.chest,
-            'equip-slot--selected': selectedSlot === 'chest'
+            'equip-slot--selected': selectedSlot === 'chest',
+            ...getRarityGlowClass(equipment.chest?.rarity)
           }"
           :style="equipment.chest ? slotStyle(equipment.chest.rarity) : {}"
           @click="handleSlotClick('chest')"
@@ -39,12 +44,16 @@
             :size="20"
             :style="equipment.chest ? { color: rarityColor(equipment.chest.rarity) } : {}"
           />
+          <span v-if="equipment.chest" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.chest.rarity) }">
+            {{ rarityLabel(equipment.chest.rarity) }}
+          </span>
         </div>
         <div
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.weapon,
-            'equip-slot--selected': selectedSlot === 'weapon'
+            'equip-slot--selected': selectedSlot === 'weapon',
+            ...getRarityGlowClass(equipment.weapon?.rarity)
           }"
           :style="equipment.weapon ? slotStyle(equipment.weapon.rarity) : {}"
           @click="handleSlotClick('weapon')"
@@ -54,6 +63,9 @@
             :size="20"
             :style="equipment.weapon ? { color: rarityColor(equipment.weapon.rarity) } : {}"
           />
+          <span v-if="equipment.weapon" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.weapon.rarity) }">
+            {{ rarityLabel(equipment.weapon.rarity) }}
+          </span>
         </div>
       </div>
 
@@ -76,7 +88,8 @@
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.accessory1,
-            'equip-slot--selected': selectedSlot === 'accessory1'
+            'equip-slot--selected': selectedSlot === 'accessory1',
+            ...getRarityGlowClass(equipment.accessory1?.rarity)
           }"
           :style="equipment.accessory1 ? slotStyle(equipment.accessory1.rarity) : {}"
           @click="handleSlotClick('accessory1')"
@@ -86,12 +99,16 @@
             :size="20"
             :style="equipment.accessory1 ? { color: rarityColor(equipment.accessory1.rarity) } : {}"
           />
+          <span v-if="equipment.accessory1" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.accessory1.rarity) }">
+            {{ rarityLabel(equipment.accessory1.rarity) }}
+          </span>
         </div>
         <div
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.accessory2,
-            'equip-slot--selected': selectedSlot === 'accessory2'
+            'equip-slot--selected': selectedSlot === 'accessory2',
+            ...getRarityGlowClass(equipment.accessory2?.rarity)
           }"
           :style="equipment.accessory2 ? slotStyle(equipment.accessory2.rarity) : {}"
           @click="handleSlotClick('accessory2')"
@@ -101,12 +118,16 @@
             :size="20"
             :style="equipment.accessory2 ? { color: rarityColor(equipment.accessory2.rarity) } : {}"
           />
+          <span v-if="equipment.accessory2" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.accessory2.rarity) }">
+            {{ rarityLabel(equipment.accessory2.rarity) }}
+          </span>
         </div>
         <div
           class="equip-slot"
           :class="{
             'equip-slot--empty': !equipment.legs,
-            'equip-slot--selected': selectedSlot === 'legs'
+            'equip-slot--selected': selectedSlot === 'legs',
+            ...getRarityGlowClass(equipment.legs?.rarity)
           }"
           :style="equipment.legs ? slotStyle(equipment.legs.rarity) : {}"
           @click="handleSlotClick('legs')"
@@ -116,6 +137,9 @@
             :size="20"
             :style="equipment.legs ? { color: rarityColor(equipment.legs.rarity) } : {}"
           />
+          <span v-if="equipment.legs" class="equip-slot__rarity-tag" :style="{ background: rarityColor(equipment.legs.rarity) }">
+            {{ rarityLabel(equipment.legs.rarity) }}
+          </span>
         </div>
       </div>
     </div>
@@ -133,6 +157,13 @@
           <div v-for="(value, key) in selectedEquipment.stats" :key="key" class="equip-detail__stat">
             <span class="equip-detail__stat-label">{{ statLabel(key as string) }}</span>
             <span class="equip-detail__stat-value">+{{ value }}</span>
+          </div>
+        </div>
+        <!-- 随机词条 -->
+        <div v-if="selectedEquipment.extraStats?.length" class="equip-detail__affix">
+          <div v-for="(affix, i) in selectedEquipment.extraStats" :key="i" class="equip-detail__stat equip-detail__stat--affix">
+            <span class="equip-detail__stat-label">{{ statLabel(affix.key) }}</span>
+            <span class="equip-detail__stat-value equip-detail__stat-value--affix">{{ formatAffixValue(affix.key, affix.value) }}</span>
           </div>
         </div>
         <div v-if="selectedEquipment.setName" class="equip-detail__set">
@@ -186,7 +217,8 @@
 import { ref, computed, type Component } from 'vue'
 import { Sword, Sparkles, Target } from 'lucide-vue-next'
 import type { EquipmentSlots, EquipmentSlotType, EquipmentRarity, SetBonus } from '../../types/equipment'
-import { getSlotConfig, RARITY_COLORS, RARITY_LABELS } from '../../config/equipment_config'
+import { getSlotConfig, RARITY_COLORS, RARITY_LABELS, RARITY_CSS_VAR, RARITY_LEVEL } from '../../config/equipment_config'
+import { formatAffixValue } from '../../config/affix_config'
 import { getJobConfigByProfession } from '../../config/job_config'
 
 /**
@@ -243,21 +275,34 @@ const jobIcon = computed<Component>(() => {
 })
 
 /**
- * 获取稀有度颜色
+ * 获取稀有度颜色（使用 CSS 变量，自动适配暗色模式）
  */
 function rarityColor(rarity: EquipmentRarity): string {
-  return RARITY_COLORS[rarity]?.light || '#6e6e73'
+  return `var(${RARITY_CSS_VAR[rarity]})`
 }
 
 /**
- * 根据稀有度生成装备格子样式（边框 + 底纹 + 光效色）
+ * 根据稀有度生成装备格子样式（CSS 变量边框 + hex 底纹）
  */
 function slotStyle(rarity: EquipmentRarity): Record<string, string> {
-  const color = RARITY_COLORS[rarity]?.light || '#6e6e73'
+  const cssVar = `var(${RARITY_CSS_VAR[rarity]})`
+  const color = RARITY_COLORS[rarity].light
   return {
-    borderColor: color,
+    borderColor: cssVar,
     background: `linear-gradient(135deg, ${color}20 0%, ${color}0a 100%)`,
-    '--glow-color': color
+    '--glow-color': cssVar,
+    '--rarity-level': String(RARITY_LEVEL[rarity])
+  }
+}
+
+/**
+ * 根据稀有度等级返回光效 CSS 类名
+ */
+function getRarityGlowClass(rarity: EquipmentRarity): Record<string, boolean> {
+  const level = RARITY_LEVEL[rarity]
+  return {
+    'equip-slot--epic': level === 2,
+    'equip-slot--legendary': level === 3
   }
 }
 
@@ -349,7 +394,23 @@ function handleUnequip() {
   overflow: hidden;
 }
 
-/* 品质光效 - 斜向扫光 */
+/* 品质角标 */
+.equip-slot__rarity-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  padding: 0 4px;
+  line-height: 14px;
+  font-size: 8px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 0 0 5px 0;
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
+
+/* 品质光效 - 斜向扫光（普通/稀有） */
 .equip-slot:not(.equip-slot--empty)::before {
   content: '';
   position: absolute;
@@ -372,6 +433,50 @@ function handleUnequip() {
 
 .equip-slot:not(.equip-slot--empty):hover::before {
   animation: sweep-glow 1.2s ease-in-out;
+}
+
+/* ── 史诗品质装备：加强扫光 + 呼吸外发光（直接在元素上，不受 overflow 裁剪）── */
+.equip-slot--epic:not(.equip-slot--empty) {
+  animation: glow-breathe-epic 3s ease-in-out infinite;
+}
+
+[data-theme='dark'] .equip-slot--epic:not(.equip-slot--empty) {
+  animation: glow-breathe-epic-dark 3s ease-in-out infinite;
+}
+
+.equip-slot--epic:not(.equip-slot--empty)::before {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.08) 75%,
+    transparent 100%
+  );
+}
+
+/* ── 传说品质装备：强烈扫光 + 脉动外发光 ── */
+.equip-slot--legendary:not(.equip-slot--empty) {
+  animation: glow-pulse-legendary 2.5s ease-in-out infinite;
+}
+
+[data-theme='dark'] .equip-slot--legendary:not(.equip-slot--empty) {
+  animation: glow-pulse-legendary-dark 2.5s ease-in-out infinite;
+}
+
+.equip-slot--legendary:not(.equip-slot--empty)::before {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent 100%
+  );
+}
+
+.equip-slot--legendary:not(.equip-slot--empty):hover::before {
+  animation: sweep-glow 0.8s ease-in-out;
 }
 
 .equip-slot--empty {
@@ -487,6 +592,24 @@ function handleUnequip() {
 .equip-detail__stat-value {
   color: var(--accent-green, #34c759);
   font-weight: 500;
+}
+
+.equip-detail__affix {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.equip-detail__stat--affix {
+  background: rgba(52, 199, 89, 0.06);
+  border-radius: 4px;
+  padding: 3px 6px;
+  margin-bottom: 2px;
+}
+
+.equip-detail__stat-value--affix {
+  color: var(--accent-green, #34c759);
+  font-weight: 600;
 }
 
 .equip-detail__set {
@@ -613,6 +736,54 @@ function handleUnequip() {
   100% {
     left: 160%;
     opacity: 0;
+  }
+}
+
+/* 史诗呼吸外发光（亮色模式） */
+@keyframes glow-breathe-epic {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(175, 82, 222, 0.2),
+                inset 0 0 12px rgba(175, 82, 222, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(175, 82, 222, 0.45),
+                inset 0 0 16px rgba(175, 82, 222, 0.25);
+  }
+}
+
+/* 史诗呼吸外发光（暗色模式） */
+@keyframes glow-breathe-epic-dark {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(194, 130, 255, 0.2),
+                inset 0 0 12px rgba(194, 130, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(194, 130, 255, 0.45),
+                inset 0 0 16px rgba(194, 130, 255, 0.25);
+  }
+}
+
+/* 传说脉动外发光（亮色模式） */
+@keyframes glow-pulse-legendary {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(255, 149, 0, 0.25),
+                inset 0 0 16px rgba(255, 149, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(255, 149, 0, 0.55),
+                inset 0 0 20px rgba(255, 149, 0, 0.3);
+  }
+}
+
+/* 传说脉动外发光（暗色模式） */
+@keyframes glow-pulse-legendary-dark {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(255, 155, 82, 0.25),
+                inset 0 0 16px rgba(255, 155, 82, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(255, 155, 82, 0.55),
+                inset 0 0 20px rgba(255, 155, 82, 0.3);
   }
 }
 </style>

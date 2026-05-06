@@ -77,6 +77,22 @@ export const RARITY_COLORS: Record<EquipmentRarity, { light: string; dark: strin
   }
 }
 
+/** 稀有度对应的 CSS 变量名 */
+export const RARITY_CSS_VAR: Record<EquipmentRarity, string> = {
+  Normal: '--rarity-normal',
+  Rare: '--rarity-rare',
+  Epic: '--rarity-epic',
+  Legendary: '--rarity-legendary'
+}
+
+/** 稀有度等级数值（用于排序和判断光效强度） */
+export const RARITY_LEVEL: Record<EquipmentRarity, number> = {
+  Normal: 0,
+  Rare: 1,
+  Epic: 2,
+  Legendary: 3
+}
+
 /** 稀有度标签（中文） */
 export const RARITY_LABELS: Record<EquipmentRarity, string> = {
   Normal: '普通',

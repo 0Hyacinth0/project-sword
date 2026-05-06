@@ -34,6 +34,46 @@
           <!-- 描述 -->
           <div class="item-modal__desc">{{ item.item.description }}</div>
 
+          <!-- 装备属性对比 -->
+          <div v-if="item.item.category === 'equipment'" class="item-modal__compare">
+            <div class="item-modal__compare-row item-modal__compare-header">
+              <span class="item-modal__compare-col">属性</span>
+              <span class="item-modal__compare-col">当前</span>
+              <span class="item-modal__compare-col">待装备</span>
+              <span class="item-modal__compare-col">差异</span>
+            </div>
+            <div v-for="stat in compareStats" :key="stat.key" class="item-modal__compare-row">
+              <span class="item-modal__compare-col item-modal__compare-label">{{ stat.label }}</span>
+              <span class="item-modal__compare-col">{{ stat.current ?? '-' }}</span>
+              <span class="item-modal__compare-col">{{ stat.pending ?? '-' }}</span>
+              <span
+                class="item-modal__compare-col"
+                :class="{
+                  'item-modal__compare-up': stat.diff > 0,
+                  'item-modal__compare-down': stat.diff < 0
+                }"
+              >
+                {{ stat.diff > 0 ? '+' : '' }}{{ stat.diff || '=' }}
+              </span>
+            </div>
+            <div v-if="!currentEquipment" class="item-modal__compare-empty">
+              该槽位当前空闲，装备后直接获得以上属性
+            </div>
+          </div>
+
+          <!-- 随机词条（稀有以上装备） -->
+          <div v-if="item.item.category === 'equipment' && item.extraStats?.length" class="item-modal__affix">
+            <div class="item-modal__affix-title">随机词条</div>
+            <div
+              v-for="(affix, i) in item.extraStats"
+              :key="i"
+              class="item-modal__affix-row"
+            >
+              <span class="item-modal__affix-label">{{ affixLabel(affix.key) }}</span>
+              <span class="item-modal__affix-value">{{ formatAffixValue(affix.key, affix.value) }}</span>
+            </div>
+          </div>
+
           <!-- 消耗品效果 -->
           <div v-if="item.item.category === 'consumable' && item.item.effects" class="item-modal__section">
             <div class="item-modal__section-title">效果</div>
@@ -163,7 +203,10 @@
 import { computed, ref } from 'vue'
 import { X, Sparkles, Trash2, Minus, Plus } from 'lucide-vue-next'
 import type { InventoryItem } from '../../types/item'
-import { getRarityColor, getRarityLabel, getCategoryIcon, getCategoryLabel } from '../../config/item_config'
+import type { Equipment } from '../../types/equipment'
+import { getRarityColor, getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel, RARITY_COLORS } from '../../config/item_config'
+import { AFFIX_LABELS, formatAffixValue } from '../../config/affix_config'
+import type { ExtraStat } from '../../types/equipment'
 
 /**
  * 物品详情弹窗组件
@@ -177,6 +220,7 @@ import { getRarityColor, getRarityLabel, getCategoryIcon, getCategoryLabel } fro
 interface Props {
   item: InventoryItem | null
   actionLoading?: boolean
+  currentEquipment?: Equipment | null
 }
 
 interface Emits {
@@ -187,7 +231,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  actionLoading: false
+  actionLoading: false,
+  currentEquipment: null
 })
 const emit = defineEmits<Emits>()
 
@@ -200,16 +245,17 @@ const selectedQuantity = ref(1)
 /** 丢弃二次确认 */
 const showDiscardConfirm = ref(false)
 
-/** 稀有度颜色 */
+/** 稀有度颜色（CSS 变量，自动适配暗色模式） */
 const rarityColor = computed(() => {
-  if (!props.item) return '#6e6e73'
-  return getRarityColor(props.item.item.rarity)
+  if (!props.item) return 'var(--rarity-normal)'
+  return getRarityColorVar(props.item.item.rarity)
 })
 
-/** 稀有度背景色（半透明） */
+/** 稀有度背景色（半透明，使用 hex 透明度） */
 const rarityBg = computed(() => {
   if (!props.item) return 'transparent'
-  return getRarityColor(props.item.item.rarity) + '14'
+  const color = RARITY_COLORS[props.item.item.rarity].light
+  return color + '14'
 })
 
 /** 稀有度标签 */
@@ -223,6 +269,78 @@ const categoryLabel = computed(() => {
   if (!props.item) return ''
   return getCategoryLabel(props.item.item.category)
 })
+
+/** 属性名称映射 */
+const STAT_LABELS: Record<string, string> = {
+  physicalAttack: '物攻',
+  magicAttack: '魔攻',
+  defense: '防御',
+  hp: '生命',
+  mp: '魔力',
+  criticalRate: '暴击',
+  dodgeRate: '闪避',
+  strength: '力量',
+  intelligence: '智力',
+  agility: '敏捷'
+}
+
+/**
+ * 获取装备某属性的总值（基础 stats + extraStats）
+ */
+function getTotalStat(stats: Record<string, number | undefined> | undefined, extraStats?: ExtraStat[]): (key: string) => number {
+  return (key: string) => {
+    const base = stats?.[key] ?? 0
+    const extra = extraStats?.filter(s => s.key === key).reduce((sum, s) => sum + s.value, 0) ?? 0
+    return base + extra
+  }
+}
+
+/** 合并所有出现过的属性 key（含词条） */
+const allStatKeys = computed(() => {
+  const keys = new Set<string>()
+  if (props.currentEquipment) {
+    Object.keys(props.currentEquipment.stats).forEach(k => keys.add(k))
+    props.currentEquipment.extraStats?.forEach(s => keys.add(s.key))
+  }
+  if (props.item?.item.stats) {
+    Object.keys(props.item.item.stats).forEach(k => keys.add(k))
+  }
+  if (props.item?.extraStats) {
+    props.item.extraStats.forEach(s => keys.add(s.key))
+  }
+  return [...keys]
+})
+
+/** 属性对比数据（合并基础属性 + 随机词条） */
+const compareStats = computed(() => {
+  const getCurrent = getTotalStat(
+    props.currentEquipment?.stats,
+    props.currentEquipment?.extraStats
+  )
+  const getPending = getTotalStat(
+    props.item?.item.stats as Record<string, number | undefined> | undefined,
+    props.item?.extraStats
+  )
+  return allStatKeys.value.map(key => {
+    const current = getCurrent(key)
+    const pending = getPending(key)
+    const diff = pending - current
+    return {
+      key,
+      label: STAT_LABELS[key] || key,
+      current: current || null,
+      pending: pending || null,
+      diff
+    }
+  })
+})
+
+/**
+ * 获取词条属性中文名
+ */
+function affixLabel(key: string): string {
+  return AFFIX_LABELS[key] || key
+}
 
 /**
  * 开始操作（展开数量选择器）
@@ -370,6 +488,94 @@ function handleEquip() {
   color: var(--text-muted);
   line-height: 1.6;
   margin-bottom: 12px;
+}
+
+/* ── 装备属性对比 ── */
+.item-modal__compare {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.item-modal__compare-row {
+  display: flex;
+  gap: 0;
+  font-size: var(--font-size-xs);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.item-modal__compare-row:last-child {
+  border-bottom: none;
+}
+
+.item-modal__compare-col {
+  flex: 1;
+  padding: 5px 6px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.item-modal__compare-header {
+  background: rgba(128, 128, 128, 0.06);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.item-modal__compare-label {
+  text-align: left;
+  color: var(--text-muted);
+}
+
+.item-modal__compare-up {
+  color: var(--accent-green, #34c759);
+  font-weight: 600;
+}
+
+.item-modal__compare-down {
+  color: var(--accent-red, #ff3b30);
+  font-weight: 600;
+}
+
+.item-modal__compare-empty {
+  padding: 6px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── 随机词条 ── */
+.item-modal__affix {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  background: rgba(52, 199, 89, 0.04);
+  padding: 8px 10px;
+}
+
+.item-modal__affix-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--accent-green, #34c759);
+  margin-bottom: 6px;
+}
+
+.item-modal__affix-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: var(--font-size-xs);
+}
+
+.item-modal__affix-label {
+  color: var(--text-muted);
+}
+
+.item-modal__affix-value {
+  color: var(--accent-green, #34c759);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 /* 信息段落 */

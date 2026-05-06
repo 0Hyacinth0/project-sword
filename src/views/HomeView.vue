@@ -37,6 +37,7 @@
           <CharacterPanel
             v-if="charDetail"
             :character="charDetail"
+            :set-bonuses="activeSetBonuses"
             @refresh="refreshCharacter"
             @unequip-slot="handleUnequip"
           />
@@ -161,6 +162,7 @@
     <ItemDetailModal
       :item="selectedItem"
       :action-loading="inventory.actionLoading"
+      :current-equipment="currentEquipForSlot"
       @close="selectedItem = null"
       @use="handleUseItem"
       @discard="handleDiscardItem"
@@ -190,6 +192,7 @@ import CharacterPanel from '../components/character/CharacterPanel.vue'
 import BackpackGrid from '../components/inventory/BackpackGrid.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
+import { calculateSetBonuses } from '../config/set_config'
 import type { InventoryItem, ItemRarity, SortField } from '../types/item'
 import type { EquipmentSlotType } from '../types/equipment'
 import {
@@ -230,6 +233,14 @@ const loading = ref(false)
 
 /** 当前选中的物品（弹窗用） */
 const selectedItem = ref<InventoryItem | null>(null)
+
+/** 根据选中物品的 slotType 获取当前装备 */
+const currentEquipForSlot = computed(() => {
+  if (!selectedItem.value || selectedItem.value.item.category !== 'equipment') return null
+  const slotType = selectedItem.value.item.slotType
+  if (!slotType) return null
+  return charDetail.value?.equipment[slotType as keyof typeof charDetail.value.equipment] || null
+})
 
 /** Toast 提示消息 */
 const toastMessage = ref('')
@@ -381,6 +392,14 @@ function startAnnouncementTimer() {
  * 获取角色详情数据
  */
 const charDetail = computed(() => charStore.characterDetail)
+
+/**
+ * 计算当前装备的套装效果
+ */
+const activeSetBonuses = computed(() => {
+  if (!charDetail.value) return []
+  return calculateSetBonuses(charDetail.value.equipment)
+})
 
 /**
  * 退出登录

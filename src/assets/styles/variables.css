@@ -80,6 +80,12 @@
   --input-border: rgba(0, 0, 0, 0.08);
   --input-focus-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
 
+  /* ── 品质稀有度颜色 ── */
+  --rarity-normal: #6e6e73;
+  --rarity-rare: #0071e3;
+  --rarity-epic: #af52de;
+  --rarity-legendary: #ff9500;
+
   /* ── 按钮禁用 ── */
   --button-disabled-bg: rgba(0, 0, 0, 0.04);
   --button-disabled-text: rgba(0, 0, 0, 0.48);
@@ -128,6 +134,12 @@
   --input-bg: rgba(255, 255, 255, 0.06);
   --input-border: rgba(255, 255, 255, 0.1);
   --input-focus-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2);
+
+  /* ── 品质稀有度颜色（暗色模式）── */
+  --rarity-normal: #f4f1ff;
+  --rarity-rare: #59a6ff;
+  --rarity-epic: #c282ff;
+  --rarity-legendary: #ff9b52;
 
   --button-disabled-bg: rgba(255, 255, 255, 0.06);
   --button-disabled-text: rgba(255, 255, 255, 0.3);

@@ -11,7 +11,7 @@ import { isMockEnabled } from '../utils/mockConfig'
 // Mock 物品静态配置（模拟 items 表）
 // ──────────────────────────────────────────
 
-const mockItemTemplates: BaseItem[] = [
+export const mockItemTemplates: BaseItem[] = [
   // 消耗品
   {
     itemId: 1001,
@@ -240,7 +240,7 @@ const mockItemTemplates: BaseItem[] = [
 // Mock 角色背包数据
 // ──────────────────────────────────────────
 
-const mockInventoryItems: InventoryItem[] = [
+export const mockInventoryItems: InventoryItem[] = [
   {
     id: 'inv-001',
     characterId: 'mock-char-1',
@@ -328,7 +328,11 @@ const mockInventoryItems: InventoryItem[] = [
     itemId: 3002,
     item: mockItemTemplates.find(i => i.itemId === 3002)!,
     quantity: 1,
-    obtainedAt: '2026-05-01T10:00:00Z'
+    obtainedAt: '2026-05-01T10:00:00Z',
+    extraStats: [
+      { key: 'agility', value: 2 },
+      { key: 'dodgeRate', value: 0.01 }
+    ]
   },
   {
     id: 'inv-012',
@@ -344,7 +348,12 @@ const mockInventoryItems: InventoryItem[] = [
     itemId: 3005,
     item: mockItemTemplates.find(i => i.itemId === 3005)!,
     quantity: 1,
-    obtainedAt: '2026-05-01T14:00:00Z'
+    obtainedAt: '2026-05-01T14:00:00Z',
+    extraStats: [
+      { key: 'strength', value: 4 },
+      { key: 'physicalAttack', value: 7 },
+      { key: 'hp', value: 30 }
+    ]
   }
 ]
 

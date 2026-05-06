@@ -23,13 +23,22 @@ export interface EquipmentStats {
   agility?: number           // 敏捷加成
 }
 
+/** 随机词条（稀有以上装备的附加属性） */
+export interface ExtraStat {
+  /** 属性 key（同 EquipmentStats 的 key） */
+  key: string
+  /** 属性值 */
+  value: number
+}
+
 /** 装备信息 */
 export interface Equipment {
   id: string                 // 装备 UUID
   name: string               // 装备名称
   rarity: EquipmentRarity    // 稀有度
   slotType: EquipmentSlotType // 槽位类型
-  stats: EquipmentStats      // 装备属性
+  stats: EquipmentStats      // 装备基础属性
+  extraStats?: ExtraStat[]   // 随机词条（稀有以上装备）
   setId?: string             // 套装 ID（可选）
   setName?: string           // 套装名称（可选）
   iconUrl?: string           // 图标 URL（可选）
