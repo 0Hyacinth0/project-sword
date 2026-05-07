@@ -16,6 +16,8 @@ import {
   type BuffEffect,
   type BattleLogEntry,
   type BattleRewards,
+  type BattleRewardItem,
+  type BattleStatistics,
   type ActionOrderEntry
 } from '../types/battle'
 import type { SkillConfig, PassiveTrigger } from '../config/skill_config'
@@ -190,7 +192,8 @@ export function createBattleState(allies: Combatant[], enemies: Combatant[]): Ba
     rewards: null,
     lastDamageResults: [],
     lastBuffResults: [],
-    actionOrderPreview: []
+    actionOrderPreview: [],
+    statistics: createEmptyStatistics()
   }
 }
 
@@ -704,19 +707,33 @@ function processFleeAction(state: BattleState, action: BattleAction, logEntries:
 
 /**
  * 检查战斗是否结束（一方全灭）
+ * 同时处理战宠死亡时主人失去属性加成
  */
 function checkBattleEnd(state: BattleState): BattleState {
+  const logEntries: BattleLogEntry[] = []
+
+  // 检查本轮新死亡的战宠，触发主人属性扣减
+  const deadPets = state.combatants.filter(c =>
+    c.type === 'pet' && !c.isAlive && c.masterUid && c.petBonusToMaster
+  )
+  for (const pet of deadPets) {
+    handlePetDeath(state.combatants, pet.uid, logEntries, state.round)
+  }
+
   const allyAlive = state.combatants.some(c => c.side === 'ally' && c.isAlive)
   const enemyAlive = state.combatants.some(c => c.side === 'enemy' && c.isAlive)
 
   if (!allyAlive) {
-    return { ...state, phase: BattlePhase.BATTLE_END, outcome: 'defeat' }
+    return { ...state, phase: BattlePhase.BATTLE_END, outcome: 'defeat', log: [...state.log, ...logEntries] }
   }
   if (!enemyAlive) {
-    return { ...state, phase: BattlePhase.BATTLE_END, outcome: 'victory' }
+    return { ...state, phase: BattlePhase.BATTLE_END, outcome: 'victory', log: [...state.log, ...logEntries] }
   }
 
-  return advanceToNextActorOrRoundEnd(state)
+  return advanceToNextActorOrRoundEnd({
+    ...state,
+    log: logEntries.length > 0 ? [...state.log, ...logEntries] : state.log
+  })
 }
 
 /**
@@ -776,11 +793,78 @@ function processRoundEnd(state: BattleState): BattleState {
 }
 
 // ──────────────────────────────────────────
-// AI 自动行动
+// 战宠死亡处理
 // ──────────────────────────────────────────
 
 /**
+ * 处理战宠死亡时主人失去属性加成
+ * 当战宠被击败时，从主人属性中扣除战宠提供的加成值
+ * @param combatants - 所有参战单位（会被直接修改）
+ * @param deadPetUid - 死亡战宠的 UID
+ * @param logEntries - 日志列表（追加日志）
+ * @param round - 当前回合
+ */
+function handlePetDeath(
+  combatants: Combatant[],
+  deadPetUid: string,
+  logEntries: BattleLogEntry[],
+  round: number
+): void {
+  const pet = combatants.find(c => c.uid === deadPetUid)
+  if (!pet || pet.type !== 'pet' || !pet.masterUid || !pet.petBonusToMaster) return
+
+  const master = combatants.find(c => c.uid === pet.masterUid)
+  if (!master || !master.isAlive) return
+
+  const bonus = pet.petBonusToMaster
+
+  // 从主人属性中扣除战宠加成
+  master.stats = {
+    ...master.stats,
+    maxHp: Math.max(1, master.stats.maxHp - bonus.maxHp),
+    hp: Math.min(master.stats.hp, Math.max(1, master.stats.maxHp - bonus.maxHp)),
+    physicalAttack: Math.max(0, master.stats.physicalAttack - bonus.physicalAttack),
+    magicAttack: Math.max(0, master.stats.magicAttack - bonus.magicAttack),
+    defense: Math.max(0, master.stats.defense - bonus.defense),
+    dodgeRate: Math.max(0, master.stats.dodgeRate - bonus.dodgeRate),
+    criticalRate: Math.max(0, master.stats.criticalRate - bonus.criticalRate)
+  }
+
+  logEntries.push({
+    round,
+    type: 'system',
+    message: `${pet.name} 阵亡，${master.name} 失去了战宠属性加成！`,
+    actorUid: pet.uid,
+    targetUid: master.uid,
+    timestamp: Date.now()
+  })
+}
+
+/**
+ * 战斗结束后恢复战宠 HP 为满血
+ * 遍历所有战宠单位，将 HP 恢复到 maxHp
+ * @param combatants - 所有参战单位
+ * @returns 更新后的单位列表
+ */
+export function restorePetHpAfterBattle(combatants: Combatant[]): Combatant[] {
+  return combatants.map(c => {
+    if (c.type === 'pet') {
+      return {
+        ...c,
+        stats: { ...c.stats, hp: c.stats.maxHp, mp: c.stats.maxMp },
+        isAlive: true
+      }
+    }
+    return c
+  })
+}
+
+// ──────────────────────────────────────────
+// AI 自动行动
+// ──────────────────────────────────────────
+/**
  * 为 AI（敌人/战宠）生成自动行动
+ * 战宠使用专用 AI（优先高威力技能），敌人使用通用 AI
  * @param state - 当前战斗状态
  * @param actorUid - 行动者 UID
  * @returns 生成的行动
@@ -789,7 +873,12 @@ export function generateAutoAction(state: BattleState, actorUid: string): Battle
   const actor = getCombatantByUid(state, actorUid)
   if (!actor) return { type: 'attack', actorUid }
 
-  // 30% 概率使用技能（如果 MP 足够且不在冷却中）
+  // 战宠使用专用 AI：优先高威力技能
+  if (actor.type === 'pet') {
+    return generatePetAutoAction(state, actor)
+  }
+
+  // 敌人：30% 概率使用技能（如果 MP 足够且不在冷却中）
   if (Math.random() < 0.3) {
     const availableSkill = actor.skills.find(s => {
       if (s.type === 'passive') return false
@@ -815,6 +904,86 @@ export function generateAutoAction(state: BattleState, actorUid: string): Battle
   return {
     type: 'attack',
     actorUid,
+    targetUid: target?.uid
+  }
+}
+
+/**
+ * 战宠专用 AI
+ * 策略：优先使用可用的高威力技能（按 power 降序），冷却中则顺延到次高威力技能，最后兜底普攻
+ * 辅助技能（active_heal/active_buff）：当主人 HP < 50% 时优先使用治疗/辅助技能
+ * @param state - 当前战斗状态
+ * @param pet - 战宠战斗单位
+ * @returns 生成的行动
+ */
+function generatePetAutoAction(state: BattleState, pet: Combatant): BattleAction {
+  // 检查主人 HP 是否低于 50%（优先辅助）
+  const master = pet.masterUid
+    ? getCombatantByUid(state, pet.masterUid)
+    : null
+  const masterHpRatio = master && master.isAlive
+    ? master.stats.hp / master.stats.maxHp
+    : 1
+
+  // 获取所有可用技能（非被动、MP 足够、不在冷却中）
+  const availableSkills = pet.skills
+    .filter(s => {
+      if (s.type === 'passive') return false
+      const mpCost = s.mpCost ?? 0
+      if (pet.stats.mp < mpCost) return false
+      const cd = pet.cooldowns[String(s.id)] ?? 0
+      return cd <= 0
+    })
+
+  // 主人 HP < 50% 时，优先辅助/治疗技能
+  if (masterHpRatio < 0.5) {
+    const supportSkill = availableSkills.find(s =>
+      s.type === 'active_heal' || s.type === 'active_buff'
+    )
+    if (supportSkill) {
+      return {
+        type: 'skill',
+        actorUid: pet.uid,
+        skillId: supportSkill.id,
+        targetUid: supportSkill.targetType === 'self' ? pet.uid : master?.uid
+      }
+    }
+  }
+
+  // 按威力降序排列攻击技能
+  const attackSkills = availableSkills
+    .filter(s => s.type === 'active_attack')
+    .sort((a, b) => (b.power ?? 0) - (a.power ?? 0))
+
+  if (attackSkills.length > 0) {
+    const bestSkill = attackSkills[0]
+    const target = selectAutoTarget(state, pet.side)
+    return {
+      type: 'skill',
+      actorUid: pet.uid,
+      skillId: bestSkill.id,
+      targetUid: target?.uid
+    }
+  }
+
+  // 没有可用攻击技能，使用辅助/治疗技能
+  const fallbackSkill = availableSkills.find(s =>
+    s.type === 'active_heal' || s.type === 'active_buff'
+  )
+  if (fallbackSkill) {
+    return {
+      type: 'skill',
+      actorUid: pet.uid,
+      skillId: fallbackSkill.id,
+      targetUid: fallbackSkill.targetType === 'self' ? pet.uid : master?.uid
+    }
+  }
+
+  // 兜底：普通攻击
+  const target = selectAutoTarget(state, pet.side)
+  return {
+    type: 'attack',
+    actorUid: pet.uid,
     targetUid: target?.uid
   }
 }
@@ -1141,22 +1310,145 @@ export function triggerTurnStartPassives(state: BattleState): BattleState {
 }
 
 /**
- * 计算战斗奖励（简单公式）
+ * 计算战斗奖励（经验 + 金币 + 掉落物品）
  * @param enemies - 被击败的敌人列表
  * @returns 奖励数据
  */
 export function calculateRewards(enemies: Combatant[]): BattleRewards {
   let totalExp = 0
   let totalGold = 0
+  const items: BattleRewardItem[] = []
 
   for (const enemy of enemies) {
     totalExp += Math.floor(enemy.stats.maxHp * 0.5 + enemy.stats.physicalAttack * 2)
     totalGold += Math.floor(enemy.stats.maxHp * 0.2 + enemy.stats.speed)
+
+    // 掉落物品（Mock 随机）
+    const dropRoll = Math.random()
+    if (dropRoll < 0.15) {
+      items.push(...generateMockDrops(enemy))
+    }
   }
 
   return {
     exp: totalExp,
     gold: totalGold,
-    items: [] // 掉落物品由后端计算
+    items,
+    petExp: Math.floor(totalExp * 0.3)
   }
+}
+
+/**
+ * Mock 掉落物品生成
+ * @param enemy - 敌人单位
+ * @returns 掉落物品列表
+ */
+function generateMockDrops(enemy: Combatant): BattleRewardItem[] {
+  const drops: BattleRewardItem[] = []
+  const roll = Math.random()
+
+  if (roll < 0.3) {
+    // 装备掉落
+    const qualities: Array<'common' | 'rare' | 'epic' | 'legendary'> = ['common', 'common', 'rare', 'epic']
+    const qRoll = Math.random()
+    const quality = qRoll < 0.6 ? qualities[0] : qRoll < 0.85 ? qualities[1] : qRoll < 0.97 ? qualities[2] : qualities[3]
+    const equipNames: Record<string, string> = { common: '生锈的短剑', rare: '精制铁剑', epic: '暗影之刃', legendary: '龙焰巨剑' }
+    drops.push({
+      itemId: 8000 + Math.floor(Math.random() * 100),
+      name: equipNames[quality],
+      quantity: 1,
+      quality,
+      itemType: 'equipment'
+    })
+  } else if (roll < 0.7) {
+    // 材料掉落
+    drops.push({
+      itemId: 4001 + Math.floor(Math.random() * 10),
+      name: `${enemy.name}的碎片`,
+      quantity: Math.floor(Math.random() * 3) + 1,
+      quality: 'common',
+      itemType: 'material'
+    })
+  } else {
+    // 消耗品掉落
+    drops.push({
+      itemId: 2001 + Math.floor(Math.random() * 5),
+      name: '回复药水',
+      quantity: Math.floor(Math.random() * 2) + 1,
+      quality: 'common',
+      itemType: 'consumable'
+    })
+  }
+
+  return drops
+}
+
+/**
+ * 生成空的战斗统计数据
+ * @returns 初始统计
+ */
+export function createEmptyStatistics(): BattleStatistics {
+  return {
+    totalRounds: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    totalHealed: 0,
+    criticalHits: 0,
+    dodgeCount: 0,
+    enemiesKilled: 0
+  }
+}
+
+/**
+ * 从战斗状态中计算战斗统计
+ * 遍历战斗日志提取统计信息
+ * @param state - 战斗状态
+ * @returns 战斗统计数据
+ */
+export function computeBattleStatistics(state: BattleState): BattleStatistics {
+  const stats = createEmptyStatistics()
+  stats.totalRounds = state.round
+
+  for (const entry of state.log) {
+    switch (entry.type) {
+      case 'damage':
+        if (entry.actorUid && entry.actorUid.startsWith('ally')) {
+          stats.totalDamageDealt += parseDamageValue(entry.message)
+        } else if (entry.targetUid && entry.targetUid.startsWith('ally')) {
+          stats.totalDamageTaken += parseDamageValue(entry.message)
+        }
+        break
+      case 'critical':
+        if (entry.actorUid && entry.actorUid.startsWith('ally')) {
+          stats.criticalHits++
+          stats.totalDamageDealt += parseDamageValue(entry.message)
+        }
+        break
+      case 'dodge':
+        if (entry.targetUid && entry.targetUid.startsWith('ally')) {
+          stats.dodgeCount++
+        }
+        break
+      case 'heal':
+        stats.totalHealed += parseDamageValue(entry.message)
+        break
+      case 'death':
+        if (entry.targetUid && entry.targetUid.startsWith('enemy')) {
+          stats.enemiesKilled++
+        }
+        break
+    }
+  }
+
+  return stats
+}
+
+/**
+ * 从日志消息中提取伤害数值
+ * @param message - 日志消息
+ * @returns 提取的数值
+ */
+function parseDamageValue(message: string): number {
+  const match = message.match(/(\d+)/)
+  return match ? parseInt(match[1], 10) : 0
 }

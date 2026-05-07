@@ -13,9 +13,11 @@ import {
   advanceBattle,
   submitPlayerAction,
   calculateRewards,
+  computeBattleStatistics,
   getCurrentActor,
   getAvailableTargets,
-  getAliveCombatants
+  getAliveCombatants,
+  restorePetHpAfterBattle
 } from '../utils/battleEngine'
 import type { StatsBreakdown } from '../utils/attributeCalculator'
 
@@ -41,6 +43,7 @@ export const useBattleStore = defineStore('battle', () => {
   const isBattleOver = computed(() => battleState.value?.phase === BattlePhase.BATTLE_END)
   const battleOutcome = computed(() => battleState.value?.outcome ?? null)
   const battleRewards = computed(() => battleState.value?.rewards ?? null)
+  const battleStatistics = computed(() => battleState.value?.statistics ?? null)
   const log = computed(() => battleState.value?.log ?? [])
 
   const availableTargets = computed(() => {
@@ -83,7 +86,16 @@ export const useBattleStore = defineStore('battle', () => {
 
       const allyCombatants: Combatant[] = [playerCombatant]
       if (pet) {
-        allyCombatants.push(createPetCombatant(pet))
+        // 计算战宠给予主人的属性加成值（简化版：取属性 × 10%）
+        const petBonus = {
+          maxHp: Math.floor(pet.stats.maxHp * 0.1),
+          physicalAttack: Math.floor(pet.stats.attack * 0.1),
+          magicAttack: Math.floor(pet.stats.attack * 0.05),
+          defense: Math.floor(pet.stats.defense * 0.1),
+          dodgeRate: 0,
+          criticalRate: 0
+        }
+        allyCombatants.push(createPetCombatant(pet, playerCombatant.uid, petBonus))
       }
 
       // 使用敌人数据创建战斗状态
@@ -126,11 +138,14 @@ export const useBattleStore = defineStore('battle', () => {
       if (newState.phase !== BattlePhase.BATTLE_END) {
         battleState.value = advanceBattle(newState)
       } else {
-        // 战斗结束，计算奖励
+        // 战斗结束，计算奖励和统计
         const deadEnemies = battleState.value.combatants.filter(c => c.side === 'enemy' && !c.isAlive)
+        const rewards = calculateRewards(deadEnemies)
+        const statistics = computeBattleStatistics(battleState.value)
         battleState.value = {
           ...battleState.value,
-          rewards: calculateRewards(deadEnemies)
+          rewards,
+          statistics
         }
       }
 
@@ -153,10 +168,19 @@ export const useBattleStore = defineStore('battle', () => {
 
   /**
    * 结束战斗并领取奖励
+   * 战宠 HP/MP 自动恢复满血
    */
   async function finishBattle(): Promise<{ success: boolean; message: string; rewards?: { exp: number; gold: number; items: Array<{ itemId: number; name: string; quantity: number }> } }> {
     if (!battleId.value) {
       return { success: false, message: '没有进行中的战斗' }
+    }
+
+    // 战宠 HP/MP 自动恢复
+    if (battleState.value) {
+      battleState.value = {
+        ...battleState.value,
+        combatants: restorePetHpAfterBattle(battleState.value.combatants)
+      }
     }
 
     loading.value = true
@@ -197,6 +221,7 @@ export const useBattleStore = defineStore('battle', () => {
     isBattleOver,
     battleOutcome,
     battleRewards,
+    battleStatistics,
     log,
     availableTargets,
     startBattle,

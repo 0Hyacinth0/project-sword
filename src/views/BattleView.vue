@@ -3,7 +3,7 @@
     <!-- 战斗未开始：入口 -->
     <div class="battle-entry" v-if="!store.isBattleActive">
       <div class="entry-card">
-        <h2 class="entry-title">⚔ 回合制战斗</h2>
+        <h2 class="entry-title">回合制战斗</h2>
         <p class="entry-desc">进入战斗，测试回合制战斗引擎</p>
 
         <div class="phase-flow">
@@ -32,38 +32,64 @@
     </div>
 
     <!-- 战斗进行中 -->
-    <div class="battle-arena" v-else>
-      <!-- 阶段指示器 -->
+    <div class="battle-arena" :class="{ shake: screenShake }" v-else>
+      <!-- 顶部：回合指示器 -->
       <div class="phase-indicator">
-        <span class="round-text">第 {{ store.round }} 回合</span>
-        <span class="current-phase" :class="store.phase">{{ phaseLabel }}</span>
+        <div class="phase-left">
+          <span class="round-badge">R{{ store.round }}</span>
+          <span class="current-phase" :class="store.phase">{{ phaseLabel }}</span>
+        </div>
+        <button class="exit-btn" @click="handleBattleEnd" v-if="store.isBattleOver">结束战斗</button>
       </div>
 
       <!-- 行动顺序条 -->
       <ActionOrderBar :entries="store.battleState?.actionOrderPreview ?? []" />
 
-      <!-- 敌方区域 -->
-      <div class="enemy-area">
-        <h3 class="area-label">敌方</h3>
-        <CombatantBar
-          v-for="enemy in store.combatants.filter(c => c.side === 'enemy')"
-          :key="enemy.uid"
-          :combatant="enemy"
-          :is-active="store.currentActor?.uid === enemy.uid"
-          side="enemy"
-        />
-      </div>
+      <!-- 战场主区域 -->
+      <div class="battlefield">
+        <!-- 敌方区域 -->
+        <div class="battle-side enemy-side">
+          <div class="side-header">
+            <span class="side-icon enemy-icon">!</span>
+            <span class="side-title">敌方</span>
+          </div>
+          <div class="combatant-list">
+            <CombatantBar
+              v-for="enemy in store.combatants.filter(c => c.side === 'enemy')"
+              :key="enemy.uid"
+              :combatant="enemy"
+              :is-active="store.currentActor?.uid === enemy.uid"
+              side="enemy"
+            />
+          </div>
+          <div class="side-empty" v-if="store.combatants.filter(c => c.side === 'enemy').length === 0">
+            无敌人
+          </div>
+        </div>
 
-      <!-- 友方区域 -->
-      <div class="ally-area">
-        <h3 class="area-label">我方</h3>
-        <CombatantBar
-          v-for="ally in store.combatants.filter(c => c.side === 'ally')"
-          :key="ally.uid"
-          :combatant="ally"
-          :is-active="store.currentActor?.uid === ally.uid"
-          side="ally"
-        />
+        <!-- 中央分隔 -->
+        <div class="battlefield-divider">
+          <div class="divider-line"></div>
+          <span class="divider-text">VS</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <!-- 我方区域 -->
+        <div class="battle-side ally-side">
+          <div class="side-header">
+            <span class="side-icon ally-icon">&#9733;</span>
+            <span class="side-title">我方</span>
+          </div>
+          <div class="combatant-list">
+            <CombatantBar
+              v-for="ally in store.combatants.filter(c => c.side === 'ally')"
+              :key="ally.uid"
+              :combatant="ally"
+              :is-active="store.currentActor?.uid === ally.uid"
+              side="ally"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- 行动面板 -->
@@ -85,24 +111,12 @@
         :current-round="store.round"
       />
 
-      <!-- 伤害飘字 -->
-      <div class="damage-floats">
-        <div
-          v-for="(result, i) in damageResults"
-          :key="i"
-          class="float-text"
-          :class="{ crit: result.isCritical, dodge: result.isDodged, heal: result.isHeal }"
-          :style="{ animationDelay: `${i * 0.1}s` }"
-        >
-          {{ result.isDodged ? 'MISS' : result.isHeal ? `+${result.value}` : `-${result.value}` }}
-        </div>
-      </div>
-
       <!-- 战斗结算 -->
       <BattleResultOverlay
         :visible="store.isBattleOver"
         :outcome="store.battleOutcome"
         :rewards="store.battleRewards"
+        :statistics="store.battleStatistics"
         @confirm="handleBattleEnd"
       />
     </div>
@@ -119,7 +133,8 @@ import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBattleStore } from '../stores/battle'
 import { BattlePhase } from '../types/battle'
-import type { BattleAction, DamageResult } from '../types/battle'
+import type { BattleAction } from '../types/battle'
+import { triggerDamageAnimations, triggerBuffAnimation, triggerDeathAnimation, screenShake } from '../utils/battleAnimation'
 import CombatantBar from '../components/battle/CombatantBar.vue'
 import BattleActionPanel from '../components/battle/BattleActionPanel.vue'
 import BattleLog from '../components/battle/BattleLog.vue'
@@ -163,19 +178,33 @@ const phaseLabel = computed(() => {
   }
 })
 
-/** 伤害飘字 */
-const damageResults = ref<DamageResult[]>([])
-
 /** 伤害明细面板 */
 const showDamageBreakdown = ref(false)
 
-/** 监听最新伤害结果，触发飘字动画 */
+/** 监听伤害结果，触发动画 */
 watch(() => store.battleState?.lastDamageResults, (results) => {
   if (results && results.length > 0) {
-    damageResults.value = results
-    setTimeout(() => {
-      damageResults.value = []
-    }, 1500)
+    const actorUid = store.currentActor?.uid
+    triggerDamageAnimations(results, actorUid)
+  }
+})
+
+/** 监听 Buff 结算，触发动画 */
+watch(() => store.battleState?.lastBuffResults, (results) => {
+  if (results && results.length > 0) {
+    for (const r of results) {
+      triggerBuffAnimation(r.targetUid, r.isDebuff)
+    }
+  }
+})
+
+/** 监听战斗结束，触发死亡动画 */
+watch(() => store.isBattleOver, (over) => {
+  if (over) {
+    const deadUnits = store.combatants.filter(c => !c.isAlive)
+    for (const unit of deadUnits) {
+      triggerDeathAnimation(unit.uid)
+    }
   }
 })
 
@@ -318,7 +347,7 @@ function goBack() {
   background: var(--accent-blue);
   color: var(--button-text);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -355,27 +384,39 @@ function goBack() {
   position: relative;
 }
 
+/* ── 回合指示器 ── */
 .phase-indicator {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 20px;
-  border-radius: 12px;
-  background: var(--bg-panel-light);
+  border-radius: 14px;
+  background: var(--bg-panel);
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-card);
 }
 
-.round-text {
-  font-size: var(--font-size-section);
-  font-weight: 600;
+.phase-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.round-badge {
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.06);
   color: var(--text-primary);
+  letter-spacing: 0.02em;
 }
 
 .current-phase {
   font-size: var(--font-size-small);
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   background: rgba(0, 113, 227, 0.1);
   color: var(--accent-blue);
   font-weight: 500;
@@ -387,63 +428,123 @@ function goBack() {
 .current-phase.SETTLEMENT { background: rgba(255, 149, 0, 0.1); color: var(--accent-gold); }
 .current-phase.BATTLE_END { background: rgba(255, 59, 48, 0.1); color: var(--accent-red); }
 
-.area-label {
-  font-size: var(--font-size-label);
-  letter-spacing: 0.15rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin: 0 0 8px;
+.exit-btn {
+  padding: 6px 16px;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  background: var(--accent-red);
+  color: var(--button-text);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.enemy-area,
-.ally-area {
+.exit-btn:hover { filter: brightness(1.1); }
+
+/* ── 战场主区域 ── */
+.battlefield {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0;
+  align-items: start;
+}
+
+.battle-side {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* ── 伤害飘字 ── */
-.damage-floats {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;
-  z-index: 20;
+.side-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.side-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.enemy-icon {
+  background: rgba(255, 59, 48, 0.12);
+  color: var(--accent-red);
+}
+
+.ally-icon {
+  background: rgba(0, 113, 227, 0.12);
+  color: var(--accent-blue);
+}
+
+.side-title {
+  font-size: var(--font-size-label);
+  letter-spacing: 0.15rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.combatant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.side-empty {
+  padding: 20px;
+  text-align: center;
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+  border-radius: 14px;
+  border: 1px dashed var(--border-light);
+}
+
+/* ── 中央分隔 ── */
+.battlefield-divider {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 12px;
+  align-self: stretch;
 }
 
-.float-text {
-  font-size: 24px;
+.divider-line {
+  flex: 1;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--border-light), transparent);
+}
+
+.divider-text {
+  font-size: var(--font-size-section);
   font-weight: 700;
-  color: var(--accent-red);
-  animation: fct-float 1.5s ease-out forwards;
-}
-
-.float-text.crit {
-  font-size: 32px;
-  color: var(--accent-gold);
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-}
-
-.float-text.dodge {
   color: var(--text-muted);
-  font-size: 18px;
+  letter-spacing: 0.1em;
+  opacity: 0.4;
 }
 
-.float-text.heal {
-  color: var(--accent-green);
+/* ── 震屏效果 ── */
+.battle-arena.shake {
+  animation: screen-shake 0.3s ease-out;
 }
 
-@keyframes fct-float {
-  0% { opacity: 0; transform: translateY(20px) scale(0.8); }
-  15% { opacity: 1; transform: translateY(-5px) scale(1.1); }
-  30% { transform: translateY(-15px) scale(1.0); }
-  80% { opacity: 1; transform: translateY(-40px); }
-  100% { opacity: 0; transform: translateY(-60px); }
+@keyframes screen-shake {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-3px, 2px); }
+  30% { transform: translate(3px, -2px); }
+  45% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 1px); }
+  100% { transform: translate(0, 0); }
 }
 
 /* ── 返回按钮 ── */
@@ -472,5 +573,24 @@ function goBack() {
   .entry-card { padding: 28px 20px; }
   .phase-flow { gap: 2px; }
   .step-label { font-size: 10px; }
+}
+
+@media (max-width: 720px) {
+  .battlefield {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .battlefield-divider {
+    flex-direction: row;
+    padding: 8px 24px;
+  }
+
+  .divider-line {
+    height: 1px;
+    width: auto;
+    flex: 1;
+    background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+  }
 }
 </style>

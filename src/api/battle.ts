@@ -90,7 +90,9 @@ const MOCK_PLAYER_SKILLS: BattleSkill[] = [
 
 /** Mock 战宠技能 */
 const MOCK_PET_SKILLS: BattleSkill[] = [
-  { id: 6001, name: '火焰喷射', type: 'active_attack', power: 100, cooldown: 0, mpCost: 5, targetType: 'single_enemy', description: '喷射火焰攻击' }
+  { id: 6001, name: '火焰喷射', type: 'active_attack', power: 120, cooldown: 1, mpCost: 5, targetType: 'single_enemy', description: '喷射火焰攻击' },
+  { id: 6002, name: '烈焰冲击', type: 'active_attack', power: 160, cooldown: 3, mpCost: 12, targetType: 'single_enemy', description: '蓄力后释放猛烈火焰' },
+  { id: 6003, name: '守护之焰', type: 'active_buff', cooldown: 4, mpCost: 8, targetType: 'self', description: '提升自身防御力', attachedBuff: { name: '火焰护盾', isDebuff: false, stat: 'defense', value: 8, duration: 2 } }
 ]
 
 // ──────────────────────────────────────────
@@ -176,7 +178,8 @@ async function mockStartBattle(params: StartBattleRequest): Promise<ApiResponse<
     actionValue: 0
   }
 
-  // 构造战宠单位
+  // 构造战宠单位（链接主人 uid，携带加成数据）
+  const petBonus = { maxHp: 12, physicalAttack: 2, magicAttack: 1, defense: 1, dodgeRate: 0.005, criticalRate: 0.003 }
   const pet: Combatant = {
     uid: 'ally-pet',
     sourceId: 'pet-001',
@@ -194,7 +197,9 @@ async function mockStartBattle(params: StartBattleRequest): Promise<ApiResponse<
     buffs: [],
     cooldowns: {},
     isAlive: true,
-    actionValue: 0
+    actionValue: 0,
+    masterUid: 'ally-player',
+    petBonusToMaster: petBonus
   }
 
   mockAllies = [player, pet]
@@ -294,9 +299,20 @@ export function createPlayerCombatant(
 /**
  * 将战宠数据转换为战斗单位
  * @param pet - 战宠信息
+ * @param masterUid - 主人的战斗 uid（用于战宠死亡时关联主人）
+ * @param petBonus - 战宠给予主人的属性加成值（用于战宠死亡时扣减）
  * @returns 战斗单位
  */
-export function createPetCombatant(pet: { id: string; nickname: string; stats: { hp: number; maxHp: number; attack: number; defense: number; speed: number }; skills?: BattleSkill[] }): Combatant {
+export function createPetCombatant(
+  pet: {
+    id: string
+    nickname: string
+    stats: { hp: number; maxHp: number; attack: number; defense: number; speed: number }
+    skills?: BattleSkill[]
+  },
+  masterUid: string = 'ally-player',
+  petBonus?: { maxHp: number; physicalAttack: number; magicAttack: number; defense: number; dodgeRate: number; criticalRate: number }
+): Combatant {
   return {
     uid: 'ally-pet',
     sourceId: pet.id,
@@ -306,8 +322,8 @@ export function createPetCombatant(pet: { id: string; nickname: string; stats: {
     stats: {
       maxHp: pet.stats.maxHp,
       hp: pet.stats.hp,
-      maxMp: 30,
-      mp: 30,
+      maxMp: 40,
+      mp: 40,
       physicalAttack: pet.stats.attack,
       magicAttack: Math.floor(pet.stats.attack * 0.5),
       defense: pet.stats.defense,
@@ -319,6 +335,8 @@ export function createPetCombatant(pet: { id: string; nickname: string; stats: {
     buffs: [],
     cooldowns: {},
     isAlive: true,
-    actionValue: 0
+    actionValue: 0,
+    masterUid,
+    petBonusToMaster: petBonus
   }
 }

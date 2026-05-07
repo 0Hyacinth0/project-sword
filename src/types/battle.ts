@@ -55,6 +55,22 @@ export interface CombatantStats {
   criticalRate: number
 }
 
+/** 战宠给予主人的属性加成（用于战宠死亡时扣减） */
+export interface PetBonusToMaster {
+  /** HP 加成值 */
+  maxHp: number
+  /** 物理攻击加成值 */
+  physicalAttack: number
+  /** 魔法攻击加成值 */
+  magicAttack: number
+  /** 防御加成值 */
+  defense: number
+  /** 闪避率加成值 */
+  dodgeRate: number
+  /** 暴击率加成值 */
+  criticalRate: number
+}
+
 /** 参战单位 */
 export interface Combatant {
   /** 唯一 ID */
@@ -81,6 +97,10 @@ export interface Combatant {
   actionValue: number
   /** 图标（可选） */
   iconUrl?: string
+  /** 主人 uid（仅 type=pet 时有值，链接到所属玩家） */
+  masterUid?: string
+  /** 战宠给予主人的属性加成（仅 type=pet 时有值，战宠死亡时用于扣减主人属性） */
+  petBonusToMaster?: PetBonusToMaster
 }
 
 // ──────────────────────────────────────────
@@ -237,11 +257,45 @@ export interface BattleRewards {
   /** 获得金币 */
   gold: number
   /** 获得物品 */
-  items: Array<{
-    itemId: number
-    name: string
-    quantity: number
-  }>
+  items: BattleRewardItem[]
+  /** 战宠获得经验（可选） */
+  petExp?: number
+  /** 是否升级（后端计算） */
+  levelUp?: boolean
+  /** 升级后等级 */
+  newLevel?: number
+}
+
+/** 掉落物品 */
+export interface BattleRewardItem {
+  /** 物品 ID */
+  itemId: number
+  /** 物品名称 */
+  name: string
+  /** 物品数量 */
+  quantity: number
+  /** 物品品质（用于着色） */
+  quality?: 'common' | 'rare' | 'epic' | 'legendary'
+  /** 物品类型（用于图标） */
+  itemType?: 'equipment' | 'material' | 'consumable' | 'pet_egg'
+}
+
+/** 战斗统计数据（用于结算页面展示） */
+export interface BattleStatistics {
+  /** 战斗总回合数 */
+  totalRounds: number
+  /** 玩家造成的总伤害 */
+  totalDamageDealt: number
+  /** 玩家承受的总伤害 */
+  totalDamageTaken: number
+  /** 玩家治疗总量 */
+  totalHealed: number
+  /** 暴击次数 */
+  criticalHits: number
+  /** 闪避次数 */
+  dodgeCount: number
+  /** 击杀敌人数 */
+  enemiesKilled: number
 }
 
 /** 行动顺序条目（用于 UI 行动顺序条展示） */
@@ -288,6 +342,8 @@ export interface BattleState {
   lastBuffResults: BuffSettlementResult[]
   /** 行动顺序预览（用于行动顺序条 UI 展示） */
   actionOrderPreview: ActionOrderEntry[]
+  /** 战斗统计数据 */
+  statistics: BattleStatistics
 }
 
 // ──────────────────────────────────────────
@@ -323,4 +379,5 @@ export interface PlayerActionResponse {
 export interface BattleEndResponse {
   outcome: BattleOutcome
   rewards: BattleRewards
+  statistics?: BattleStatistics
 }

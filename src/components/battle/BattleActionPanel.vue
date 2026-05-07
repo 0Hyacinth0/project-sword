@@ -121,3 +121,192 @@ watch(() => props.targets, (targets) => {
   }
 }, { immediate: true })
 </script>
+
+<style scoped>
+.action-panel {
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* ── 头部 ── */
+.action-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.actor-name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.phase-tag {
+  font-size: var(--font-size-caption);
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 4px;
+  background: rgba(0, 113, 227, 0.1);
+  color: var(--accent-blue);
+}
+
+/* ── 基础行动按钮 ── */
+.action-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--bg-panel-light);
+  color: var(--text-primary);
+}
+
+.action-btn:hover:not(:disabled) {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.action-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.action-btn.attack { border-color: rgba(255, 59, 48, 0.3); }
+.action-btn.attack:hover:not(:disabled) { background: rgba(255, 59, 48, 0.08); }
+
+.action-btn.defend { border-color: rgba(0, 113, 227, 0.3); }
+.action-btn.defend:hover:not(:disabled) { background: rgba(0, 113, 227, 0.08); }
+
+.action-btn.flee { border-color: rgba(245, 158, 11, 0.3); }
+.action-btn.flee:hover:not(:disabled) { background: rgba(245, 158, 11, 0.08); }
+
+/* ── 技能区域 ── */
+.section-label {
+  font-size: var(--font-size-label);
+  letter-spacing: 0.15rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.skill-section {
+  margin-bottom: 12px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.skill-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-panel-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.skill-btn:hover:not(.disabled) {
+  border-color: var(--accent-blue);
+  background: rgba(0, 113, 227, 0.06);
+  transform: translateY(-1px);
+}
+
+.skill-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.skill-name {
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.skill-meta {
+  display: flex;
+  gap: 8px;
+  font-size: var(--font-size-caption);
+}
+
+.mp-cost { color: var(--accent-blue); }
+.cooldown { color: var(--accent-gold); }
+
+/* ── 目标选择 ── */
+.target-section {
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.target-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.target-btn {
+  padding: 6px 14px;
+  font-size: var(--font-size-small);
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-panel-light);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.target-btn:hover { background: rgba(255, 59, 48, 0.06); }
+
+.target-btn.selected {
+  border-color: var(--accent-red);
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--accent-red);
+  font-weight: 500;
+}
+
+.target-hp {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+
+.target-btn.selected .target-hp { color: var(--accent-red); }
+
+/* ── 响应式 ── */
+@media (max-width: 720px) {
+  .action-panel { padding: 12px 14px; }
+  .action-row { flex-wrap: wrap; }
+  .action-btn { min-width: calc(33% - 6px); }
+  .skill-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
