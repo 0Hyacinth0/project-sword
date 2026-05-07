@@ -206,7 +206,7 @@
 import { computed, ref } from 'vue'
 import { X, Sparkles, Trash2, Minus, Plus } from 'lucide-vue-next'
 import type { InventoryItem } from '../../types/item'
-import { getRarityColor, getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel, RARITY_COLORS } from '../../config/item_config'
+import { getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel, RARITY_COLORS } from '../../config/item_config'
 import { AFFIX_LABELS, formatAffixValue } from '../../config/affix_config'
 import { getEnhancedValue } from '../../config/enhance_config'
 import type { ExtraStat, Equipment, EquipmentRarity } from '../../types/equipment'
@@ -325,7 +325,7 @@ const allStatKeys = computed(() => {
 /** 属性对比数据（合并基础属性 + 强化加成 + 随机词条） */
 const compareStats = computed(() => {
   const getCurrent = getTotalStat(
-    props.currentEquipment?.stats,
+    props.currentEquipment?.stats as Record<string, number | undefined> | undefined,
     props.currentEquipment?.extraStats,
     props.currentEquipment?.enhanceLevel,
     props.currentEquipment?.rarity

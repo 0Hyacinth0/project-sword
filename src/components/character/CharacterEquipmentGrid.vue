@@ -15,7 +15,7 @@
           :class="{
             'equip-slot--empty': !equipment.helmet,
             'equip-slot--selected': selectedSlot === 'helmet',
-            ...getRarityGlowClass(equipment.helmet?.rarity)
+            ...getRarityGlowClass(equipment.helmet?.rarity ?? 'Normal')
           }"
           :style="equipment.helmet ? slotStyle(equipment.helmet.rarity) : {}"
           @click="handleSlotClick('helmet')"
@@ -34,7 +34,7 @@
           :class="{
             'equip-slot--empty': !equipment.chest,
             'equip-slot--selected': selectedSlot === 'chest',
-            ...getRarityGlowClass(equipment.chest?.rarity)
+            ...getRarityGlowClass(equipment.chest?.rarity ?? 'Normal')
           }"
           :style="equipment.chest ? slotStyle(equipment.chest.rarity) : {}"
           @click="handleSlotClick('chest')"
@@ -53,7 +53,7 @@
           :class="{
             'equip-slot--empty': !equipment.weapon,
             'equip-slot--selected': selectedSlot === 'weapon',
-            ...getRarityGlowClass(equipment.weapon?.rarity)
+            ...getRarityGlowClass(equipment.weapon?.rarity ?? 'Normal')
           }"
           :style="equipment.weapon ? slotStyle(equipment.weapon.rarity) : {}"
           @click="handleSlotClick('weapon')"
@@ -89,7 +89,7 @@
           :class="{
             'equip-slot--empty': !equipment.accessory1,
             'equip-slot--selected': selectedSlot === 'accessory1',
-            ...getRarityGlowClass(equipment.accessory1?.rarity)
+            ...getRarityGlowClass(equipment.accessory1?.rarity ?? 'Normal')
           }"
           :style="equipment.accessory1 ? slotStyle(equipment.accessory1.rarity) : {}"
           @click="handleSlotClick('accessory1')"
@@ -108,7 +108,7 @@
           :class="{
             'equip-slot--empty': !equipment.accessory2,
             'equip-slot--selected': selectedSlot === 'accessory2',
-            ...getRarityGlowClass(equipment.accessory2?.rarity)
+            ...getRarityGlowClass(equipment.accessory2?.rarity ?? 'Normal')
           }"
           :style="equipment.accessory2 ? slotStyle(equipment.accessory2.rarity) : {}"
           @click="handleSlotClick('accessory2')"
@@ -127,7 +127,7 @@
           :class="{
             'equip-slot--empty': !equipment.legs,
             'equip-slot--selected': selectedSlot === 'legs',
-            ...getRarityGlowClass(equipment.legs?.rarity)
+            ...getRarityGlowClass(equipment.legs?.rarity ?? 'Normal')
           }"
           :style="equipment.legs ? slotStyle(equipment.legs.rarity) : {}"
           @click="handleSlotClick('legs')"
@@ -249,7 +249,7 @@ import { Sword, Sparkles, Target } from 'lucide-vue-next'
 import type { EquipmentSlots, EquipmentSlotType, EquipmentRarity, SetBonus } from '../../types/equipment'
 import { getSlotConfig, RARITY_COLORS, RARITY_LABELS, RARITY_CSS_VAR, RARITY_LEVEL } from '../../config/equipment_config'
 import { formatAffixValue } from '../../config/affix_config'
-import { getEnhancedValue, formatEnhanceLevel, getEnhanceCost, ENHANCE_MATERIAL_NAMES, MAX_ENHANCE_LEVEL } from '../../config/enhance_config'
+import { getEnhancedValue, getEnhanceCost, ENHANCE_MATERIAL_NAMES, MAX_ENHANCE_LEVEL } from '../../config/enhance_config'
 import { getJobConfigByProfession } from '../../config/job_config'
 
 /**

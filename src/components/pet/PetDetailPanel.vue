@@ -12,7 +12,7 @@
         :key="tab.key"
         class="pet-detail-tab"
         :class="{ 'pet-detail-tab--active': activeTab === tab.key }"
-        @click="activeTab = tab.key"
+        @click="activeTab = tab.key as typeof activeTab"
       >
         <component :is="tab.icon" :size="12" />
         <span>{{ tab.label }}</span>
@@ -143,7 +143,7 @@
                 <span class="pet-skill-picker__item-type">×{{ item.quantity }}</span>
               </div>
               <div class="pet-skill-picker__item-desc">
-                {{ formatEquipStats(item.item) }}
+                {{ formatEquipStats(item.item.stats as EquipmentStats) }}
               </div>
             </div>
             <div v-if="!availableEquipItems.length" class="pet-detail-empty">背包中无可用装备</div>
@@ -237,8 +237,8 @@
         <div class="pet-detail-evolve-conditions">
           <div class="pet-detail-evolve-cond">
             <span>等级要求</span>
-            <span :class="{ 'pet-detail-evolve-cond--met': pet.level >= evolveConfig.evolveLevel }">
-              Lv.{{ evolveConfig.evolveLevel }}（当前 Lv.{{ pet.level }}）
+            <span :class="{ 'pet-detail-evolve-cond--met': pet.level >= (evolveConfig.evolveLevel ?? 999) }">
+              Lv.{{ evolveConfig.evolveLevel ?? '?' }}（当前 Lv.{{ pet.level }}）
             </span>
           </div>
           <div v-for="mat in evolveMaterials" :key="mat.itemId" class="pet-detail-evolve-cond">
@@ -302,11 +302,9 @@
 import { ref, computed } from 'vue'
 import { Activity, Sparkles, Zap, Heart, Swords, Shield, Minus, Plus, X } from 'lucide-vue-next'
 import type { PetInfo, PetSkill, PetRarity } from '../../types/pet'
-import type { PetEquipment } from '../../types/pet'
 import type { InventoryItem } from '../../types/item'
-import type { EquipmentRarity } from '../../types/equipment'
+import type { EquipmentRarity, EquipmentStats } from '../../types/equipment'
 import { PET_RARITY_COLORS } from '../../types/pet'
-import { RARITY_CSS_VAR } from '../../config/item_config'
 import { PET_TYPE_CONFIGS, getEvolveMaterials, SKILL_TYPE_LABELS } from '../../config/pet_config'
 
 interface Props {
@@ -376,7 +374,7 @@ const canEvolve = computed(() => {
 })
 
 /** 检查背包是否有材料 */
-function hasMaterial(mat: { itemId: number; quantity: number }): boolean {
+function hasMaterial(_mat: { itemId: number; quantity: number }): boolean {
   // Mock：假设有足够材料
   return true
 }
@@ -493,15 +491,15 @@ const availableEquipItems = computed(() => {
 })
 
 /** 格式化装备属性 */
-function formatEquipStats(item: { stats: Record<string, number | undefined> }): string {
+function formatEquipStats(stats: EquipmentStats): string {
   const parts: string[] = []
-  if (item.stats.hp) parts.push(`HP +${item.stats.hp}`)
-  if (item.stats.defense) parts.push(`防御 +${item.stats.defense}`)
-  if (item.stats.physicalAttack) parts.push(`物攻 +${item.stats.physicalAttack}`)
-  if (item.stats.criticalRate) parts.push(`暴击 +${(item.stats.criticalRate * 100).toFixed(1)}%`)
-  if (item.stats.dodgeRate) parts.push(`闪避 +${(item.stats.dodgeRate * 100).toFixed(1)}%`)
+  if (stats.hp) parts.push(`HP +${stats.hp}`)
+  if (stats.defense) parts.push(`防御 +${stats.defense}`)
+  if (stats.physicalAttack) parts.push(`物攻 +${stats.physicalAttack}`)
+  if (stats.criticalRate) parts.push(`暴击 +${(stats.criticalRate * 100).toFixed(1)}%`)
+  if (stats.dodgeRate) parts.push(`闪避 +${(stats.dodgeRate * 100).toFixed(1)}%`)
   return parts.join(' · ') || '无属性'
-})
+}
 
 /** 打开装备选择弹窗 */
 function openEquipPicker(slotType: 'armor' | 'accessory') {

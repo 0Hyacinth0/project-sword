@@ -647,7 +647,7 @@ async function mockEquipItem(characterId: string, inventoryId: string): Promise<
   }
 
   // 更新角色装备
-  ;(char.equipment as Record<string, Equipment | null>)[slot] = newEquip
+  ;(char.equipment as unknown as Record<string, Equipment | null>)[slot] = newEquip
 
   // 从背包移除
   mockInventoryItems.splice(invIndex, 1)
@@ -696,7 +696,7 @@ async function mockUnequipItem(characterId: string, slotType: EquipmentSlotType)
   })
 
   // 清空槽位
-  ;(char.equipment as Record<string, Equipment | null>)[slot] = null
+  ;(char.equipment as unknown as Record<string, Equipment | null>)[slot] = null
 
   return { code: 200, message: '卸下成功', data: { ...char } }
 }

@@ -52,7 +52,7 @@ const mockPets: Record<string, PetInfo[]> = {
       learnedSkills: getLearnedSkills(1002, 6),
       equipment: {
         armor: null,
-        accessory: { id: 'pet-eq-002', name: '疾风项链', rarity: 'Normal', slotType: 'accessory1', stats: { speed: 5 } }
+        accessory: { id: 'pet-eq-002', name: '疾风项链', rarity: 'Normal', slotType: 'accessory1', stats: { hp: 10, defense: 2 } }
       }
     }
   ],

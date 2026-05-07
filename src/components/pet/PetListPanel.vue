@@ -7,8 +7,18 @@
   <div class="pet-list">
     <div class="pet-list__header">
       <span class="pet-list__title">战宠</span>
-      <span class="pet-list__count">{{ pets.length }}/{{ capacity.max }}</span>
+      <div class="pet-list__header-right">
+        <button class="pet-list__tab-btn" :class="{ 'pet-list__tab-btn--active': !showCollection }" @click="showCollection = false">我的</button>
+        <button class="pet-list__tab-btn" :class="{ 'pet-list__tab-btn--active': showCollection }" @click="showCollection = true">图鉴</button>
+        <span v-if="!showCollection" class="pet-list__count">{{ pets.length }}/{{ capacity.max }}</span>
+      </div>
     </div>
+
+    <!-- 图鉴模式 -->
+    <PetCollectionPanel v-if="showCollection" :owned-type-ids="ownedTypeIds" />
+
+    <!-- 我的战宠模式 -->
+    <template v-else>
 
     <!-- 3 卡片槽位 -->
     <div class="pet-list__slots">
@@ -97,16 +107,18 @@
         />
       </div>
     </Transition>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { Flame, Plus } from 'lucide-vue-next'
 import type { PetInfo, PetRarity, PetCapacity } from '../../types/pet'
 import type { InventoryItem } from '../../types/item'
 import { PET_RARITY_LABEL, PET_RARITY_COLORS } from '../../types/pet'
 import PetDetailPanel from './PetDetailPanel.vue'
+import PetCollectionPanel from './PetCollectionPanel.vue'
 
 /**
  * 战宠列表面板组件
@@ -148,6 +160,12 @@ const emit = defineEmits<Emits>()
 
 /** 当前选中的战宠 ID */
 const selectedPetId = ref<string | null>(null)
+
+/** 是否显示图鉴模式 */
+const showCollection = ref(false)
+
+/** 已拥有的战宠类型 ID 列表（去重） */
+const ownedTypeIds = computed(() => [...new Set(props.pets.map(p => p.petTypeId))])
 
 /** 当前选中的战宠对象 */
 const selectedPet = computed(() =>
@@ -270,6 +288,30 @@ function handleUnequipItem(slotType: 'armor' | 'accessory') {
   font-size: var(--font-size-small, 14px);
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.pet-list__header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pet-list__tab-btn {
+  padding: 2px 8px;
+  border: 1px solid rgba(128, 128, 128, 0.12);
+  border-radius: 4px;
+  background: rgba(128, 128, 128, 0.06);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted, rgba(0, 0, 0, 0.5));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pet-list__tab-btn--active {
+  background: var(--accent-blue, #0071e3);
+  color: #fff;
+  border-color: var(--accent-blue, #0071e3);
 }
 
 .pet-list__count {

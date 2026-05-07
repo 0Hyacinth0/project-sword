@@ -139,10 +139,10 @@
           <span class="char-stats__breakdown-label">战宠</span>
           <span class="char-stats__breakdown-value char-stats__breakdown-value--pet">
             <template v-if="statsBreakdown.pet.hp">生命 +{{ statsBreakdown.pet.hp }}</template>
-            <template v-if="statsBreakdown.pet.attack"> · 攻击 +{{ statsBreakdown.pet.attack }}</template>
-            <template v-if="statsBreakdown.pet.defense"> · 防御 +{{ statsBreakdown.pet.defense }}</template>
-            <template v-if="statsBreakdown.pet.criticalRate"> · 暴击 +{{ (statsBreakdown.pet.criticalRate * 100).toFixed(1) }}%</template>
-            <template v-if="statsBreakdown.pet.dodgeRate"> · 闪避 +{{ (statsBreakdown.pet.dodgeRate * 100).toFixed(1) }}%</template>
+            <template v-if="statsBreakdown.pet.attack">攻击 +{{ statsBreakdown.pet.attack }}</template>
+            <template v-if="statsBreakdown.pet.defense">防御 +{{ statsBreakdown.pet.defense }}</template>
+            <template v-if="statsBreakdown.pet.criticalRate">暴击 +{{ (statsBreakdown.pet.criticalRate * 100).toFixed(1) }}%</template>
+            <template v-if="statsBreakdown.pet.dodgeRate">闪避 +{{ (statsBreakdown.pet.dodgeRate * 100).toFixed(1) }}%</template>
           </span>
         </div>
       </div>
