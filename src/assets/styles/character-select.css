@@ -25,19 +25,19 @@
 }
 
 .char-select::before {
-  width: 380px;
-  height: 380px;
-  background: rgba(255, 107, 53, 0.12);
-  top: -80px;
-  left: -80px;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.14) 0%, rgba(255, 107, 53, 0.04) 60%, transparent 80%);
+  top: -100px;
+  left: -100px;
 }
 
 .char-select::after {
-  width: 320px;
-  height: 320px;
-  background: rgba(124, 92, 252, 0.1);
-  bottom: -60px;
-  right: -60px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(124, 92, 252, 0.12) 0%, rgba(124, 92, 252, 0.03) 60%, transparent 80%);
+  bottom: -80px;
+  right: -80px;
   animation-delay: -10s;
 }
 
@@ -87,7 +87,7 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow: var(--shadow-card);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s var(--ease-smooth);
   overflow: hidden;
   min-height: 220px;
   display: flex;
@@ -96,9 +96,9 @@
   justify-content: center;
 }
 
-.char-card:nth-child(1) { animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both; }
-.char-card:nth-child(2) { animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both; }
-.char-card:nth-child(3) { animation: cardEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+.char-card:nth-child(1) { animation: cardEnter 0.6s var(--ease-out-expo) 0.1s both; }
+.char-card:nth-child(2) { animation: cardEnter 0.6s var(--ease-out-expo) 0.2s both; }
+.char-card:nth-child(3) { animation: cardEnter 0.6s var(--ease-out-expo) 0.3s both; }
 
 .char-card::before {
   content: '';
@@ -106,15 +106,18 @@
   top: 0; left: 0; right: 0;
   height: 1px;
   background: var(--glass-border-gradient);
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
 .char-card:hover {
-  transform: translateY(-6px) scale(1.02);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12), inset 1px 1px 0 0 rgba(255, 255, 255, 0.8);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--shadow-float);
 }
 
-.char-card:active { transform: translateY(-2px) scale(0.99); }
+.char-card:active {
+  transform: translateY(-2px) scale(0.99);
+  transition-duration: 0.1s;
+}
 
 .char-card__job-icon {
   width: 56px;
@@ -125,10 +128,10 @@
   justify-content: center;
   margin-bottom: 14px;
   color: #fff;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s var(--ease-spring);
 }
 
-.char-card:hover .char-card__job-icon { transform: scale(1.1) rotate(-5deg); }
+.char-card:hover .char-card__job-icon { transform: scale(1.12) rotate(-5deg); }
 
 .char-card__name {
   font-size: var(--font-size-base);
@@ -283,10 +286,10 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--border-light);
   border-radius: 20px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-float);
   padding: 28px 24px;
   text-align: center;
-  animation: cardEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: cardEnter 0.35s var(--ease-spring);
 }
 
 .modal-dialog__icon {
@@ -410,7 +413,7 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--border-light);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-elevated);
   z-index: 2000;
 }
 

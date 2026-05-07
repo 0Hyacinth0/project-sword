@@ -292,14 +292,34 @@ gap: 20px;
 ### 6.1 毛玻璃背景
 
 ```css
-background: var(--bg-panel-light);
+background: var(--bg-panel);
 backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 ```
 
 - `--glass-blur: 24px` - 模糊半径
+- 面板透明度略有提升，增强深度感
 
-### 6.2 玻璃边缘高光
+### 6.2 噪点纹理叠加
+
+为增强玻璃质感的真实度和高级感，所有页面叠加了微妙的噪点纹理：
+
+```css
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: var(--noise-opacity);
+  background-image: var(--noise);
+}
+```
+
+- `--noise-opacity: 0.03`（亮色）/ `0.04`（暗色）
+- 使用 SVG 生成的 fractalNoise 噪点纹理
+
+### 6.3 玻璃边缘高光
 
 ```css
 /* 亮色模式 */
@@ -313,23 +333,46 @@ backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 );
 ```
 
-### 6.3 阴影系统
+面板顶部高光线条：
+```css
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 5%; right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+```
+
+### 6.4 阴影系统（多层级）
 
 | 变量名 | 样式 | 用途 |
 |--------|------|------|
-| `--shadow-card` | `0 8px 32px 0 rgba(31,38,135,0.1), inset 1px 1px 0 0 rgba(255,255,255,0.8)` | 卡片阴影 |
-| `--shadow-subtle` | `0 4px 16px 0 rgba(31,38,135,0.05), inset 1px 1px 0 0 rgba(255,255,255,0.6)` | 轻微阴影 |
+| `--shadow-card` | 基础阴影 | 常规卡片 |
+| `--shadow-subtle` | 微阴影 | 较小元素 |
+| `--shadow-elevated` | 悬浮阴影 | 高优先级面板 |
+| `--shadow-float` | 最大阴影 | 悬浮交互态 |
 
-### 6.4 背景装饰
+### 6.5 背景装饰（增强版）
 
-页面背景使用四个角落的彩色径向渐变，为玻璃效果提供折射底色：
+页面背景使用椭圆渐变，配合动画光斑，为玻璃效果提供更丰富的折射底色：
 
 ```css
 background-image: 
-    radial-gradient(circle at 0% 0%, rgba(0, 113, 227, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(52, 199, 89, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(255, 59, 48, 0.2) 0%, transparent 40%),
-    radial-gradient(circle at 0% 100%, rgba(245, 158, 11, 0.2) 0%, transparent 40%);
+    radial-gradient(ellipse 80% 60% at 0% 0%, rgba(0, 113, 227, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(52, 199, 89, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 0%, rgba(255, 59, 48, 0.15) 0%, transparent 45%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(245, 158, 11, 0.15) 0%, transparent 45%);
+```
+
+浮动光斑动画增加旋转维度：
+```css
+@keyframes floatBlob {
+  0%, 100% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  25% { transform: translate(60px, 40px) scale(1.1) rotate(5deg); }
+  50% { transform: translate(20px, 80px) scale(0.95) rotate(-3deg); }
+  75% { transform: translate(-40px, 30px) scale(1.05) rotate(2deg); }
+}
 ```
 
 ---
@@ -343,15 +386,19 @@ background-image:
 | `0.1s` | 快速反馈（按钮按下） |
 | `0.2s` | 标准过渡（颜色、边框） |
 | `0.3s` | 中等过渡（背景色） |
-| `0.5s` | 慢速过渡（进度条） |
+| `0.4s` | 卡片悬浮、面板交互 |
+| `0.5s` | 慢速过渡（进度条、背景色） |
+| `0.7s` | 页面入场动画 |
 
-### 7.2 缓动函数
+### 7.2 缓动函数（弹簧曲线系统）
 
-| 函数 | 用途 |
-|------|------|
-| `ease` | 通用过渡 |
-| `ease-in-out` | 双向动画 |
-| `cubic-bezier(0.25, 1, 0.5, 1)` | 进度条动画 |
+| 函数 | 变量名 | 用途 |
+|------|--------|------|
+| `cubic-bezier(0.34, 1.56, 0.64, 1)` | `--ease-spring` | 弹性入场（Tab 滑块、图标缩放） |
+| `cubic-bezier(0.16, 1, 0.3, 1)` | `--ease-out-expo` | 流畅出场（卡片入场、表单字段） |
+| `cubic-bezier(0.25, 1, 0.5, 1)` | `--ease-smooth` | 通用平滑（悬浮、面板过渡） |
+| `ease-in-out` | - | 双向动画 |
+| `cubic-bezier(0.25, 1, 0.5, 1)` | - | 进度条动画 |
 
 ### 7.3 浮动文字动画
 
@@ -420,6 +467,11 @@ button { width: 100%; }
     --bg-body: #f5f5f7;
     --bg-panel: linear-gradient(...);
     --bg-panel-light: linear-gradient(...);
+    --bg-modal: rgba(255, 255, 255, 0.92);
+    
+    /* 噪点纹理 */
+    --noise: url("data:image/svg+xml,...");
+    --noise-opacity: 0.03;
     
     /* 文字 */
     --text-primary: #1d1d1f;
@@ -429,6 +481,7 @@ button { width: 100%; }
     /* 强调色 */
     --accent-blue: #0071e3;
     --accent-blue-dark: #0077ed;
+    --accent-blue-glow: rgba(0, 113, 227, 0.25);
     --accent-red: #ff3b30;
     --accent-gold: #f59e0b;
     --accent-green: #34c759;
@@ -451,13 +504,20 @@ button { width: 100%; }
     --font-size-subheading: clamp(20px, 3vw, 28px);
     --font-size-section: 19px;
     
-    /* 阴影 */
-    --shadow-card: 0 8px 32px 0 rgba(31, 38, 135, 0.1), inset 1px 1px 0 0 rgba(255, 255, 255, 0.8);
-    --shadow-subtle: 0 4px 16px 0 rgba(31, 38, 135, 0.05), inset 1px 1px 0 0 rgba(255, 255, 255, 0.6);
+    /* 阴影（多层级） */
+    --shadow-card: ...;
+    --shadow-subtle: ...;
+    --shadow-elevated: ...;
+    --shadow-float: ...;
     
     /* 玻璃效果 */
     --glass-blur: 24px;
     --glass-border-gradient: linear-gradient(...);
+    
+    /* 动画曲线 */
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
     
     /* 导航 */
     --nav-bg: linear-gradient(...);
@@ -467,5 +527,5 @@ button { width: 100%; }
 
 ---
 
-*文档版本: 1.0.0*
-*最后更新: 2026-04-17*
+*文档版本: 1.1.0*
+*最后更新: 2026-05-07*

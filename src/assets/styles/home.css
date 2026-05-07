@@ -12,10 +12,10 @@
   box-sizing: border-box;
   overflow: hidden;
   background-image:
-    radial-gradient(circle at 0% 0%, rgba(0, 113, 227, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(52, 199, 89, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(255, 59, 48, 0.2) 0%, transparent 40%),
-    radial-gradient(circle at 0% 100%, rgba(245, 158, 11, 0.2) 0%, transparent 40%);
+    radial-gradient(ellipse 90% 70% at 0% 0%, rgba(0, 113, 227, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 60% at 100% 100%, rgba(52, 199, 89, 0.16) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 100% 0%, rgba(255, 59, 48, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse 70% 55% at 0% 100%, rgba(245, 158, 11, 0.12) 0%, transparent 45%);
 }
 
 /* ── 顶部通栏 ── */
@@ -29,9 +29,21 @@
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: var(--shadow-subtle);
   flex-shrink: 0;
+  position: relative;
+}
+
+/* 顶部通栏高光线 */
+.game-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
 }
 
 .game-header__left {
@@ -147,6 +159,19 @@
   box-shadow: var(--shadow-card);
   padding: 16px;
   overflow-y: auto;
+  position: relative;
+}
+
+/* 面板顶部高光 */
+.game-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  pointer-events: none;
 }
 
 .game-panel__title {
@@ -243,7 +268,8 @@
 
 .game-main__btn--primary:hover {
   filter: brightness(1.1);
-  box-shadow: 0 4px 14px rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 20px rgba(0, 113, 227, 0.3);
+  transform: translateY(-1px);
 }
 
 .game-main__btn--secondary {
@@ -254,10 +280,12 @@
 
 .game-main__btn--secondary:hover {
   background: var(--bg-panel);
+  box-shadow: var(--shadow-subtle);
 }
 
 .game-main__btn:active {
-  transform: scale(0.98);
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
 }
 
 /* ── 底部导航 ── */
@@ -276,7 +304,7 @@
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s var(--ease-smooth);
   font-size: var(--font-size-small);
   font-weight: 500;
   color: var(--text-muted);
@@ -284,11 +312,14 @@
 
 .game-bottom-nav .game-panel:hover {
   color: var(--accent-blue);
-  border-color: var(--accent-blue);
+  border-color: rgba(0, 113, 227, 0.3);
+  box-shadow: var(--shadow-elevated);
+  transform: translateY(-2px);
 }
 
 .game-bottom-nav .game-panel:active {
-  transform: scale(0.97);
+  transform: translateY(0) scale(0.97);
+  transition-duration: 0.1s;
 }
 
 /* ══════════════════════════════════════════
@@ -441,6 +472,8 @@
 .backpack-cell:hover {
   border-color: var(--accent-blue);
   background: rgba(0, 113, 227, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.12);
+  transform: translateY(-1px);
 }
 
 .backpack-cell--empty {
@@ -534,17 +567,18 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 10px 24px;
+  border-radius: 12px;
   background: rgba(30, 30, 30, 0.88);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
   color: #fff;
   font-size: var(--font-size-small, 14px);
   font-weight: 500;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   pointer-events: none;
   max-width: 80vw;
   text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .toast-enter-active,
@@ -556,4 +590,43 @@
 .toast-leave-to {
   opacity: 0;
   transform: translateX(-50%) translateY(-12px);
+}
+
+/* ═══ HomeView 补充样式 ═══ */
+
+/* 角色空状态 */
+.char-info__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+/* 背包加载状态 */
+.backpack-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+}
+
+.backpack-loading__spinner {
+  animation: spin 1s linear infinite;
+  color: var(--text-muted);
+}
+
+/* 在 header 中覆盖 ThemeToggle 的 fixed 定位和尺寸 */
+.game-header__right .theme-toggle {
+  position: static;
+}
+
+.game-header__right .theme-toggle__btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 980px;
+}
+
+.game-header__right .theme-toggle__btn:hover {
+  transform: scale(1.08) rotate(15deg);
 }

@@ -1,0 +1,690 @@
+/* ============================================
+   背包模块样式
+   BackpackGrid / ItemDetailModal
+   ============================================ */
+
+/* ═══ BackpackGrid ═══ */
+.backpack-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  flex: 1;
+  align-content: start;
+}
+
+/* ── 格子包裹层（定位 tooltip，承载外发光）── */
+.backpack-wrapper {
+  aspect-ratio: 1;
+  position: relative;
+  cursor: pointer;
+  border-radius: 10px;
+}
+
+.backpack-wrapper:hover .backpack-cell {
+  transform: scale(1.08);
+}
+
+.backpack-wrapper:active .backpack-cell {
+  transform: scale(0.95);
+}
+
+/* ── 史诗 wrapper：呼吸外发光 ── */
+.backpack-wrapper--epic {
+  animation: glow-breathe-epic 3s ease-in-out infinite;
+}
+
+[data-theme='dark'] .backpack-wrapper--epic {
+  animation: glow-breathe-epic-dark 3s ease-in-out infinite;
+}
+
+/* ── 传说 wrapper：脉动外发光 ── */
+.backpack-wrapper--legendary {
+  animation: glow-pulse-legendary 2.5s ease-in-out infinite;
+}
+
+[data-theme='dark'] .backpack-wrapper--legendary {
+  animation: glow-pulse-legendary-dark 2.5s ease-in-out infinite;
+}
+
+/* ── 格子本体 ── */
+.backpack-cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+}
+
+/* ── 空格子 ── */
+.backpack-cell--empty {
+  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.06));
+  opacity: 0.3;
+  cursor: default;
+  aspect-ratio: 1;
+  border-radius: 8px;
+}
+
+/* ── 物品格子（overflow: hidden 裁剪扫光）── */
+.backpack-cell--item {
+  border: 2px solid transparent;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 图标层（在光效之上） */
+.backpack-cell__icon {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── 品质角标 ── */
+.backpack-cell__rarity-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  padding: 0 5px;
+  line-height: 16px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #fff;
+  border-radius: 0 0 6px 0;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+}
+
+/* ── 品质扫光效果（普通/稀有，hover 触发）── */
+.backpack-cell--item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 255, 255, 0.05) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+  transform: skewX(-15deg);
+}
+
+.backpack-wrapper:hover .backpack-cell--item::after {
+  animation: sweep-glow 1.2s ease-in-out;
+}
+
+/* ── 史诗品质格子：加强扫光 + 内发光 ── */
+.backpack-cell--epic {
+  box-shadow: inset 0 0 12px rgba(175, 82, 222, 0.15);
+}
+
+.backpack-cell--epic::after {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 25%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.08) 75%,
+    transparent 100%
+  );
+}
+
+/* ── 传说品质格子：强烈扫光 + 内发光 ── */
+.backpack-cell--legendary {
+  box-shadow: inset 0 0 16px rgba(255, 149, 0, 0.2);
+}
+
+.backpack-cell--legendary::after {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.1) 80%,
+    transparent 100%
+  );
+}
+
+.backpack-wrapper:hover .backpack-cell--legendary::after {
+  animation: sweep-glow 0.8s ease-in-out;
+}
+
+/* ── 数量角标 ── */
+.backpack-cell__count {
+  position: absolute;
+  right: 3px;
+  bottom: 2px;
+  font-size: var(--font-size-caption, 11px);
+  font-weight: 600;
+  line-height: 1;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  z-index: 3;
+}
+
+[data-theme='dark'] .backpack-cell__count {
+  background: rgba(255, 255, 255, 0.5);
+  color: #000;
+}
+
+/* ── 悬浮提示（在外层，不受 overflow 影响）── */
+.backpack-cell__tooltip {
+  display: none;
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  z-index: 100;
+  min-width: 100px;
+  max-width: 200px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(30, 30, 30, 0.92);
+  backdrop-filter: blur(12px);
+  color: #fff;
+  text-align: center;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.backpack-wrapper:hover .backpack-cell__tooltip {
+  display: block;
+}
+
+.backpack-cell__tooltip-name {
+  display: block;
+  font-size: var(--font-size-label, 13px);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.backpack-cell__tooltip-rarity {
+  display: block;
+  font-size: var(--font-size-caption, 11px);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ── 扫光动画：从右上划到左下 ── */
+@keyframes sweep-glow {
+  0% {
+    left: -100%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 160%;
+    opacity: 0;
+  }
+}
+
+/* ── 史诗呼吸外发光（亮色模式）── */
+@keyframes glow-breathe-epic {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(175, 82, 222, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(175, 82, 222, 0.45);
+  }
+}
+
+/* ── 史诗呼吸外发光（暗色模式）── */
+@keyframes glow-breathe-epic-dark {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(194, 130, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px 3px rgba(194, 130, 255, 0.45);
+  }
+}
+
+/* ── 传说脉动外发光（亮色模式）── */
+@keyframes glow-pulse-legendary {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(255, 149, 0, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(255, 149, 0, 0.55);
+  }
+}
+
+/* ── 传说脉动外发光（暗色模式）── */
+@keyframes glow-pulse-legendary-dark {
+  0%, 100% {
+    box-shadow: 0 0 4px 1px rgba(255, 155, 82, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(255, 155, 82, 0.55);
+  }
+}
+
+/* ═══ ItemDetailModal ═══ */
+.item-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+}
+
+.item-modal {
+  width: 320px;
+  max-width: 90vw;
+  background: var(--bg-modal);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  color: var(--text-primary);
+}
+
+/* 头部 */
+.item-modal__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.item-modal__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-modal__title {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-modal__name {
+  display: block;
+  font-size: var(--font-size-base, 16px);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-modal__meta {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.item-modal__close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.item-modal__close:hover {
+  background: rgba(128, 128, 128, 0.15);
+  color: var(--text-primary);
+}
+
+/* 描述 */
+.item-modal__desc {
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* ── 装备属性对比 ── */
+.item-modal__compare {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+}
+
+.item-modal__compare-row {
+  display: flex;
+  gap: 0;
+  font-size: var(--font-size-xs);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.item-modal__compare-row:last-child {
+  border-bottom: none;
+}
+
+.item-modal__compare-col {
+  flex: 1;
+  padding: 5px 6px;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.item-modal__compare-header {
+  background: rgba(128, 128, 128, 0.06);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.item-modal__compare-label {
+  text-align: left;
+  color: var(--text-muted);
+}
+
+.item-modal__compare-up {
+  color: var(--accent-green, #34c759);
+  font-weight: 600;
+}
+
+.item-modal__compare-down {
+  color: var(--accent-red, #ff3b30);
+  font-weight: 600;
+}
+
+.item-modal__compare-empty {
+  padding: 6px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.item-modal__compare-enhance {
+  padding: 4px 8px;
+  font-size: var(--font-size-xs);
+  color: var(--accent-gold, #f59e0b);
+  text-align: center;
+  border-top: 1px solid var(--border-light);
+}
+
+/* ── 随机词条 ── */
+.item-modal__affix {
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  background: rgba(52, 199, 89, 0.04);
+  padding: 8px 10px;
+}
+
+.item-modal__affix-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--accent-green, #34c759);
+  margin-bottom: 6px;
+}
+
+.item-modal__affix-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: var(--font-size-xs);
+}
+
+.item-modal__affix-label {
+  color: var(--text-muted);
+}
+
+.item-modal__affix-value {
+  color: var(--accent-green, #34c759);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 信息段落 */
+.item-modal__section {
+  margin-bottom: 12px;
+}
+
+.item-modal__section-title {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.item-modal__effect {
+  font-size: var(--font-size-small);
+  color: var(--accent-green);
+  padding: 4px 0;
+}
+
+.item-modal__info-row {
+  display: flex;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: var(--font-size-small);
+}
+
+.item-modal__info-label {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.item-modal__info-value {
+  color: var(--text-primary);
+}
+
+/* 底部 */
+.item-modal__footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── 操作按钮区 ── */
+.item-modal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.item-modal__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.item-modal__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.item-modal__btn--use {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.item-modal__btn--use:hover:not(:disabled) {
+  background: var(--accent-blue-dark);
+}
+
+.item-modal__btn--discard {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--accent-red);
+}
+
+.item-modal__btn--discard:hover:not(:disabled) {
+  background: rgba(255, 59, 48, 0.2);
+}
+
+.item-modal__btn--confirm {
+  flex: 1;
+}
+
+.item-modal__btn--cancel {
+  background: rgba(128, 128, 128, 0.12);
+  color: var(--text-muted);
+}
+
+.item-modal__btn--cancel:hover {
+  background: rgba(128, 128, 128, 0.2);
+}
+
+/* ── 数量选择器 ── */
+.item-modal__quantity {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.item-modal__quantity-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.item-modal__quantity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.item-modal__quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item-modal__quantity-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.item-modal__btn--sm {
+  padding: 6px 12px;
+  font-size: var(--font-size-xs);
+}
+
+.item-modal__qty-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.08);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.item-modal__qty-btn:hover {
+  background: rgba(128, 128, 128, 0.16);
+}
+
+.item-modal__qty-input {
+  width: 48px;
+  height: 32px;
+  text-align: center;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.08);
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.item-modal__qty-input::-webkit-outer-spin-button,
+.item-modal__qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-modal__qty-input:focus {
+  border-color: var(--accent-blue);
+}
+
+/* ── 丢弃二次确认 ── */
+.item-modal__confirm {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 59, 48, 0.06);
+  border: 1px solid rgba(255, 59, 48, 0.15);
+}
+
+.item-modal__confirm-text {
+  font-size: var(--font-size-small);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.item-modal__confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ── 过渡动画 ── */
+.modal-enter-active,
+.modal-leave-active {
+  transition: all 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .item-modal,
+.modal-leave-to .item-modal {
+  transform: scale(0.95);
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: all 0.2s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}

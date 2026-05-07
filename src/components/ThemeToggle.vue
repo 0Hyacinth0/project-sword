@@ -50,21 +50,3 @@ onMounted(() => {
   applyTheme()
 })
 </script>
-
-<style scoped>
-/* 图标切换动画 */
-.theme-icon-enter-active,
-.theme-icon-leave-active {
-  transition: all 0.2s ease;
-}
-
-.theme-icon-enter-from {
-  opacity: 0;
-  transform: rotate(-90deg) scale(0.6);
-}
-
-.theme-icon-leave-to {
-  opacity: 0;
-  transform: rotate(90deg) scale(0.6);
-}
-</style>
