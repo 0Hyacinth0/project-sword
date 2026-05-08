@@ -29,8 +29,9 @@ NODE_BIN="/www/server/nodejs/v22.2.0/bin"
 # Git 分支
 GIT_BRANCH="main"
 
-# 日志文件
-LOG_FILE="${PROJECT_DIR}/deploy.log"
+# 日志文件（clone 前写到脚本同目录，clone 后切换到项目目录）
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG_FILE="${SCRIPT_DIR}/deploy-sword.log"
 
 # ---------- 函数区 ----------
 
@@ -55,6 +56,9 @@ if [ ! -d "$PROJECT_DIR" ]; then
     fi
     log "仓库克隆成功"
 fi
+
+# clone 完成后，日志切换到项目目录
+LOG_FILE="${PROJECT_DIR}/deploy.log"
 
 cd "$PROJECT_DIR" || { log "错误: 无法进入项目目录 $PROJECT_DIR"; exit 1; }
 
