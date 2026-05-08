@@ -322,6 +322,27 @@
   transition-duration: 0.1s;
 }
 
+/* ── 中间面板全屏模式（地图等视图） ── */
+.game-body--center-view .game-left,
+.game-body--center-view .game-right {
+  display: none;
+}
+
+.game-body--center-view .game-center {
+  flex: 1;
+}
+
+.game-body--center-view .game-main {
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.game-bottom-nav__item--active {
+  color: var(--accent-blue) !important;
+  border-color: rgba(0, 113, 227, 0.3) !important;
+}
+
 /* ══════════════════════════════════════════
    右侧面板 - 背包
    ══════════════════════════════════════════ */

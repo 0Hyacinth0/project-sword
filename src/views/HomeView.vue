@@ -29,7 +29,7 @@
       <span>正在加载角色数据...</span>
     </div>
 
-    <div v-else class="game-body">
+    <div v-else class="game-body" :class="{ 'game-body--center-view': centerView !== 'home' }">
       <!-- ═══ 左侧面板 ═══ -->
       <div class="game-left">
         <!-- 角色详情面板 -->
