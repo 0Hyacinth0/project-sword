@@ -515,7 +515,7 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .area-detail__btn--explore {
-  background: var(--accent-blue);
+  background: var(--accent-gold);
   color: var(--button-text);
 }
 
