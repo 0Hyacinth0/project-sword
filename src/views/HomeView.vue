@@ -69,46 +69,44 @@
         </div>
 
         <!-- 主页欢迎视图 -->
-        <template v-else>
-          <div class="game-panel game-main">
-            <div class="game-main__welcome">
-              欢迎，{{ auth.user?.username }}
-            </div>
-            <p class="game-main__desc">
-              这里是您的冒险起点。选择角色后，您可以探索世界、挑战副本、与其他玩家对战。
-            </p>
-            <div class="game-main__actions">
-              <button class="game-main__btn game-main__btn--primary" @click="centerView = 'map'">
-                <Map :size="16" />
-                开始探索
-              </button>
-              <button class="game-main__btn game-main__btn--secondary" @click="centerView = 'map'">
-                <Swords :size="16" />
-                进入副本
-              </button>
-            </div>
+        <div v-else class="game-panel game-main">
+          <div class="game-main__welcome">
+            欢迎，{{ auth.user?.username }}
           </div>
-
-          <!-- 底部快捷导航 -->
-          <div class="game-bottom-nav">
-            <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'map' }" @click="centerView = 'map'">
+          <p class="game-main__desc">
+            这里是您的冒险起点。选择角色后，您可以探索世界、挑战副本、与其他玩家对战。
+          </p>
+          <div class="game-main__actions">
+            <button class="game-main__btn game-main__btn--primary" @click="centerView = 'map'">
               <Map :size="16" />
-              <span>地图</span>
-            </div>
-            <div class="game-panel game-bottom-nav__item" @click="showToast('战斗功能即将开放')">
+              开始探索
+            </button>
+            <button class="game-main__btn game-main__btn--secondary" @click="centerView = 'map'">
               <Swords :size="16" />
-              <span>战斗</span>
-            </div>
-            <div class="game-panel game-bottom-nav__item" @click="showToast('组队功能即将开放')">
-              <Users :size="16" />
-              <span>组队</span>
-            </div>
-            <div class="game-panel game-bottom-nav__item" @click="showToast('商店功能即将开放')">
-              <Store :size="16" />
-              <span>商店</span>
-            </div>
+              进入副本
+            </button>
           </div>
-        </template>
+        </div>
+
+        <!-- 底部快捷导航（始终显示） -->
+        <div class="game-bottom-nav">
+          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'map' }" @click="centerView = 'map'">
+            <Map :size="16" />
+            <span>地图</span>
+          </div>
+          <div class="game-panel game-bottom-nav__item" @click="showToast('战斗功能即将开放')">
+            <Swords :size="16" />
+            <span>战斗</span>
+          </div>
+          <div class="game-panel game-bottom-nav__item" @click="showToast('组队功能即将开放')">
+            <Users :size="16" />
+            <span>组队</span>
+          </div>
+          <div class="game-panel game-bottom-nav__item" @click="showToast('商店功能即将开放')">
+            <Store :size="16" />
+            <span>商店</span>
+          </div>
+        </div>
       </div>
 
       <!-- ═══ 右侧面板 ═══ -->
