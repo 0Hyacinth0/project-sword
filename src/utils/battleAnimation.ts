@@ -45,7 +45,7 @@ const floatingTexts = ref<FloatingText[]>([])
 const unitAnims = reactive<Record<string, UnitAnimType>>({})
 
 /** 屏幕震动 */
-const screenShake = ref(false)
+export const screenShake = ref(false)
 
 // ──────────────────────────────────────────
 // 公开方法

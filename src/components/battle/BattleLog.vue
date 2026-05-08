@@ -114,7 +114,6 @@ const showCopyToast = ref(false)
 
 /** 滚动容器 */
 const scrollContainer = ref<HTMLElement | null>(null)
-const logContainer = ref<HTMLElement | null>(null)
 
 // ── 筛选配置 ──
 

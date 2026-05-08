@@ -1,18 +1,9 @@
 <template>
-  <div class="map-page">
-    <!-- 页面标题栏 -->
+  <div class="world-map-panel">
+    <!-- 标题栏 -->
     <header class="map-header">
-      <button class="map-header__back" @click="router.back()">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+      <button class="map-header__back" @click="$emit('back')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M15 18l-6-6 6-6" />
         </svg>
         <span>返回</span>
@@ -52,7 +43,6 @@
             class="area-detail"
           >
             <div class="area-detail__inner">
-              <!-- 区域描述 -->
               <p class="area-detail__desc">{{ area.description }}</p>
 
               <!-- 怪物列表 -->
@@ -85,16 +75,10 @@
 
               <!-- 操作按钮 -->
               <div class="area-detail__actions">
-                <button
-                  class="area-detail__btn area-detail__btn--explore"
-                  @click.stop="handleEnterArea(area)"
-                >
+                <button class="area-detail__btn area-detail__btn--explore" @click.stop="handleEnterArea(area)">
                   进入探索
                 </button>
-                <button
-                  class="area-detail__btn area-detail__btn--dungeon"
-                  @click.stop="handleDungeon(area)"
-                >
+                <button class="area-detail__btn area-detail__btn--dungeon" @click.stop="handleDungeon(area)">
                   副本
                 </button>
               </div>
@@ -103,25 +87,21 @@
         </Transition>
       </div>
     </div>
-
-    <!-- Toast 提示 -->
-    <Transition name="toast-fade">
-      <div v-if="toast.visible" :class="['toast', `toast--${toast.type}`]">
-        <span>{{ toast.message }}</span>
-      </div>
-    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useMapStore } from '../stores/map'
-import { useCharacterStore } from '../stores/character'
-import { enterAreaApi } from '../api/map'
-import type { MapArea, AreaStatus } from '../types/map'
+import { useMapStore } from '../../stores/map'
+import { useCharacterStore } from '../../stores/character'
+import { enterAreaApi } from '../../api/map'
+import type { MapArea, AreaStatus } from '../../types/map'
 
-const router = useRouter()
+defineEmits<{
+  /** 返回上一级 */
+  back: []
+}>()
+
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 
@@ -192,7 +172,6 @@ function handleCardClick(area: MapArea): void {
 
 /**
  * 处理"进入探索"按钮点击
- * 调用进入区域 API，成功后显示 toast 提示
  * @param area - 目标区域
  */
 async function handleEnterArea(area: MapArea): Promise<void> {
@@ -215,7 +194,6 @@ async function handleEnterArea(area: MapArea): Promise<void> {
 
 /**
  * 处理"副本"按钮点击
- * 当前阶段仅显示 toast 提示
  * @param _area - 目标区域（暂未使用）
  */
 function handleDungeon(_area: MapArea): void {
@@ -224,11 +202,11 @@ function handleDungeon(_area: MapArea): void {
 </script>
 
 <style scoped>
-/* ── 页面容器 ── */
-.map-page {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 24px 28px 40px;
+/* ── 面板容器 ── */
+.world-map-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* ── 标题栏 ── */
@@ -236,7 +214,7 @@ function handleDungeon(_area: MapArea): void {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .map-header__back {
@@ -270,6 +248,7 @@ function handleDungeon(_area: MapArea): void {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.015em;
+  margin: 0;
 }
 
 .map-header__level-badge {
@@ -286,7 +265,23 @@ function handleDungeon(_area: MapArea): void {
 .map-area-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 2px;
+}
+
+.map-area-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.map-area-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.map-area-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
 }
 
 /* ── 区域卡片 ── */
@@ -299,13 +294,14 @@ function handleDungeon(_area: MapArea): void {
   border-radius: 14px;
   overflow: hidden;
   transition: border-color 0.3s, box-shadow 0.3s, opacity 0.3s, filter 0.3s;
+  flex-shrink: 0;
 }
 
 .area-card__inner {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 14px 16px;
 }
 
 /* ── 卡片状态：当前区域 ── */
@@ -346,12 +342,12 @@ function handleDungeon(_area: MapArea): void {
 
 /* ── 区域图标 ── */
 .area-card__icon {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   border-radius: 10px;
   background: var(--bg-panel-light);
   flex-shrink: 0;
@@ -413,19 +409,19 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .area-detail__inner {
-  padding: 16px 20px 20px;
+  padding: 14px 16px 16px;
 }
 
 .area-detail__desc {
   font-size: var(--font-size-small);
   color: var(--text-muted);
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   line-height: 1.5;
 }
 
 /* ── 详情分节 ── */
 .area-detail__section {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .area-detail__section-title {
@@ -433,7 +429,7 @@ function handleDungeon(_area: MapArea): void {
   font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--text-muted);
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   letter-spacing: 0.15rem;
   text-transform: uppercase;
 }
@@ -442,48 +438,42 @@ function handleDungeon(_area: MapArea): void {
 .area-detail__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .area-detail__tag {
   font-size: var(--font-size-caption);
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 6px;
+  padding: 3px 8px;
+  border-radius: 5px;
   line-height: 1.2;
 }
 
-/* 怪物标签 - 普通类型 */
 .area-detail__tag--monster.area-detail__tag--normal {
   background: rgba(0, 113, 227, 0.1);
   color: var(--accent-blue);
 }
 
-/* 怪物标签 - 精英类型 */
 .area-detail__tag--monster.area-detail__tag--elite {
   background: rgba(175, 82, 222, 0.12);
   color: #af52de;
 }
 
-/* 怪物标签 - Boss 类型 */
 .area-detail__tag--monster.area-detail__tag--boss {
   background: rgba(255, 149, 0, 0.12);
   color: var(--accent-gold);
 }
 
-/* 掉落标签 - 稀有 */
 .area-detail__tag--drop.area-detail__tag--Rare {
   background: rgba(0, 113, 227, 0.1);
   color: var(--accent-blue);
 }
 
-/* 掉落标签 - 史诗 */
 .area-detail__tag--drop.area-detail__tag--Epic {
   background: rgba(175, 82, 222, 0.12);
   color: #af52de;
 }
 
-/* 掉落标签 - 传说 */
 .area-detail__tag--drop.area-detail__tag--Legendary {
   background: rgba(255, 149, 0, 0.12);
   color: var(--accent-gold);
@@ -492,12 +482,12 @@ function handleDungeon(_area: MapArea): void {
 /* ── 操作按钮 ── */
 .area-detail__actions {
   display: flex;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
 .area-detail__btn {
-  padding: 8px 18px;
+  padding: 7px 16px;
   font-size: var(--font-size-small);
   font-weight: 500;
   border: none;
@@ -548,62 +538,14 @@ function handleDungeon(_area: MapArea): void {
   opacity: 1;
 }
 
-/* ── Toast 提示 ── */
-.toast {
-  position: fixed;
-  bottom: 32px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 20px;
-  border-radius: 980px;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-elevated);
-  z-index: 1000;
-  white-space: nowrap;
-}
-
-.toast--success {
-  background: rgba(52, 199, 89, 0.15);
-  color: var(--accent-green);
-}
-
-.toast--error {
-  background: rgba(255, 59, 48, 0.15);
-  color: var(--accent-red);
-}
-
-.toast--info {
-  background: rgba(0, 113, 227, 0.15);
-  color: var(--accent-blue);
-}
-
-.toast-fade-enter-active,
-.toast-fade-leave-active {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.toast-fade-enter-from,
-.toast-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-50%) translateY(12px);
-}
-
 /* ── 响应式 ── */
 @media (max-width: 720px) {
-  .map-page {
-    padding: 12px;
-  }
-
   .area-card__inner {
-    padding: 12px;
+    padding: 10px 12px;
   }
 
   .area-detail__inner {
-    padding: 12px;
+    padding: 10px 12px;
   }
 
   .area-detail__actions {

@@ -12,7 +12,7 @@
       <div class="combatant-info">
         <div class="name-row">
           <span class="combatant-name">{{ combatant.name }}</span>
-          <span v-if="level > 0" class="combatant-level">Lv.{{ level }}</span>
+          <span v-if="level !== undefined && level > 0" class="combatant-level">Lv.{{ level }}</span>
           <span class="type-badge" :class="combatant.type">{{ typeLabel }}</span>
         </div>
         <div class="buff-row" v-if="combatant.buffs.length > 0">

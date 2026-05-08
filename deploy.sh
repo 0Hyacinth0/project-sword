@@ -1,18 +1,19 @@
 #!/bin/bash
 
 # ============================================
-# 宝塔部署 - 自动拉取代码并构建脚本
+# 宝塔部署 - 同步本地构建产物到服务器
 # 项目: project-sword (Vue3 + Vite)
 # 域名: www.idcombat.icu/sword/
+#
+# 使用方式:
+#   本地构建后执行: bash deploy.sh
+#   或一键: bash deploy.sh --build
 # ============================================
 
 # ---------- 配置区（按实际情况修改） ----------
 
-# Git 仓库地址
-GIT_REPO="https://github.com/0Hyacinth0/project-sword.git"
-
-# 项目代码存放目录（git 仓库，与网站目录分开）
-PROJECT_DIR="/www/wwwroot/repos/project-sword"
+# 服务器 SSH 连接（宝塔面板 → 安全 → 查看SSH信息）
+SERVER="root@59.110.36.83"
 
 # 网站根目录（宝塔网站目录）
 WEB_ROOT="/www/wwwroot/www.idcombat.icu"
@@ -20,88 +21,38 @@ WEB_ROOT="/www/wwwroot/www.idcombat.icu"
 # 部署子目录（访问路径: www.idcombat.icu/sword/）
 DEPLOY_SUBDIR="sword"
 
-# 最终部署目标: /www/wwwroot/www.idcombat.icu/sword/
+# 最终部署目标
 DEPLOY_DIR="${WEB_ROOT}/${DEPLOY_SUBDIR}"
 
-# Node.js 路径（SSH 登录执行 which node 获取）
-NODE_BIN="/www/server/nodejs/v22.2.0/bin"
+# ---------- 本地构建 ----------
 
-# Git 分支
-GIT_BRANCH="main"
-
-# 日志文件（clone 前写到脚本同目录，clone 后切换到项目目录）
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LOG_FILE="${SCRIPT_DIR}/deploy-sword.log"
-
-# ---------- 函数区 ----------
-
-timestamp() {
-    date "+%Y-%m-%d %H:%M:%S"
-}
-
-log() {
-    echo "[$(timestamp)] $1" | tee -a "$LOG_FILE"
-}
-
-# ---------- 主流程 ----------
-
-# 首次部署：如果项目目录不存在则自动 clone
-if [ ! -d "$PROJECT_DIR" ]; then
-    log "项目目录不存在，正在克隆仓库..."
-    mkdir -p "$(dirname "$PROJECT_DIR")"
-    git clone -b "$GIT_BRANCH" "$GIT_REPO" "$PROJECT_DIR" >> "$LOG_FILE" 2>&1
+# 加 --build 参数时先在本地构建
+if [ "$1" = "--build" ]; then
+    echo "本地构建中..."
+    npm run build
     if [ $? -ne 0 ]; then
-        log "错误: 克隆仓库失败，请检查 Git 地址和网络"
+        echo "构建失败，终止部署"
         exit 1
     fi
-    log "仓库克隆成功"
+    echo "构建完成"
 fi
 
-# clone 完成后，日志切换到项目目录
-LOG_FILE="${PROJECT_DIR}/deploy.log"
-
-cd "$PROJECT_DIR" || { log "错误: 无法进入项目目录 $PROJECT_DIR"; exit 1; }
-
-log "===== 开始部署 ====="
-
-# 1. 拉取最新代码
-log "拉取最新代码 (分支: $GIT_BRANCH)..."
-git fetch origin "$GIT_BRANCH" >> "$LOG_FILE" 2>&1
-git reset --hard "origin/$GIT_BRANCH" >> "$LOG_FILE" 2>&1
-if [ $? -ne 0 ]; then
-    log "错误: 拉取代码失败，请检查 Git 配置"
+# 检查 dist 目录是否存在
+if [ ! -d "dist" ]; then
+    echo "错误: dist 目录不存在，请先本地执行 npm run build"
     exit 1
 fi
-log "代码拉取成功"
 
-# 2. 安装依赖
-log "安装依赖..."
-export PATH="$NODE_BIN:$PATH"
-npm install >> "$LOG_FILE" 2>&1
+# ---------- 同步到服务器 ----------
+
+echo "部署到 ${DEPLOY_DIR}..."
+ssh "${SERVER}" "mkdir -p ${DEPLOY_DIR}"
+rsync -avz --delete dist/ "${SERVER}:${DEPLOY_DIR}/"
+
 if [ $? -ne 0 ]; then
-    log "错误: 依赖安装失败"
+    echo "部署失败"
     exit 1
 fi
-log "依赖安装完成"
 
-# 3. 构建
-log "开始构建..."
-npm run build >> "$LOG_FILE" 2>&1
-if [ $? -ne 0 ]; then
-    log "错误: 构建失败，请查看 $LOG_FILE"
-    exit 1
-fi
-log "构建完成"
-
-# 4. 同步构建产物到网站子目录
-mkdir -p "$DEPLOY_DIR"
-log "同步构建产物到 ${DEPLOY_DIR}..."
-rsync -av --delete "${PROJECT_DIR}/dist/" "${DEPLOY_DIR}/" >> "$LOG_FILE" 2>&1
-if [ $? -ne 0 ]; then
-    log "错误: 文件同步失败"
-    exit 1
-fi
-log "文件同步完成"
-
-log "===== 部署成功 ====="
-log "访问地址: https://www.idcombat.icu/${DEPLOY_SUBDIR}/"
+echo "===== 部署成功 ====="
+echo "访问地址: https://www.idcombat.icu/${DEPLOY_SUBDIR}/"
