@@ -35,6 +35,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/map',
+      name: 'map',
+      component: () => import('../views/MapView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       // 未匹配路由重定向到角色选择
       path: '/:pathMatch(.*)*',
       redirect: '/characters'
