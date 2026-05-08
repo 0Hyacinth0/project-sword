@@ -4,6 +4,8 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // 生产环境部署到子目录 /sword/，开发环境用根路径
+  base: process.env.NODE_ENV === 'production' ? '/sword/' : '/',
   plugins: [vue()],
   resolve: {
     alias: {
