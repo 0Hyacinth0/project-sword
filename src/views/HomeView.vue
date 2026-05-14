@@ -43,6 +43,7 @@
             :pet-loading="petLoading"
             :exp-items="expItems"
             :equip-items="equipItems"
+            :inventory-items="inventory.items"
             @refresh="refreshCharacter"
             @unequip-slot="handleUnequip"
             @enhance-slot="handleEnhance"
@@ -65,11 +66,36 @@
       <div class="game-center">
         <!-- 地图视图 -->
         <div v-if="centerView === 'map'" class="game-panel game-main">
-          <WorldMapPanel @back="centerView = 'home'" />
+          <WorldMapPanel @back="centerView = 'home'" @open-dungeon="handleOpenDungeon" />
+        </div>
+
+        <!-- 副本视图 -->
+        <div v-if="centerView === 'dungeon' && selectedAreaId" class="game-panel game-main">
+          <DungeonPanel :area-id="selectedAreaId" @back="centerView = 'map'" />
+        </div>
+
+        <!-- 好友视图 -->
+        <div v-else-if="centerView === 'friend'" class="game-panel game-main">
+          <FriendPanel />
+        </div>
+
+        <!-- 聊天视图 -->
+        <div v-else-if="centerView === 'chat'" class="game-panel game-main">
+          <ChatPanel />
+        </div>
+
+        <!-- 组队视图 -->
+        <div v-else-if="centerView === 'team'" class="game-panel game-main">
+          <TeamPanel />
+        </div>
+
+        <!-- 排行榜视图 -->
+        <div v-else-if="centerView === 'leaderboard'" class="game-panel game-main">
+          <LeaderboardPanel />
         </div>
 
         <!-- 主页欢迎视图 -->
-        <div v-else class="game-panel game-main">
+        <div v-else-if="centerView === 'home'" class="game-panel game-main">
           <div class="game-main__welcome">
             欢迎，{{ auth.user?.username }}
           </div>
@@ -94,13 +120,21 @@
             <Map :size="16" />
             <span>地图</span>
           </div>
-          <div class="game-panel game-bottom-nav__item" @click="showToast('战斗功能即将开放')">
-            <Swords :size="16" />
-            <span>战斗</span>
+          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'chat' }" @click="centerView = 'chat'">
+            <MessageCircle :size="16" />
+            <span>聊天</span>
           </div>
-          <div class="game-panel game-bottom-nav__item" @click="showToast('组队功能即将开放')">
+          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'friend' }" @click="centerView = 'friend'">
+            <UserPlus :size="16" />
+            <span>好友</span>
+          </div>
+          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'team' }" @click="centerView = 'team'">
             <Users :size="16" />
             <span>组队</span>
+          </div>
+          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'leaderboard' }" @click="centerView = 'leaderboard'">
+            <Trophy :size="16" />
+            <span>排行</span>
           </div>
           <div class="game-panel game-bottom-nav__item" @click="showToast('商店功能即将开放')">
             <Store :size="16" />
@@ -212,6 +246,11 @@ import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
 import BackpackGrid from '../components/inventory/BackpackGrid.vue'
 import WorldMapPanel from '../components/map/WorldMapPanel.vue'
+import DungeonPanel from '../components/dungeon/DungeonPanel.vue'
+import FriendPanel from '../components/social/FriendPanel.vue'
+import ChatPanel from '../components/social/ChatPanel.vue'
+import TeamPanel from '../components/team/TeamPanel.vue'
+import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
 import { calculateSetBonuses } from '../config/set_config'
@@ -219,7 +258,7 @@ import type { InventoryItem, ItemRarity, SortField } from '../types/item'
 import type { EquipmentSlotType } from '../types/equipment'
 import type { PetInfo, PetCapacity } from '../types/pet'
 import {
-  Map, Swords, Users, Store, Package,
+  Map, Swords, Users, Store, Package, UserPlus, MessageCircle,
   LogOut, Loader2, Sparkles,
   Bell, Lightbulb, Trophy, Wrench,
   Search, ArrowUpDown, ArrowDownUp,
@@ -255,7 +294,10 @@ const inventory = useInventoryStore()
 const loading = ref(false)
 
 /** 中间面板当前视图 */
-const centerView = ref<'home' | 'map'>('home')
+const centerView = ref<'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard'>('home')
+
+/** 副本面板选择的区域 ID */
+const selectedAreaId = ref<string | null>(null)
 
 /** 当前选中的物品（弹窗用） */
 const selectedItem = ref<InventoryItem | null>(null)
@@ -283,7 +325,7 @@ const currentEquipForSlot = computed(() => {
   if (!selectedItem.value || selectedItem.value.item.category !== 'equipment') return null
   const slotType = selectedItem.value.item.slotType
   if (!slotType) return null
-  return charDetail.value?.equipment[slotType as keyof typeof charDetail.value.equipment] || null
+  return charDetail.value?.equipment?.[slotType as keyof typeof charDetail.value.equipment] || null
 })
 
 /** Toast 提示消息 */
@@ -299,6 +341,14 @@ function showToast(message: string) {
   toastTimer = setTimeout(() => {
     toastMessage.value = ''
   }, 3000)
+}
+
+/**
+ * 打开副本面板
+ */
+function handleOpenDungeon(areaId: string) {
+  selectedAreaId.value = areaId
+  centerView.value = 'dungeon'
 }
 
 /**
@@ -343,11 +393,11 @@ async function handleDiscardItem(inventoryId: string, quantity: number) {
 /**
  * 穿戴装备
  */
-async function handleEquipItem(inventoryId: string) {
+async function handleEquipItem(inventoryId: string, slotType?: string) {
   const characterId = charStore.selectedCharacterId
   if (!characterId) return
 
-  const result = await charStore.equipItem(characterId, inventoryId)
+  const result = await charStore.equipItem(characterId, inventoryId, slotType)
   if (result.success) {
     showToast('装备成功')
     selectedItem.value = null
@@ -458,7 +508,7 @@ const charDetail = computed(() => charStore.characterDetail)
  */
 const activeSetBonuses = computed(() => {
   if (!charDetail.value) return []
-  return calculateSetBonuses(charDetail.value.equipment)
+  return calculateSetBonuses(charDetail.value.equipment ?? {})
 })
 
 /**
@@ -472,6 +522,7 @@ function handleLogout() {
 
 /**
  * 加载角色详情（初次进入或切换角色）
+ * 三个接口无依赖关系，并行请求提升加载速度
  */
 async function loadCharacterDetail() {
   const characterId = charStore.selectedCharacterId
@@ -480,10 +531,15 @@ async function loadCharacterDetail() {
     return
   }
   loading.value = true
-  await charStore.fetchCharacterDetail(characterId)
-  await inventory.fetchInventory(characterId)
-  await fetchPetList(characterId)
-  loading.value = false
+  try {
+    await Promise.all([
+      charStore.fetchCharacterDetail(characterId),
+      inventory.fetchInventory(characterId),
+      fetchPetList(characterId)
+    ])
+  } finally {
+    loading.value = false
+  }
 }
 
 /**
@@ -513,10 +569,9 @@ async function handleSetActivePet(petId: string) {
   try {
     const res = await setActivePetApi(characterId, petId)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
+      await fetchPetList(characterId)
       await refreshCharacter()
-      showToast(res.message)
+      showToast(res.message || '设置成功')
     } else {
       showToast(res.message)
     }
@@ -536,10 +591,9 @@ async function handleFeedPet(petId: string, inventoryId: string, quantity: numbe
   try {
     const res = await feedPetApi(characterId, petId, inventoryId, quantity)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
+      await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message)
+      showToast(res.message || '喂食成功')
     } else {
       showToast(res.message)
     }
@@ -559,10 +613,9 @@ async function handleEvolvePet(petId: string) {
   try {
     const res = await evolvePetApi(characterId, petId)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
+      await fetchPetList(characterId)
       await refreshCharacter()
-      showToast(res.message)
+      showToast(res.message || '进化成功')
     } else {
       showToast(res.message)
     }
@@ -582,9 +635,8 @@ async function handleRenamePet(petId: string, nickname: string) {
   try {
     const res = await renamePetApi(characterId, petId, nickname)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
-      showToast(res.message)
+      await fetchPetList(characterId)
+      showToast(res.message || '重命名成功')
     } else {
       showToast(res.message)
     }
@@ -604,9 +656,8 @@ async function handleEquipSkill(petId: string, skillId: number, slotIndex: numbe
   try {
     const res = await equipSkillApi(characterId, petId, skillId, slotIndex)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
-      showToast(res.message)
+      await fetchPetList(characterId)
+      showToast(res.message || '装备技能成功')
     } else {
       showToast(res.message)
     }
@@ -626,9 +677,8 @@ async function handleUnequipSkill(petId: string, slotIndex: number) {
   try {
     const res = await unequipSkillApi(characterId, petId, slotIndex)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
-      showToast(res.message)
+      await fetchPetList(characterId)
+      showToast(res.message || '卸下技能成功')
     } else {
       showToast(res.message)
     }
@@ -648,10 +698,9 @@ async function handleEquipPetItem(petId: string, inventoryId: string, slotType: 
   try {
     const res = await equipPetItemApi(characterId, petId, inventoryId, slotType)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
+      await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message)
+      showToast(res.message || '装备成功')
     } else {
       showToast(res.message)
     }
@@ -671,10 +720,9 @@ async function handleUnequipPetItem(petId: string, slotType: 'armor' | 'accessor
   try {
     const res = await unequipPetItemApi(characterId, petId, slotType)
     if (res.code === 200) {
-      petList.value = res.data.pets
-      petCapacity.value = res.data.capacity
+      await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message)
+      showToast(res.message || '卸下成功')
     } else {
       showToast(res.message)
     }
