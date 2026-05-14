@@ -67,6 +67,26 @@
           </div>
         </div>
 
+        <!-- Boss 阶段指示器 -->
+        <BossPhaseIndicator
+          v-if="store.isBossFight && bossEnemy && bossConfig"
+          :visible="true"
+          :boss-name="bossEnemy.name"
+          :current-phase="store.bossState?.currentPhase ?? 1"
+          :total-phases="bossConfig.phases.length"
+          :boss-hp="bossEnemy.stats.hp"
+          :boss-max-hp="bossEnemy.stats.maxHp"
+          :phase-changed="store.bossState?.phaseChanged ?? false"
+        />
+        <BossEnrageTimer
+          v-if="store.isBossFight && bossConfig"
+          :visible="true"
+          :is-enraged="store.bossState?.isEnraged ?? false"
+          :enrage-round="bossConfig.enrage.enrageRound"
+          :current-round="store.bossState?.currentRound ?? 0"
+          :attack-mult="bossConfig.enrage.attackMultiplier"
+        />
+
         <!-- 中央分隔 -->
         <div class="battlefield-divider">
           <div class="divider-line"></div>
@@ -105,6 +125,18 @@
         @action="handleAction"
       />
 
+      <!-- Boss 复活按钮 -->
+      <ReviveButton
+        v-if="store.isBossFight && bossConfig && store.waitingForPlayer"
+        :visible="true"
+        :dead-allies="deadAllies"
+        :current-mp="playerCombatant?.stats.mp ?? 0"
+        :mp-cost="bossConfig.revive.mpCost"
+        :revive-count="store.bossState?.reviveCount ?? 0"
+        :max-revives="bossConfig.revive.maxRevives"
+        @revive="handleRevive"
+      />
+
       <!-- 战斗日志 -->
       <BattleLog
         :entries="store.log"
@@ -113,11 +145,28 @@
 
       <!-- 战斗结算 -->
       <BattleResultOverlay
+        v-if="!isDungeonBattle"
         :visible="store.isBattleOver"
         :outcome="store.battleOutcome"
         :rewards="store.battleRewards"
         :statistics="store.battleStatistics"
         @confirm="handleBattleEnd"
+      />
+
+      <!-- 副本楼层结算 -->
+      <DungeonFloorResultOverlay
+        v-if="isDungeonBattle && dungeonStore.runState"
+        :visible="store.isBattleOver"
+        :floor-number="dungeonStore.runState.currentFloor"
+        :total-floors="dungeonStore.runState.totalFloors"
+        :is-last-floor="dungeonStore.isLastFloor"
+        :outcome="dungeonFloorOutcome"
+        :floor-rewards="currentFloorRewards"
+        :accumulated-rewards="dungeonStore.runState.accumulatedRewards"
+        :is-elite="dungeonStore.currentConfig?.difficulty === 'elite'"
+        :member-drops="latestFloorMemberDrops"
+        @continue="handleDungeonContinue"
+        @retreat="handleDungeonRetreat"
       />
     </div>
 
@@ -142,11 +191,56 @@ import BattleResultOverlay from '../components/battle/BattleResultOverlay.vue'
 import ActionOrderBar from '../components/battle/ActionOrderBar.vue'
 import SkillInfoPanel from '../components/battle/SkillInfoPanel.vue'
 import DamageBreakdownPanel from '../components/battle/DamageBreakdownPanel.vue'
+import DungeonFloorResultOverlay from '../components/dungeon/DungeonFloorResultOverlay.vue'
+import BossPhaseIndicator from '../components/battle/BossPhaseIndicator.vue'
+import BossEnrageTimer from '../components/battle/BossEnrageTimer.vue'
+import ReviveButton from '../components/battle/ReviveButton.vue'
+import { getBossConfig } from '../config/boss_config'
+import { getDeadAllies } from '../utils/bossMechanics'
 import { getJobSkills } from '../config/skill_config'
 import type { SkillConfig } from '../config/skill_config'
+import { useDungeonStore } from '../stores/dungeon'
 
 const router = useRouter()
 const store = useBattleStore()
+const dungeonStore = useDungeonStore()
+
+/** 是否为副本战斗 */
+const isDungeonBattle = computed(() => dungeonStore.runState !== null)
+
+/** 副本楼层战斗结果（胜利/失败） */
+const dungeonFloorOutcome = computed<'victory' | 'defeat'>(() => {
+  return store.battleOutcome === 'victory' ? 'victory' : 'defeat'
+})
+
+/** 当前楼层战斗奖励（仅副本中有效） */
+const currentFloorRewards = computed(() => {
+  if (!isDungeonBattle.value || !store.battleState) return null
+  const deadEnemies = store.battleState.combatants.filter(c => c.side === 'enemy' && !c.isAlive)
+  if (deadEnemies.length === 0) return null
+  // 从战斗 store 计算的奖励
+  return store.battleRewards
+})
+
+/** 最新楼层的多人掉落分配 */
+const latestFloorMemberDrops = computed(() => {
+  if (!dungeonStore.runState) return undefined
+  const history = dungeonStore.runState.floorHistory
+  const latest = history[history.length - 1]
+  return latest?.memberDrops
+})
+
+/** Boss 战敌人信息 */
+const bossEnemy = computed(() => store.combatants.find(c => c.side === 'enemy'))
+
+/** Boss 配置（如果当前战斗是 Boss 战） */
+const bossConfig = computed(() => bossEnemy.value ? getBossConfig(bossEnemy.value.sourceId) : null)
+
+/** 已死亡的我方战斗者列表 */
+const deadAllies = computed(() => store.battleState ? getDeadAllies(store.battleState) : [])
+
+/** 玩家战斗者信息 */
+const playerCombatant = computed(() => store.combatants.find(c => c.type === 'player'))
 
 /** 展示用的战士技能配置 */
 const warriorSkills: SkillConfig[] = getJobSkills('WARRIOR', 15)
@@ -205,6 +299,11 @@ watch(() => store.isBattleOver, (over) => {
     for (const unit of deadUnits) {
       triggerDeathAnimation(unit.uid)
     }
+
+    // 副本战斗失败时，自动标记楼层失败
+    if (isDungeonBattle.value && store.battleOutcome !== 'victory') {
+      dungeonStore.handleFloorDefeat()
+    }
   }
 })
 
@@ -245,14 +344,50 @@ async function handleAction(action: BattleAction) {
 }
 
 /**
- * 结束战斗
+ * 复活已死亡的队友
+ * @param targetUid - 需要复活的队友 UID
+ */
+async function handleRevive(targetUid: string) {
+  await store.submitAction({ type: 'revive', targetUid })
+}
+
+/**
+ * 结束战斗并返回主页
  */
 async function handleBattleEnd() {
   await store.finishBattle()
+  router.push('/')
 }
 
 /** 返回上一页 */
 function goBack() {
+  router.push('/')
+}
+
+/**
+ * 副本楼层继续下一层
+ */
+async function handleDungeonContinue() {
+  // 记录当前楼层完成
+  dungeonStore.handleFloorComplete()
+  // 开始下一层战斗
+  const result = await dungeonStore.startFloorBattle()
+  if (!result.success) {
+    // 若无法开始下一层（如状态异常），退回主页
+    router.push('/')
+  }
+}
+
+/**
+ * 副本中途撤退
+ */
+async function handleDungeonRetreat() {
+  // 若当前战斗胜利，先记录楼层完成
+  if (store.battleOutcome === 'victory') {
+    dungeonStore.handleFloorComplete()
+  }
+  // 结算并退出
+  await dungeonStore.claimRewardsAndExit()
   router.push('/')
 }
 </script>
