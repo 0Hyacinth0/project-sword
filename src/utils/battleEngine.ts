@@ -27,6 +27,27 @@ import {
   capHealAmount,
   applyBuffModifiers
 } from './damageCalculator'
+import {
+  ACTION_VALUE_THRESHOLD,
+  FLEE_BASE_CHANCE,
+  FLEE_SPEED_FACTOR,
+  FLEE_MIN_CHANCE,
+  FLEE_MAX_CHANCE,
+  DOT_DAMAGE_RATIO,
+  DEFEND_DEFENSE_MULTIPLIER,
+  AI_SKILL_USE_CHANCE,
+  PET_SUPPORT_HP_THRESHOLD,
+  PET_EXP_RATIO,
+  DROP_BASE_CHANCE,
+  TICK_MAX_ITERATIONS,
+  ACTION_ORDER_PREVIEW_COUNT
+} from '../config/battle_config'
+import {
+  initBossBattleState,
+  checkPhaseTransition,
+  checkEnrage,
+  executeRevive
+} from './bossMechanics'
 
 // ──────────────────────────────────────────
 // 工具函数
@@ -42,12 +63,26 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value))
 }
 
+/**
+ * 获取参战单位的元素属性
+ * 从技能中推断：取第一个非零元素的技能
+ * @param combatant - 参战单位
+ * @returns 元素值（0=无元素）
+ */
+function getElementFromCombatant(combatant: Combatant): number {
+  for (const skill of combatant.skills) {
+    if (skill.element && skill.element !== 0) {
+      return skill.element
+    }
+  }
+  return 0
+}
+
 // ──────────────────────────────────────────
 // 行动值 (ATB) 系统
 // ──────────────────────────────────────────
 
-/** 行动值阈值：当行动值累积到此值时可行动 */
-const ACTION_VALUE_THRESHOLD = 1000
+/** 行动值阈值：当行动值累积到此值时可行动（已移至 battle_config.ts） */
 
 /**
  * 推进所有单位的行动值
@@ -61,7 +96,7 @@ export function tickActionValues(combatants: Combatant[]): string[] {
   const ready: string[] = []
 
   // 循环 tick 直到至少一个单位行动值满
-  let maxIterations = 200
+  let maxIterations = TICK_MAX_ITERATIONS
   while (ready.length === 0 && maxIterations-- > 0) {
     for (const c of alive) {
       const speed = getEffectiveSpeed(c)
@@ -102,7 +137,7 @@ function getEffectiveSpeed(combatant: Combatant): number {
  * @param count - 预测未来行动次数
  * @returns 行动顺序条目列表
  */
-export function generateActionOrderPreview(combatants: Combatant[], count: number = 8): ActionOrderEntry[] {
+export function generateActionOrderPreview(combatants: Combatant[], count: number = ACTION_ORDER_PREVIEW_COUNT): ActionOrderEntry[] {
   const alive = combatants.filter(c => c.isAlive)
   if (alive.length === 0) return []
 
@@ -175,7 +210,7 @@ export function createBattleState(allies: Combatant[], enemies: Combatant[]): Ba
     }
   }
 
-  return {
+  const initialState: BattleState = {
     phase: BattlePhase.ROUND_START,
     round: 1,
     combatants: all,
@@ -195,6 +230,18 @@ export function createBattleState(allies: Combatant[], enemies: Combatant[]): Ba
     actionOrderPreview: [],
     statistics: createEmptyStatistics()
   }
+
+  // Initialize boss battle state if a boss enemy exists
+  const bossEnemy = enemies.find(e => e.type === 'enemy')
+  if (bossEnemy) {
+    const bs = initBossBattleState(bossEnemy)
+    if (bs) {
+      initialState.bossState = bs
+    }
+  }
+
+  // 触发战斗开始时的被动技能
+  return triggerBattleStartPassives(initialState)
 }
 
 /**
@@ -264,8 +311,11 @@ export function getAvailableTargets(state: BattleState, actorSide: 'ally' | 'ene
  * @returns 更新后的状态
  */
 export function processRoundStart(state: BattleState): BattleState {
+  // 触发回合开始被动技能
+  let currentState = triggerTurnStartPassives(state)
+
   // 推进行动值并获取行动顺序
-  const actionOrder = calculateActionOrder(state.combatants)
+  const actionOrder = calculateActionOrder(currentState.combatants)
 
   // 重置行动者的行动值
   for (const uid of actionOrder) {
@@ -285,15 +335,27 @@ export function processRoundStart(state: BattleState): BattleState {
     timestamp: Date.now()
   }
 
+  // Boss mechanics: increment round and check phase/enrage
+  const bossState = currentState.bossState
+  if (bossState) {
+    const boss = currentState.combatants.find(c => c.side === 'enemy')
+    if (boss) {
+      bossState.currentRound++
+      bossState.phaseChanged = false
+      checkPhaseTransition(currentState, bossState, boss)
+      checkEnrage(currentState, bossState, boss)
+    }
+  }
+
   return {
-    ...state,
+    ...currentState,
     phase: BattlePhase.BUFF_SETTLEMENT,
     actionOrder,
     currentActorIndex: 0,
     lastDamageResults: [],
     lastBuffResults: [],
     actionOrderPreview: preview,
-    log: [...state.log, logEntry]
+    log: [...currentState.log, logEntry]
   }
 }
 
@@ -324,7 +386,7 @@ export function processBuffSettlement(state: BattleState): BattleState {
     // DoT（毒）每回合造成攻击力10%伤害
     let damageValue = 0
     if (buff.isDebuff && buff.stat === 'maxHp') {
-      damageValue = Math.max(1, Math.floor(target.stats.maxHp * 0.1))
+      damageValue = Math.max(1, Math.floor(target.stats.maxHp * DOT_DAMAGE_RATIO))
       target.stats = { ...target.stats, hp: Math.max(0, target.stats.hp - damageValue) }
 
       logEntries.push({
@@ -431,6 +493,13 @@ export function processAction(state: BattleState, action: BattleAction): BattleS
       return processDefendAction(newState, action, logEntries)
     case 'flee':
       return processFleeAction(newState, action, logEntries)
+    case 'revive':
+      // Revive is handled in submitPlayerAction, just advance to next actor
+      return advanceToNextActorOrRoundEnd({
+        ...newState,
+        phase: BattlePhase.SETTLEMENT,
+        log: logEntries
+      })
     default:
       return newState
   }
@@ -448,7 +517,8 @@ function processAttackAction(state: BattleState, action: BattleAction, logEntrie
   const actorStats = applyBuffModifiers(actor.stats, actor.buffs)
   const targetStats = applyBuffModifiers(target.stats, target.buffs)
 
-  const dmg = calculateDamage(actorStats, targetStats, 1.0)
+  // 普攻使用物理攻击力，元素为0（无元素）
+  const dmg = calculateDamage(actorStats, targetStats, 1.0, 0, 0, false)
 
   const damageResult: DamageResult = {
     targetUid,
@@ -500,13 +570,19 @@ function processAttackAction(state: BattleState, action: BattleAction, logEntrie
     })
   }
 
-  return checkBattleEnd({
-    ...state,
-    combatants: newCombatants,
-    phase: BattlePhase.SETTLEMENT,
-    lastDamageResults: [damageResult],
-    log: logEntries
-  })
+  // 触发被动技能
+  let passivesState: BattleState = { ...state, combatants: newCombatants, phase: BattlePhase.SETTLEMENT, lastDamageResults: [damageResult], log: logEntries }
+  passivesState = triggerPassiveSkills(passivesState, 'on_attack', { actorUid: actor.uid, targetUid })
+  passivesState = triggerPassiveSkills(passivesState, 'on_attacked', { actorUid: actor.uid, targetUid })
+  if (dmg.isCritical) {
+    passivesState = triggerPassiveSkills(passivesState, 'on_crit', { actorUid: actor.uid, targetUid })
+  }
+  if (killed) {
+    passivesState = triggerPassiveSkills(passivesState, 'on_kill', { actorUid: actor.uid, targetUid })
+    passivesState = triggerPassiveSkills(passivesState, 'on_ally_death', { actorUid: actor.uid, targetUid: killed.uid })
+  }
+
+  return checkBattleEnd(passivesState)
 }
 
 /**
@@ -560,7 +636,10 @@ function processSkillAction(state: BattleState, action: BattleAction, logEntries
     for (const target of targets) {
       const targetStats = applyBuffModifiers(target.stats, target.buffs)
       const multiplier = (skill.power ?? 100) / 100
-      const dmg = calculateDamage(actorStats, targetStats, multiplier)
+      const isMagic = skill.isMagicAttack ?? (skill.element !== undefined && skill.element !== 0 && skill.type === 'active_attack')
+      const attackerElement = (skill.element ?? 0) as import('./damageCalculator').Element
+      const defenderElement = getElementFromCombatant(target) as import('./damageCalculator').Element
+      const dmg = calculateDamage(actorStats, targetStats, multiplier, attackerElement, defenderElement, isMagic)
 
       damageResults.push({
         targetUid: target.uid, value: dmg.finalDamage,
@@ -654,7 +733,7 @@ function processDefendAction(state: BattleState, action: BattleAction, logEntrie
     name: '防御姿态',
     isDebuff: false,
     stat: 'defense',
-    value: actor.stats.defense,
+    value: Math.floor(actor.stats.defense * DEFEND_DEFENSE_MULTIPLIER),
     duration: 1
   }, logEntries, state.round)
 
@@ -676,8 +755,8 @@ function processDefendAction(state: BattleState, action: BattleAction, logEntrie
  */
 function processFleeAction(state: BattleState, action: BattleAction, logEntries: BattleLogEntry[]): BattleState {
   const actor = getCombatantByUid(state, action.actorUid)!
-  const fleeChance = 0.3 + actor.stats.speed * 0.01
-  const success = Math.random() < clamp(fleeChance, 0.1, 0.8)
+  const fleeChance = FLEE_BASE_CHANCE + actor.stats.speed * FLEE_SPEED_FACTOR
+  const success = Math.random() < clamp(fleeChance, FLEE_MIN_CHANCE, FLEE_MAX_CHANCE)
 
   logEntries.push({
     round: state.round, type: 'flee',
@@ -818,11 +897,15 @@ function handlePetDeath(
 
   const bonus = pet.petBonusToMaster
 
+  // 先计算新的 maxHp，再基于新 maxHp 调整当前 hp
+  const newMaxHp = Math.max(1, master.stats.maxHp - bonus.maxHp)
+  const newHp = Math.min(master.stats.hp, newMaxHp)
+
   // 从主人属性中扣除战宠加成
   master.stats = {
     ...master.stats,
-    maxHp: Math.max(1, master.stats.maxHp - bonus.maxHp),
-    hp: Math.min(master.stats.hp, Math.max(1, master.stats.maxHp - bonus.maxHp)),
+    maxHp: newMaxHp,
+    hp: newHp,
     physicalAttack: Math.max(0, master.stats.physicalAttack - bonus.physicalAttack),
     magicAttack: Math.max(0, master.stats.magicAttack - bonus.magicAttack),
     defense: Math.max(0, master.stats.defense - bonus.defense),
@@ -848,7 +931,8 @@ function handlePetDeath(
  */
 export function restorePetHpAfterBattle(combatants: Combatant[]): Combatant[] {
   return combatants.map(c => {
-    if (c.type === 'pet') {
+    // 战宠和玩家战斗后都恢复满血满蓝
+    if (c.type === 'pet' || c.type === 'player') {
       return {
         ...c,
         stats: { ...c.stats, hp: c.stats.maxHp, mp: c.stats.maxMp },
@@ -879,7 +963,7 @@ export function generateAutoAction(state: BattleState, actorUid: string): Battle
   }
 
   // 敌人：30% 概率使用技能（如果 MP 足够且不在冷却中）
-  if (Math.random() < 0.3) {
+  if (Math.random() < AI_SKILL_USE_CHANCE) {
     const availableSkill = actor.skills.find(s => {
       if (s.type === 'passive') return false
       const mpCost = s.mpCost ?? 0
@@ -936,7 +1020,7 @@ function generatePetAutoAction(state: BattleState, pet: Combatant): BattleAction
     })
 
   // 主人 HP < 50% 时，优先辅助/治疗技能
-  if (masterHpRatio < 0.5) {
+  if (masterHpRatio < PET_SUPPORT_HP_THRESHOLD) {
     const supportSkill = availableSkills.find(s =>
       s.type === 'active_heal' || s.type === 'active_buff'
     )
@@ -1167,6 +1251,14 @@ function advanceToNextActorOrRoundEndAndContinue(state: BattleState): BattleStat
  * @returns 推进后的状态
  */
 export function submitPlayerAction(state: BattleState, action: BattleAction): BattleState {
+  // Handle revive action for boss battles
+  if (action.type === 'revive' && state.bossState && action.targetUid) {
+    const player = state.combatants.find(c => c.type === 'player')
+    if (player) {
+      executeRevive(state, state.bossState, action.targetUid, player.stats.mp)
+    }
+  }
+
   // 执行行动
   const afterAction = processAction(state, action)
   if (afterAction.phase === BattlePhase.BATTLE_END) return afterAction
@@ -1197,17 +1289,13 @@ export function triggerPassiveSkills(
   for (const combatant of newCombatants) {
     if (!combatant.isAlive) continue
 
-    // 找到该单位的被动技能（存储在 skills 中 type='passive' 的技能）
     const passiveSkills = combatant.skills.filter(s => s.type === 'passive')
     for (const skill of passiveSkills) {
-      // 检查触发条件
-      if (!shouldTrigger(trigger, context, combatant)) continue
+      if (!shouldTrigger(trigger, context, combatant, newCombatants)) continue
 
-      // 检查触发概率
       const triggerChance = getTriggerChance(skill)
       if (Math.random() >= triggerChance) continue
 
-      // 执行被动技能效果
       executePassiveEffect(newCombatants, combatant, skill, trigger, logEntries, state.round)
     }
   }
@@ -1223,8 +1311,12 @@ export function triggerPassiveSkills(
 
 /**
  * 判断被动技能是否应该触发
+ * @param trigger - 触发时机
+ * @param context - 触发上下文
+ * @param combatant - 当前被检查的单位
+ * @param allCombatants - 所有参战单位（用于阵营判断）
  */
-function shouldTrigger(trigger: PassiveTrigger, context: { actorUid?: string; targetUid?: string } | undefined, combatant: Combatant): boolean {
+function shouldTrigger(trigger: PassiveTrigger, context: { actorUid?: string; targetUid?: string } | undefined, combatant: Combatant, allCombatants: Combatant[]): boolean {
   switch (trigger) {
     case 'on_battle_start':
     case 'on_turn_start':
@@ -1239,8 +1331,12 @@ function shouldTrigger(trigger: PassiveTrigger, context: { actorUid?: string; ta
       return combatant.stats.hp > 0 && combatant.stats.hp / combatant.stats.maxHp < 0.3
     case 'on_crit':
       return context?.actorUid === combatant.uid
-    case 'on_ally_death':
-      return context?.targetUid !== undefined && combatant.side === newCombatants_findSide(context.targetUid, [])
+    case 'on_ally_death': {
+      if (!context?.targetUid) return false
+      const deadUnit = allCombatants.find(c => c.uid === context.targetUid)
+      // 触发者与死亡者在同一阵营，且触发者不是死亡者本身
+      return !!deadUnit && combatant.side === deadUnit.side && combatant.uid !== context.targetUid
+    }
     default:
       return false
   }
@@ -1248,17 +1344,8 @@ function shouldTrigger(trigger: PassiveTrigger, context: { actorUid?: string; ta
 
 /** 获取触发概率（从 skill 的 description 中无法解析，需要额外字段） */
 function getTriggerChance(skill: BattleSkill): number {
-  // 通过 attachedBuff 的存在判断是否是 config 中的技能
-  // 默认触发概率为 1.0（必定触发）
-  // 注意：具体概率在 SkillConfig 中定义，此处用默认值
   const configSkill = skill as SkillConfig
   return configSkill.triggerChance ?? 1.0
-}
-
-/** 辅助：查找阵营 */
-function newCombatants_findSide(_targetUid: string, _combatants: Combatant[]): string {
-  // placeholder - 实际逻辑在调用处
-  return ''
 }
 
 /**
@@ -1325,7 +1412,7 @@ export function calculateRewards(enemies: Combatant[]): BattleRewards {
 
     // 掉落物品（Mock 随机）
     const dropRoll = Math.random()
-    if (dropRoll < 0.15) {
+    if (dropRoll < DROP_BASE_CHANCE) {
       items.push(...generateMockDrops(enemy))
     }
   }
@@ -1334,7 +1421,7 @@ export function calculateRewards(enemies: Combatant[]): BattleRewards {
     exp: totalExp,
     gold: totalGold,
     items,
-    petExp: Math.floor(totalExp * 0.3)
+    petExp: Math.floor(totalExp * PET_EXP_RATIO)
   }
 }
 

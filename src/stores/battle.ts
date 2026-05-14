@@ -19,6 +19,7 @@ import {
   getAliveCombatants,
   restorePetHpAfterBattle
 } from '../utils/battleEngine'
+import { isBossBattle } from '../utils/bossMechanics'
 import type { StatsBreakdown } from '../utils/attributeCalculator'
 
 /**
@@ -45,6 +46,8 @@ export const useBattleStore = defineStore('battle', () => {
   const battleRewards = computed(() => battleState.value?.rewards ?? null)
   const battleStatistics = computed(() => battleState.value?.statistics ?? null)
   const log = computed(() => battleState.value?.log ?? [])
+  const isBossFight = computed(() => battleState.value ? isBossBattle(battleState.value) : false)
+  const bossState = computed(() => battleState.value?.bossState)
 
   const availableTargets = computed(() => {
     if (!battleState.value || !currentActor.value) return []
@@ -169,9 +172,23 @@ export const useBattleStore = defineStore('battle', () => {
   /**
    * 结束战斗并领取奖励
    * 战宠 HP/MP 自动恢复满血
+   * 纯前端战斗（无 battleId）直接清理状态
    */
   async function finishBattle(): Promise<{ success: boolean; message: string; rewards?: { exp: number; gold: number; items: Array<{ itemId: number; name: string; quantity: number }> } }> {
+    // 纯前端战斗：没有 battleId 但战斗已结束，直接清理状态
     if (!battleId.value) {
+      if (battleState.value && battleState.value.phase === BattlePhase.BATTLE_END) {
+        // 角色/战宠 HP/MP 自动恢复
+        battleState.value = {
+          ...battleState.value,
+          combatants: restorePetHpAfterBattle(battleState.value.combatants)
+        }
+        // 计算奖励（Mock）
+        const deadEnemies = battleState.value.combatants.filter(c => c.side === 'enemy' && !c.isAlive)
+        const rewards = calculateRewards(deadEnemies)
+        clearBattle()
+        return { success: true, message: '战斗结束', rewards }
+      }
       return { success: false, message: '没有进行中的战斗' }
     }
 
@@ -194,6 +211,83 @@ export const useBattleStore = defineStore('battle', () => {
       return { success: false, message: res.message }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '结算失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * 发起野外战斗（使用预生成的敌人）
+   * @param characterId - 角色 ID
+   * @param characterName - 角色名称
+   * @param statsBreakdown - 角色完整属性
+   * @param skills - 角色技能
+   * @param enemy - 预生成的敌人战斗单位（单个或多个）
+   * @param pet - 战宠信息（可选）
+   */
+  async function startWildBattle(
+    characterId: string,
+    characterName: string,
+    statsBreakdown: StatsBreakdown,
+    skills: BattleSkill[],
+    enemy: Combatant | Combatant[],
+    pet?: { id: string; nickname: string; stats: { hp: number; maxHp: number; attack: number; defense: number; speed: number }; skills?: BattleSkill[] }
+  ): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const playerCombatant = createPlayerCombatant(
+        characterId,
+        characterName,
+        statsBreakdown.total,
+        skills
+      )
+
+      const allyCombatants: Combatant[] = [playerCombatant]
+      if (pet) {
+        const petBonus = {
+          maxHp: Math.floor(pet.stats.maxHp * 0.1),
+          physicalAttack: Math.floor(pet.stats.attack * 0.1),
+          magicAttack: Math.floor(pet.stats.attack * 0.05),
+          defense: Math.floor(pet.stats.defense * 0.1),
+          dodgeRate: 0,
+          criticalRate: 0
+        }
+        allyCombatants.push(createPetCombatant(pet, playerCombatant.uid, petBonus))
+      }
+
+      const enemyList = Array.isArray(enemy) ? enemy : [enemy]
+      battleState.value = createBattleState(allyCombatants, enemyList)
+      battleState.value = advanceBattle(battleState.value)
+
+      return { success: true, message: '战斗开始' }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '发起战斗失败'
+      return { success: false, message }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * 发起多人战斗（玩家 + AI 队友 vs 敌人）
+   * @param playerCombatant - 玩家战斗单位
+   * @param allyCombatants - AI 队友战斗单位列表
+   * @param enemies - 敌人列表
+   */
+  async function startWildBattleWithAllies(
+    playerCombatant: Combatant,
+    allyCombatants: Combatant[],
+    enemies: Combatant[]
+  ): Promise<{ success: boolean; message: string }> {
+    loading.value = true
+    try {
+      const allAllies = [playerCombatant, ...allyCombatants]
+      battleState.value = createBattleState(allAllies, enemies)
+      battleState.value = advanceBattle(battleState.value)
+      return { success: true, message: '多人战斗开始' }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : '发起战斗失败'
       return { success: false, message }
     } finally {
       loading.value = false
@@ -224,7 +318,11 @@ export const useBattleStore = defineStore('battle', () => {
     battleStatistics,
     log,
     availableTargets,
+    isBossFight,
+    bossState,
     startBattle,
+    startWildBattle,
+    startWildBattleWithAllies,
     submitAction,
     finishBattle,
     clearBattle

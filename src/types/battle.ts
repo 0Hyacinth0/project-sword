@@ -3,6 +3,8 @@
  * 涵盖战斗状态机、参战单位、行动、Buff/Debuff、伤害结果等核心类型
  */
 
+import type { BossBattleState } from './boss'
+
 // ──────────────────────────────────────────
 // 战斗阶段（状态机状态）
 // ──────────────────────────────────────────
@@ -130,6 +132,10 @@ export interface BattleSkill {
   attachedBuff?: BuffTemplate
   /** 技能描述 */
   description?: string
+  /** 元素属性（0-无, 1-火, 2-水, 3-风, 4-地, 5-光, 6-暗） */
+  element?: number
+  /** 是否使用魔法攻击力计算伤害 */
+  isMagicAttack?: boolean
 }
 
 // ──────────────────────────────────────────
@@ -168,7 +174,7 @@ export interface BuffEffect extends BuffTemplate {
 // ──────────────────────────────────────────
 
 /** 行动类型 */
-export type ActionType = 'attack' | 'skill' | 'item' | 'defend' | 'flee'
+export type ActionType = 'attack' | 'skill' | 'item' | 'defend' | 'flee' | 'revive'
 
 /** 战斗行动 */
 export interface BattleAction {
@@ -344,6 +350,8 @@ export interface BattleState {
   actionOrderPreview: ActionOrderEntry[]
   /** 战斗统计数据 */
   statistics: BattleStatistics
+  /** Boss 战运行状态（仅 Boss 战斗时有值） */
+  bossState?: BossBattleState
 }
 
 // ──────────────────────────────────────────
