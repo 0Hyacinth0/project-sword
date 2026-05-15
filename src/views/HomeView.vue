@@ -16,24 +16,24 @@
         </Transition>
       </div>
       <div class="game-header__right">
-        <button class="game-header__btn game-header__btn--round" title="退出登录" @click="handleLogout">
+        <UiIconButton label="退出登录" variant="ghost" @click="handleLogout">
           <LogOut :size="16" :stroke-width="1.8" />
-        </button>
+        </UiIconButton>
         <ThemeToggle />
       </div>
     </header>
 
     <!-- 加载状态 -->
-    <div v-if="loading" class="game-loading game-panel">
+    <UiPanel v-if="loading" class="game-loading">
       <Loader2 :size="28" class="game-loading__spinner" />
       <span>正在加载角色数据...</span>
-    </div>
+    </UiPanel>
 
     <div v-else class="game-body" :class="{ 'game-body--center-view': centerView !== 'home' }">
       <!-- ═══ 左侧面板 ═══ -->
       <div class="game-left">
         <!-- 角色详情面板 -->
-        <div class="game-panel">
+        <UiPanel stretch>
           <CharacterPanel
             v-if="charDetail"
             :character="charDetail"
@@ -59,43 +59,48 @@
           <div v-else class="char-info__empty">
             <span style="color: var(--text-muted)">未选择角色</span>
           </div>
-        </div>
+        </UiPanel>
       </div>
 
       <!-- ═══ 中间面板 ═══ -->
       <div class="game-center">
         <!-- 地图视图 -->
-        <div v-if="centerView === 'map'" class="game-panel game-main">
+        <UiPanel v-if="centerView === 'map'" class="game-main" stretch>
           <WorldMapPanel @back="centerView = 'home'" @open-dungeon="handleOpenDungeon" />
-        </div>
+        </UiPanel>
 
         <!-- 副本视图 -->
-        <div v-if="centerView === 'dungeon' && selectedAreaId" class="game-panel game-main">
+        <UiPanel v-if="centerView === 'dungeon' && selectedAreaId" class="game-main" stretch>
           <DungeonPanel :area-id="selectedAreaId" @back="centerView = 'map'" />
-        </div>
+        </UiPanel>
 
         <!-- 好友视图 -->
-        <div v-else-if="centerView === 'friend'" class="game-panel game-main">
+        <UiPanel v-else-if="centerView === 'friend'" class="game-main" stretch>
           <FriendPanel />
-        </div>
+        </UiPanel>
 
         <!-- 聊天视图 -->
-        <div v-else-if="centerView === 'chat'" class="game-panel game-main">
+        <UiPanel v-else-if="centerView === 'chat'" class="game-main" stretch>
           <ChatPanel />
-        </div>
+        </UiPanel>
 
         <!-- 组队视图 -->
-        <div v-else-if="centerView === 'team'" class="game-panel game-main">
+        <UiPanel v-else-if="centerView === 'team'" class="game-main" stretch>
           <TeamPanel />
-        </div>
+        </UiPanel>
 
         <!-- 排行榜视图 -->
-        <div v-else-if="centerView === 'leaderboard'" class="game-panel game-main">
+        <UiPanel v-else-if="centerView === 'leaderboard'" class="game-main" stretch>
           <LeaderboardPanel />
-        </div>
+        </UiPanel>
+
+        <!-- 竞技场视图 -->
+        <UiPanel v-else-if="centerView === 'arena'" class="game-main" stretch>
+          <ArenaPanel />
+        </UiPanel>
 
         <!-- 主页欢迎视图 -->
-        <div v-else-if="centerView === 'home'" class="game-panel game-main">
+        <UiPanel v-else-if="centerView === 'home'" class="game-main" stretch>
           <div class="game-main__welcome">
             欢迎，{{ auth.user?.username }}
           </div>
@@ -103,63 +108,49 @@
             这里是您的冒险起点。选择角色后，您可以探索世界、挑战副本、与其他玩家对战。
           </p>
           <div class="game-main__actions">
-            <button class="game-main__btn game-main__btn--primary" @click="centerView = 'map'">
-              <Map :size="16" />
+            <UiButton @click="centerView = 'map'">
+              <template #icon><Map :size="16" /></template>
               开始探索
-            </button>
-            <button class="game-main__btn game-main__btn--secondary" @click="centerView = 'map'">
-              <Swords :size="16" />
+            </UiButton>
+            <UiButton variant="secondary" @click="centerView = 'map'">
+              <template #icon><Swords :size="16" /></template>
               进入副本
-            </button>
+            </UiButton>
           </div>
-        </div>
+        </UiPanel>
 
         <!-- 底部快捷导航（始终显示） -->
         <div class="game-bottom-nav">
-          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'map' }" @click="centerView = 'map'">
-            <Map :size="16" />
-            <span>地图</span>
-          </div>
-          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'chat' }" @click="centerView = 'chat'">
-            <MessageCircle :size="16" />
-            <span>聊天</span>
-          </div>
-          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'friend' }" @click="centerView = 'friend'">
-            <UserPlus :size="16" />
-            <span>好友</span>
-          </div>
-          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'team' }" @click="centerView = 'team'">
-            <Users :size="16" />
-            <span>组队</span>
-          </div>
-          <div class="game-panel game-bottom-nav__item" :class="{ 'game-bottom-nav__item--active': centerView === 'leaderboard' }" @click="centerView = 'leaderboard'">
-            <Trophy :size="16" />
-            <span>排行</span>
-          </div>
-          <div class="game-panel game-bottom-nav__item" @click="showToast('商店功能即将开放')">
-            <Store :size="16" />
-            <span>商店</span>
-          </div>
+          <UiButton
+            v-for="item in bottomNavItems"
+            :key="item.value"
+            class="game-bottom-nav__item"
+            :class="{ 'game-bottom-nav__item--active': centerView === item.value }"
+            variant="secondary"
+            size="sm"
+            @click="centerView = item.value"
+          >
+            <template #icon><component :is="item.icon" :size="16" /></template>
+            {{ item.label }}
+          </UiButton>
+          <UiButton class="game-bottom-nav__item" variant="secondary" size="sm" @click="showToast('商店功能即将开放')">
+            <template #icon><Store :size="16" /></template>
+            商店
+          </UiButton>
         </div>
       </div>
 
       <!-- ═══ 右侧面板 ═══ -->
       <div class="game-right">
-        <div class="game-panel" style="display: flex; flex-direction: column">
-          <div class="game-panel__title">背包</div>
+        <UiPanel title="背包" stretch>
           <!-- 标签切换 -->
-          <div class="backpack-tabs">
-            <button
-              v-for="tab in BACKPACK_TABS"
-              :key="tab.key"
-              class="backpack-tab"
-              :class="{ 'backpack-tab--active': inventory.activeTab === tab.key }"
-              @click="inventory.setActiveTab(tab.key)"
-            >
-              <component v-if="tab.icon" :is="tab.icon" :size="12" />
-              <span>{{ tab.label }}</span>
-            </button>
-          </div>
+          <UiTabs
+            class="backpack-tabs"
+            size="sm"
+            :model-value="inventory.activeTab"
+            :items="backpackTabItems"
+            @update:model-value="handleBackpackTabChange"
+          />
           <!-- 搜索 + 排序工具栏 -->
           <div class="backpack-toolbar">
             <div class="backpack-search">
@@ -208,7 +199,7 @@
             <Package :size="28" class="backpack-empty__icon" />
             <span>{{ inventory.searchQuery || inventory.rarityFilter !== 'all' ? '无匹配物品' : '暂无物品' }}</span>
           </div>
-        </div>
+        </UiPanel>
       </div>
     </div>
 
@@ -224,9 +215,7 @@
     />
 
     <!-- Toast 提示 -->
-    <Transition name="toast">
-      <div v-if="toastMessage" class="game-toast">{{ toastMessage }}</div>
-    </Transition>
+    <UiToastHost :toasts="homeToasts" @dismiss="toastMessage = ''" />
 
     <!-- UID 显示 - 屏幕左下角 -->
     <div v-if="auth.user?.id" class="game-uid">
@@ -251,10 +240,12 @@ import FriendPanel from '../components/social/FriendPanel.vue'
 import ChatPanel from '../components/social/ChatPanel.vue'
 import TeamPanel from '../components/team/TeamPanel.vue'
 import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
+import ArenaPanel from '../components/arena/ArenaPanel.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
+import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem, type UiToastItem } from '../components/ui'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
 import { calculateSetBonuses } from '../config/set_config'
-import type { InventoryItem, ItemRarity, SortField } from '../types/item'
+import type { BackpackTab, InventoryItem, ItemRarity, SortField } from '../types/item'
 import type { EquipmentSlotType } from '../types/equipment'
 import type { PetInfo, PetCapacity } from '../types/pet'
 import {
@@ -266,6 +257,8 @@ import {
 } from 'lucide-vue-next'
 
 const RARITIES: ItemRarity[] = ['Normal', 'Rare', 'Epic', 'Legendary']
+
+type CenterView = 'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard' | 'arena'
 
 /** 排序选项配置 */
 const sortOptions: { field: SortField; label: string; icon: Component }[] = [
@@ -294,7 +287,26 @@ const inventory = useInventoryStore()
 const loading = ref(false)
 
 /** 中间面板当前视图 */
-const centerView = ref<'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard'>('home')
+const centerView = ref<CenterView>('home')
+
+/** 底部主导航配置 */
+const bottomNavItems: { value: Exclude<CenterView, 'home' | 'dungeon'>; label: string; icon: Component }[] = [
+  { value: 'map', label: '地图', icon: markRaw(Map) },
+  { value: 'chat', label: '聊天', icon: markRaw(MessageCircle) },
+  { value: 'friend', label: '好友', icon: markRaw(UserPlus) },
+  { value: 'team', label: '组队', icon: markRaw(Users) },
+  { value: 'leaderboard', label: '排行', icon: markRaw(Trophy) },
+  { value: 'arena', label: '竞技', icon: markRaw(Swords) }
+]
+
+/** 背包标签配置，适配通用 UiTabs 的 value 字段。 */
+const backpackTabItems = computed<UiTabItem[]>(() =>
+  BACKPACK_TABS.map(tab => ({
+    value: tab.key,
+    label: tab.label,
+    icon: tab.icon ? markRaw(tab.icon) : null
+  }))
+)
 
 /** 副本面板选择的区域 ID */
 const selectedAreaId = ref<string | null>(null)
@@ -332,6 +344,13 @@ const currentEquipForSlot = computed(() => {
 const toastMessage = ref('')
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
+/** 当前主页 Toast 列表，供通用 Toast 容器渲染。 */
+const homeToasts = computed<UiToastItem[]>(() =>
+  toastMessage.value
+    ? [{ id: 'home-toast', message: toastMessage.value, type: 'info' }]
+    : []
+)
+
 /**
  * 显示 Toast 提示
  */
@@ -341,6 +360,15 @@ function showToast(message: string) {
   toastTimer = setTimeout(() => {
     toastMessage.value = ''
   }, 3000)
+}
+
+/**
+ * 切换背包分类标签。
+ * @param value - 标签值，由 UiTabs 派发
+ * @returns 无返回值
+ */
+function handleBackpackTabChange(value: string | number): void {
+  inventory.setActiveTab(value as BackpackTab)
 }
 
 /**
@@ -512,12 +540,14 @@ const activeSetBonuses = computed(() => {
 })
 
 /**
- * 退出登录
+ * 退出账号并清理本地角色、背包状态。
+ * @returns Promise，无业务返回值
  */
-function handleLogout() {
+async function handleLogout(): Promise<void> {
+  await auth.logout()
   charStore.clear()
   inventory.clear()
-  router.push({ name: 'characters' })
+  router.push({ name: 'login' })
 }
 
 /**
@@ -749,4 +779,3 @@ onUnmounted(() => {
   if (announceTimer) clearInterval(announceTimer)
 })
 </script>
-
