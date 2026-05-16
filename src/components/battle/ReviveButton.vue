@@ -201,4 +201,24 @@ function handleRevive(targetUid: string) {
 [data-theme='dark'] .revive-modal__cancel {
   background: rgba(142, 142, 147, 0.15);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .revive-btn { padding: 8px 12px; font-size: 10px; gap: 6px; }
+  .revive-modal__card { padding: 16px; min-width: 240px; }
+}
+
+@media (max-width: 375px) {
+  .revive-btn { padding: 6px 10px; font-size: 9px; border-radius: 8px; gap: 4px; }
+  .revive-icon { font-size: 12px; }
+  .revive-count { font-size: 9px; }
+  .revive-modal { padding: 8px; }
+  .revive-modal__card { padding: 12px; min-width: 220px; border-radius: 14px; }
+  .revive-modal__title { font-size: var(--font-size-small); margin-bottom: 8px; }
+  .revive-modal__list { gap: 4px; margin-bottom: 8px; }
+  .revive-modal__item { padding: 8px 10px; font-size: 10px; border-radius: 8px; }
+  .ally-name { font-size: 11px; }
+  .ally-info { font-size: 9px; }
+  .revive-modal__cancel { padding: 6px; font-size: 10px; border-radius: 6px; }
+}
 </style>

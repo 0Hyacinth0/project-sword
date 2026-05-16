@@ -316,7 +316,7 @@ function selectTarget(targetUid: string): void {
   width: 100%;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .battle-focus-field {
     grid-template-columns: 1fr;
     align-items: stretch;
@@ -329,6 +329,45 @@ function selectTarget(targetUid: string): void {
 
   .battle-focus-target {
     min-height: 148px;
+  }
+}
+
+@media (max-width: 375px) {
+  .battle-focus-field {
+    padding: 12px;
+    gap: 10px;
+    min-height: 200px;
+  }
+
+  .battle-focus-field__queue {
+    gap: 6px;
+  }
+
+  .battle-focus-unit {
+    padding: 8px 10px;
+    gap: 4px 6px;
+  }
+
+  .battle-focus-unit__name {
+    font-size: var(--font-size-caption);
+  }
+
+  .battle-focus-unit__hp {
+    height: 5px;
+  }
+
+  .battle-focus-target {
+    min-height: 120px;
+    padding: 12px;
+    gap: 6px;
+  }
+
+  .battle-focus-target__name {
+    font-size: var(--font-size-base);
+  }
+
+  .battle-focus-target__hp {
+    height: 5px;
   }
 }
 </style>

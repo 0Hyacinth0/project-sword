@@ -646,9 +646,23 @@ function handleBackToTeam(): void {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .room-member-card { padding: 8px 10px; }
   .room-dungeon-card__inner { padding: 10px; }
+}
+
+@media (max-width: 375px) {
+  .room-header__title { font-size: var(--font-size-base); }
+  .room-header__back { font-size: var(--font-size-caption); }
+  .room-dungeon-card__inner { padding: 8px; gap: 8px; }
+  .room-dungeon-card__icon { width: 28px; height: 28px; font-size: 14px; }
+  .room-dungeon-card__name { font-size: var(--font-size-small); }
+  .room-dungeon-card__meta { font-size: 11px; gap: 2px; }
+  .room-btn { padding: 5px 10px; font-size: var(--font-size-caption); }
+  .room-member-card { padding: 6px 8px; }
+  .room-member-card__name { font-size: var(--font-size-small); }
+  .room-action-btn { padding: 10px 0; font-size: var(--font-size-small); border-radius: 10px; }
+  .room-status-hint { padding: 8px; font-size: var(--font-size-caption); }
 }
 
 /* ── 深色模式 ── */

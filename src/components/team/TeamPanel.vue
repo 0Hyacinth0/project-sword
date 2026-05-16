@@ -855,8 +855,21 @@ async function handleDisband(): Promise<void> {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .team-card { padding: 8px 10px; }
+  .team-card__actions { flex-direction: column; gap: 4px; }
+}
+
+@media (max-width: 375px) {
+  .team-header__title { font-size: var(--font-size-base); }
+  .team-create-btn { padding: 10px 0; font-size: var(--font-size-small); }
+  .team-card__name { font-size: var(--font-size-small); }
+  .team-card__meta { font-size: 11px; }
+  .team-action-btn { padding: 8px 0; font-size: var(--font-size-caption); border-radius: 8px; }
+  .team-btn { padding: 4px 8px; font-size: 11px; }
+  .team-dialog-card { padding: 20px 16px; }
+  .team-dialog__title { font-size: var(--font-size-base); }
+  .team-dialog__btn { padding: 8px 0; font-size: var(--font-size-small); }
 }
 
 /* ── 深色模式 ── */

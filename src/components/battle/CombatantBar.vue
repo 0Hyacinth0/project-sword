@@ -504,7 +504,7 @@ const myFloatingTexts = computed(() => {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .combatant-bar { padding: 10px 12px; }
   .combatant-avatar { width: 30px; height: 30px; }
   .avatar-icon { font-size: 15px; }
@@ -512,6 +512,23 @@ const myFloatingTexts = computed(() => {
   .fct.damage { font-size: 16px; }
   .fct.critical { font-size: 22px; }
   .fct.heal { font-size: 16px; }
+}
+
+@media (max-width: 375px) {
+  .combatant-bar { padding: 8px 10px; border-radius: 12px; }
+  .combatant-avatar { width: 26px; height: 26px; border-radius: 8px; }
+  .avatar-icon { font-size: 13px; }
+  .combatant-name { font-size: var(--font-size-caption); }
+  .combatant-level { font-size: 10px; padding: 1px 4px; }
+  .type-badge { font-size: 9px; padding: 1px 4px; }
+  .bar-track { height: 10px; border-radius: 4px; }
+  .bar-label { width: 16px; font-size: 9px; }
+  .bar-text { font-size: 9px; }
+  .buff-tag { font-size: 9px; padding: 1px 4px; }
+  .fct-container { top: -6px; right: 8px; }
+  .fct.damage { font-size: 14px; }
+  .fct.critical { font-size: 18px; }
+  .fct.heal { font-size: 14px; }
 }
 
 /* ── 深色模式 ── */

@@ -113,4 +113,25 @@ defineProps<{
 [data-theme='dark'] .order-card.current {
   background: rgba(0, 113, 227, 0.15);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .action-order-bar { padding: 10px 12px; border-radius: 10px; }
+  .bar-label { font-size: 10px; margin-bottom: 6px; }
+  .order-track { gap: 6px; }
+  .order-card { padding: 6px 10px; min-width: 56px; }
+  .card-icon { font-size: 16px; }
+  .card-name { font-size: 10px; max-width: 50px; }
+}
+
+@media (max-width: 375px) {
+  .action-order-bar { padding: 8px 10px; border-radius: 8px; }
+  .bar-label { font-size: 9px; letter-spacing: 0.1rem; margin-bottom: 4px; }
+  .order-track { gap: 4px; padding-bottom: 2px; }
+  .order-card { padding: 4px 8px; min-width: 48px; border-radius: 8px; }
+  .card-icon { font-size: 14px; margin-bottom: 0; }
+  .card-name { font-size: 9px; max-width: 40px; }
+  .card-index { font-size: 9px; top: 1px; right: 3px; }
+  .empty-hint { padding: 6px; font-size: 10px; }
+}
 </style>

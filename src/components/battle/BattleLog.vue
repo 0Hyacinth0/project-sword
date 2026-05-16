@@ -610,7 +610,7 @@ watch(() => props.entries.length, async () => {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .battle-log { padding: 10px 12px; }
   .log-entries { max-height: 180px; }
   .filter-bar { gap: 3px; }
@@ -618,6 +618,24 @@ watch(() => props.entries.length, async () => {
   .filter-icon { display: none; }
   .entry-time { display: none; }
   .header-actions { gap: 2px; }
+}
+
+@media (max-width: 375px) {
+  .battle-log { padding: 8px 10px; gap: 8px; }
+  .log-header { margin-bottom: 6px; }
+  .log-title { font-size: var(--font-size-caption); }
+  .round-badge { font-size: 10px; padding: 1px 6px; }
+  .count-badge { font-size: 9px; padding: 1px 4px; }
+  .icon-btn { width: 24px; height: 24px; }
+  .filter-bar { gap: 2px; margin-bottom: 6px; }
+  .filter-btn { padding: 2px 6px; font-size: 10px; }
+  .filter-label { font-size: 10px; }
+  .log-entries { max-height: 150px; }
+  .log-entry { padding: 2px 0; font-size: 11px; gap: 3px; }
+  .entry-icon { width: 12px; font-size: 10px; }
+  .entry-round { font-size: 9px; padding: 0 3px; }
+  .entry-badge { font-size: 9px; padding: 0 4px; }
+  .divider-text { font-size: 9px; }
 }
 
 /* ── 深色模式 ── */

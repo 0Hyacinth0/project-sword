@@ -514,9 +514,22 @@ async function handleSend(): Promise<void> {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .chat-conv-card { padding: 8px 10px; }
   .chat-msg { max-width: 85%; }
+}
+
+@media (max-width: 375px) {
+  .chat-header__title { font-size: var(--font-size-base); }
+  .chat-tabs { padding: 2px; }
+  .chat-tab { padding: 6px 0; font-size: var(--font-size-caption); }
+  .chat-msg__bubble { padding: 6px 10px; font-size: var(--font-size-caption); }
+  .chat-msg__name { font-size: 11px; }
+  .chat-input { padding: 6px 10px; font-size: var(--font-size-caption); }
+  .chat-send-btn { padding: 6px 12px; font-size: var(--font-size-caption); }
+  .chat-conv-card { padding: 6px 8px; }
+  .chat-conv-card__name { font-size: var(--font-size-small); }
+  .chat-private-header__name { font-size: var(--font-size-small); }
 }
 
 /* ── 深色模式 ── */

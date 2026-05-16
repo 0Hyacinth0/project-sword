@@ -357,7 +357,7 @@ watch(() => store.isBattleOver, (over) => {
   flex-direction: column;
   gap: 12px;
   color: var(--text-primary);
-  overflow: hidden;
+  overflow: visible;
   container-type: inline-size;
 }
 
@@ -460,8 +460,8 @@ watch(() => store.isBattleOver, (over) => {
 }
 
 .battle-console__log {
-  flex: 0 0 clamp(190px, 28vh, 280px);
-  min-height: 190px;
+  flex: 0 0 280px;
+  min-height: 260px;
   overflow: visible;
 }
 
@@ -474,7 +474,7 @@ watch(() => store.isBattleOver, (over) => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
   gap: 12px;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
 }
 
@@ -492,7 +492,7 @@ watch(() => store.isBattleOver, (over) => {
 }
 
 .battle-console__field {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
 }
 
 .battle-console__boss-stack {
@@ -587,7 +587,7 @@ watch(() => store.isBattleOver, (over) => {
   100% { transform: translate(0, 0); }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .battle-console__header {
     align-items: flex-start;
     flex-direction: column;
@@ -596,6 +596,31 @@ watch(() => store.isBattleOver, (over) => {
   .battle-console__header-actions {
     width: 100%;
     justify-content: space-between;
+  }
+}
+
+@media (max-width: 375px) {
+  .battle-console__empty {
+    padding: 24px 16px;
+  }
+
+  .battle-console__header {
+    padding: 10px 12px;
+  }
+
+  .battle-console__tactics {
+    padding: 10px;
+  }
+
+  .turn-timer {
+    padding: 8px 10px;
+  }
+
+  .battle-console__phase,
+  .battle-console__end,
+  .battle-console__return {
+    padding: 5px 10px;
+    font-size: var(--font-size-caption);
   }
 }
 
@@ -626,7 +651,7 @@ watch(() => store.isBattleOver, (over) => {
   }
 
   .battle-console__log {
-    flex-basis: 260px;
+    flex-basis: 280px;
   }
 }
 

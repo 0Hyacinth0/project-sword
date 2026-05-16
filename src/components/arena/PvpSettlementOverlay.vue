@@ -299,4 +299,29 @@ const winRateText = computed(() => {
 .settlement-overlay__btn-back:active {
   transform: scale(0.98);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .settlement-overlay { padding: 20px 16px; gap: 12px; }
+  .settlement-overlay__result { font-size: 24px; }
+  .settlement-overlay__score-row { max-width: 280px; padding: 10px 12px; }
+  .settlement-overlay__progress { max-width: 280px; }
+  .settlement-overlay__stats { max-width: 280px; gap: 16px; }
+  .settlement-overlay__btn-back { max-width: 280px; }
+}
+
+@media (max-width: 375px) {
+  .settlement-overlay { padding: 16px 12px; gap: 10px; border-radius: 12px; }
+  .settlement-overlay__result { font-size: 20px; }
+  .settlement-overlay__tier-change { font-size: var(--font-size-caption); }
+  .settlement-overlay__score-row { max-width: 260px; padding: 8px 10px; gap: 10px; border-radius: 10px; }
+  .score-block__label { font-size: 10px; }
+  .score-block__value { font-size: var(--font-size-small); }
+  .progress-track { height: 6px; }
+  .settlement-overlay__progress-hint { font-size: 10px; }
+  .settlement-overlay__stats { max-width: 260px; gap: 12px; }
+  .stat-item__value { font-size: var(--font-size-base); }
+  .stat-item__label { font-size: 10px; }
+  .settlement-overlay__btn-back { max-width: 260px; padding: 10px; font-size: var(--font-size-small); border-radius: 8px; }
+}
 </style>

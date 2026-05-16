@@ -458,9 +458,27 @@ function rewardBadgeTone(rarity?: string): BadgeTone {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .dungeon-card__inner { padding: 10px 12px; }
   .dungeon-card__rewards { padding: 0 12px 8px; }
+  .dungeon-card__drops { padding: 0 12px 6px; }
   .dungeon-card__action { padding: 0 12px 10px; }
+}
+
+@media (max-width: 375px) {
+  .dungeon-header__title { font-size: var(--font-size-base); }
+  .dungeon-list { gap: 8px; }
+  .dungeon-card { border-radius: 12px; }
+  .dungeon-card__inner { padding: 8px 10px; gap: 8px; }
+  .dungeon-card__icon { width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
+  .dungeon-card__name { font-size: var(--font-size-small); }
+  .dungeon-card__meta { font-size: 11px; gap: 2px; }
+  .dungeon-card__stamina { font-size: var(--font-size-caption); }
+  .dungeon-card__rewards { padding: 0 10px 6px; }
+  .dungeon-card__drops { padding: 0 10px 4px; }
+  .dungeon-card__action { padding: 0 10px 8px; }
+  .rewards-label { font-size: 10px; }
+  .rewards-tags { gap: 3px; margin-top: 3px; }
+  .dungeon-locked-text { font-size: var(--font-size-caption); }
 }
 </style>

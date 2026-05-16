@@ -213,4 +213,32 @@ function buffStatLabel(stat: string): string {
 .buff-detail {
   color: var(--text-muted);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .skill-info-panel { padding: 10px 12px; }
+  .panel-title { font-size: 10px; }
+  .skill-count { font-size: 10px; }
+  .skill-list { max-height: 220px; }
+  .skill-card { padding: 8px 10px; }
+  .skill-name { font-size: var(--font-size-caption); }
+}
+
+@media (max-width: 375px) {
+  .skill-info-panel { padding: 8px 10px; border-radius: 12px; }
+  .panel-header { margin-bottom: 6px; }
+  .panel-title { font-size: 9px; letter-spacing: 0.1rem; }
+  .skill-count { font-size: 9px; }
+  .skill-list { gap: 4px; max-height: 180px; }
+  .skill-card { padding: 6px 8px; border-radius: 8px; }
+  .skill-header { margin-bottom: 2px; }
+  .skill-name { font-size: 11px; }
+  .skill-type-badge { font-size: 9px; padding: 1px 4px; }
+  .skill-meta { gap: 4px; margin-bottom: 2px; }
+  .meta-tag { font-size: 9px; padding: 1px 3px; }
+  .skill-desc { font-size: 10px; line-height: 1.3; }
+  .skill-buff { margin-top: 2px; gap: 4px; font-size: 9px; }
+  .buff-label { padding: 1px 3px; }
+  .buff-detail { font-size: 9px; }
+}
 </style>

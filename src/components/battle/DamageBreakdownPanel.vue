@@ -183,4 +183,26 @@ const elementChain = [
 [data-theme='dark'] .stat-row {
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .damage-breakdown-panel { padding: 12px 16px; max-width: 360px; }
+  .panel-title { font-size: var(--font-size-small); }
+  .formula-title { font-size: 10px; }
+  .formula-step { font-size: 11px; }
+}
+
+@media (max-width: 375px) {
+  .damage-breakdown-panel { padding: 10px 12px; max-width: 320px; border-radius: 12px; }
+  .panel-header { margin-bottom: 10px; }
+  .panel-title { font-size: var(--font-size-caption); }
+  .close-btn { width: 20px; height: 20px; font-size: 14px; }
+  .formula-section, .element-section, .stats-section { margin-bottom: 10px; }
+  .formula-title { font-size: 9px; margin-bottom: 4px; }
+  .formula-step { padding: 2px 0; font-size: 10px; gap: 4px; }
+  .step-num { width: 14px; height: 14px; font-size: 9px; }
+  .element-chart { font-size: var(--font-size-caption); gap: 2px; margin-bottom: 4px; }
+  .element-bonus { font-size: 10px; gap: 8px; }
+  .stat-row { padding: 2px 0; font-size: 10px; }
+}
 </style>

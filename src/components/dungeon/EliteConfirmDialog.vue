@@ -89,4 +89,17 @@ function handleModelUpdate(value: boolean): void {
 .elite-confirm__list li strong {
   color: var(--rarity-epic);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .elite-confirm__body { padding: 0; }
+  .elite-confirm__desc { font-size: var(--font-size-caption); }
+  .elite-confirm__list li { padding: 4px 8px; font-size: var(--font-size-caption); }
+}
+
+@media (max-width: 375px) {
+  .elite-confirm__desc { font-size: 12px; margin-bottom: 6px; }
+  .elite-confirm__list { gap: 4px; }
+  .elite-confirm__list li { padding: 3px 6px; font-size: 12px; border-radius: 6px; }
+}
 </style>

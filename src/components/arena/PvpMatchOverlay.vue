@@ -487,4 +487,35 @@ const opponentCardStyle = computed(() => {
 .pvp-overlay__btn-abandon:hover {
   color: var(--text-primary);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .pvp-overlay { padding: 16px; }
+  .pvp-overlay__found { max-width: 320px; gap: 12px; }
+  .compare-card { padding: 12px 6px; }
+  .pvp-overlay__actions { gap: 6px; }
+}
+
+@media (max-width: 375px) {
+  .pvp-overlay { padding: 12px; border-radius: 12px; }
+  .pvp-overlay__search { max-width: 280px; gap: 8px; }
+  .pvp-overlay__sword-icon { font-size: 32px; }
+  .pvp-overlay__title { font-size: var(--font-size-base); }
+  .pvp-overlay__subtitle { font-size: var(--font-size-caption); }
+  .pvp-overlay__spinner { width: 36px; height: 36px; }
+  .pvp-overlay__preview { gap: 10px; padding: 8px 0; }
+  .pvp-overlay__preview-self { min-width: 60px; }
+  .preview-self__icon { font-size: 20px; }
+  .pvp-overlay__btn-cancel { padding: 6px 16px; font-size: var(--font-size-caption); }
+  .pvp-overlay__found { max-width: 280px; gap: 10px; }
+  .pvp-overlay__found-badge { padding: 4px 12px; }
+  .found-badge__text { font-size: var(--font-size-caption); }
+  .compare-card { padding: 10px 4px; border-radius: 10px; }
+  .compare-card__tier-icon { font-size: 22px; }
+  .compare-card__name { font-size: var(--font-size-caption); }
+  .compare-card__detail { font-size: 10px; }
+  .pvp-overlay__compare-vs { font-size: 16px; }
+  .pvp-overlay__estimate { font-size: var(--font-size-caption); }
+  .pvp-overlay__btn-start { padding: 10px; font-size: var(--font-size-small); border-radius: 8px; }
+}
 </style>

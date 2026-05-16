@@ -147,4 +147,22 @@ const currentHpPercent = computed(() => {
 [data-theme='dark'] .boss-phase-indicator__hp-bar {
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .boss-phase-indicator { padding: 10px 12px; margin-bottom: 8px; }
+  .boss-name { font-size: var(--font-size-small); }
+  .boss-phase-indicator__hp-bar { height: 10px; }
+}
+
+@media (max-width: 375px) {
+  .boss-phase-indicator { padding: 8px 10px; margin-bottom: 6px; border-radius: 10px; }
+  .boss-phase-indicator__header { gap: 6px; margin-bottom: 6px; }
+  .boss-name { font-size: var(--font-size-caption); }
+  .phase-tag { font-size: 10px; padding: 1px 6px; }
+  .phase-flash { font-size: 14px; }
+  .boss-phase-indicator__hp-bar { height: 8px; border-radius: 4px; }
+  .hp-fill { border-radius: 4px; }
+  .boss-phase-indicator__hp-text { font-size: 10px; margin-top: 2px; }
+}
 </style>

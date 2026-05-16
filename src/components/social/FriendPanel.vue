@@ -788,8 +788,22 @@ async function handleCancel(requestId: string): Promise<void> {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .friend-card { padding: 8px 10px; }
+  .friend-card__name { font-size: var(--font-size-small); }
+  .friend-search__input { padding: 6px 10px; }
+  .friend-search__btn { padding: 6px 12px; }
+}
+
+@media (max-width: 375px) {
+  .friend-header__title { font-size: var(--font-size-base); }
+  .friend-search { flex-direction: column; }
+  .friend-search__btn { width: 100%; }
+  .friend-card__actions { flex-direction: column; gap: 4px; }
+  .friend-btn { width: 100%; text-align: center; padding: 6px 8px; }
+  .friend-dialog-card { padding: 20px 16px; }
+  .friend-dialog__title { font-size: var(--font-size-base); }
+  .friend-dialog__btn { padding: 8px 0; font-size: var(--font-size-small); }
 }
 
 /* ── 深色模式 ── */

@@ -542,10 +542,28 @@ function itemTypeIcon(item: { itemType?: string }): string {
 .settlement-card::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 2px; }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .settlement-card { padding: 24px 20px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .reward-item { padding: 8px 12px; }
+}
+
+@media (max-width: 375px) {
+  .settlement-overlay { padding: 12px; }
+  .settlement-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+  .result-icon { width: 44px; height: 44px; font-size: 20px; }
+  .result-title { font-size: var(--font-size-base); }
+  .reward-icon { width: 32px; height: 32px; font-size: 10px; }
+  .reward-value { font-size: var(--font-size-small); }
+  .level-up-banner { padding: 8px; }
+  .level-up-text { font-size: var(--font-size-small); }
+  .drop-card { padding: 6px 10px; }
+  .stat-cell { padding: 8px 6px; }
+  .stat-num { font-size: var(--font-size-small); }
+  .action-btn { padding: 10px 20px; font-size: var(--font-size-small); }
 }
 
 /* ── 深色模式 ── */

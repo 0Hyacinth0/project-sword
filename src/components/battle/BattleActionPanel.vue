@@ -388,10 +388,24 @@ watch(() => props.targets, (targets) => {
 .target-btn.selected .target-hp { color: var(--accent-red); }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .action-panel { padding: 12px 14px; }
   .action-row { flex-wrap: wrap; }
   .action-btn { min-width: calc(33% - 6px); }
   .skill-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 375px) {
+  .action-panel { padding: 10px 12px; }
+  .action-header { gap: 6px; margin-bottom: 8px; }
+  .actor-name { font-size: var(--font-size-small); }
+  .action-btn {
+    min-height: 38px;
+    padding: 8px 10px;
+    font-size: var(--font-size-caption);
+  }
+  .skill-btn { padding: 6px 10px; }
+  .skill-name { font-size: var(--font-size-caption); }
+  .target-btn { padding: 5px 10px; font-size: var(--font-size-caption); }
 }
 </style>

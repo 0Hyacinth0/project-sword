@@ -80,4 +80,20 @@ const roundsLeft = computed(() => {
   font-size: 11px;
   opacity: 0.8;
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .boss-enrage-timer { padding: 3px 10px; font-size: 11px; }
+  .timer-icon { margin-right: 2px; }
+}
+
+@media (max-width: 375px) {
+  .boss-enrage-timer { padding: 2px 8px; font-size: 10px; border-radius: 6px; }
+  .timer-normal { gap: 2px; }
+  .timer-icon { font-size: 10px; margin-right: 1px; }
+  .timer-text { font-size: 10px; }
+  .timer-enraged { gap: 4px; }
+  .enraged-badge { font-size: 10px; }
+  .enraged-mult { font-size: 9px; opacity: 0.7; }
+}
 </style>

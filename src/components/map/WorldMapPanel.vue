@@ -510,7 +510,7 @@ function handleDungeon(area: MapArea): void {
 }
 
 /* ── 响应式 ── */
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .area-card__inner {
     padding: 10px 12px;
   }
@@ -526,5 +526,22 @@ function handleDungeon(area: MapArea): void {
   .area-detail__btn {
     width: 100%;
   }
+}
+
+@media (max-width: 375px) {
+  .map-header { margin-bottom: 10px; gap: 8px; }
+  .map-header__title { font-size: var(--font-size-base); }
+  .map-area-list { gap: 8px; }
+  .area-card { border-radius: 12px; }
+  .area-card__inner { padding: 8px 10px; gap: 8px; }
+  .area-card__icon { width: 32px; height: 32px; font-size: 18px; border-radius: 8px; }
+  .area-card__name { font-size: var(--font-size-small); }
+  .area-card__level-range { font-size: 10px; }
+  .area-detail__inner { padding: 8px 10px; }
+  .area-detail__desc { font-size: var(--font-size-caption); margin-bottom: 8px; }
+  .area-detail__section { margin-bottom: 8px; }
+  .area-detail__section-title { font-size: 10px; margin-bottom: 4px; }
+  .area-detail__tags { gap: 4px; }
+  .area-detail__actions { gap: 6px; margin-top: 10px; }
 }
 </style>

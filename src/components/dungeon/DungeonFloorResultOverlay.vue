@@ -244,4 +244,25 @@ function rewardItemTone(quality: BattleRewardItem['quality']): BadgeTone {
   color: var(--text-muted);
   opacity: 0.6;
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .floor-overlay__rewards { gap: 4px; }
+  .member-drop-row { padding: 4px 6px; }
+}
+
+@media (max-width: 375px) {
+  .floor-overlay__badges { gap: 4px; }
+  .floor-overlay__defeat-msg { margin-bottom: 10px; font-size: var(--font-size-caption); }
+  .defeat-sub { font-size: 10px; }
+  .floor-overlay__section { margin-bottom: 10px; }
+  .floor-overlay__section-title { font-size: 10px; margin-bottom: 4px; }
+  .floor-overlay__rewards { gap: 3px; }
+  .reward-item { font-size: 11px; }
+  .member-drops { gap: 6px; }
+  .member-drop-row { padding: 3px 4px; border-radius: 6px; }
+  .member-drop-name { font-size: 10px; }
+  .member-drop-items { gap: 3px; }
+  .member-drop-empty { font-size: 10px; }
+}
 </style>

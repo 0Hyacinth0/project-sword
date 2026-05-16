@@ -457,4 +457,31 @@ onMounted(() => {
 .arena-panel__match-btn:hover {
   opacity: 0.9;
 }
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .arena-panel { padding: 10px; gap: 10px; }
+  .arena-panel__tier-card { padding: 16px; }
+  .tier-card__icon { font-size: 24px; }
+  .stats-item { padding: 8px 0; }
+}
+
+@media (max-width: 375px) {
+  .arena-panel { padding: 8px; gap: 8px; }
+  .arena-panel__season { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .arena-panel__season-countdown { margin-left: 0; font-size: 11px; }
+  .arena-panel__tier-card { padding: 12px; border-radius: 12px; }
+  .tier-card__icon { font-size: 20px; }
+  .tier-card__name { font-size: var(--font-size-small); }
+  .tier-card__score { font-size: var(--font-size-caption); }
+  .tier-card__remaining { font-size: 11px; }
+  .arena-panel__stats { gap: 6px; }
+  .stats-item { padding: 6px 0; }
+  .stats-item__value { font-size: var(--font-size-small); }
+  .stats-item__label { font-size: 11px; }
+  .tier-row { padding: 4px 8px; gap: 6px; }
+  .tier-row__name { font-size: 11px; }
+  .tier-row__range { font-size: 10px; }
+  .arena-panel__match-btn { padding: 10px; font-size: 11px; border-radius: 8px; }
+}
 </style>
