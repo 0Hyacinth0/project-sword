@@ -1,8 +1,15 @@
 <template>
-  <div class="mock-toggle" :class="{ active: mockEnabled }" @click="handleToggle">
+  <button
+    type="button"
+    class="mock-toggle"
+    :class="{ active: mockEnabled }"
+    :aria-pressed="mockEnabled"
+    :aria-label="`Mock 模式${mockEnabled ? '已开启' : '已关闭'}`"
+    @click="handleToggle"
+  >
     <span class="mock-toggle__dot" />
     <span class="mock-toggle__label">Mock {{ mockEnabled ? 'ON' : 'OFF' }}</span>
-  </div>
+  </button>
 </template>
 
 <script setup lang="ts">
@@ -15,8 +22,11 @@ import { useMockRef, toggleMock } from '../utils/mockConfig'
 
 const mockEnabled = useMockRef()
 
-/** 切换 Mock 模式并提示 */
-function handleToggle() {
+/**
+ * 切换全局 Mock 模式。
+ * @returns 无返回值
+ */
+function handleToggle(): void {
   toggleMock()
 }
 </script>

@@ -70,10 +70,10 @@
       </div>
 
       <!-- 中间：角色立绘 -->
-      <div class="equip-doll__portrait" :style="{ background: jobConfig.colorLight }">
+      <div class="equip-doll__portrait">
         <img
-          v-if="portraitUrl"
-          :src="portraitUrl"
+          v-if="resolvedPortraitUrl"
+          :src="resolvedPortraitUrl"
           :alt="'角色立绘'"
           class="equip-doll__portrait-img"
         />
@@ -185,8 +185,9 @@
             <span class="equip-detail__enhance-value">{{ selectedEquipment.enhanceLevel || 0 }}/{{ MAX_ENHANCE_LEVEL }}</span>
           </div>
           <div v-if="enhanceCostPreview" class="equip-detail__enhance-cost">
-            <div v-for="(qty, materialId) in enhanceCostPreview.materials" :key="materialId" class="equip-detail__enhance-cost-item">
-              {{ ENHANCE_MATERIAL_NAMES[materialId as unknown as number] || '材料' }} ×{{ qty }}
+            <div v-for="(mat, materialId) in enhanceCostPreview.materialsAvailable" :key="materialId" class="equip-detail__enhance-cost-item" :class="{ 'equip-detail__enhance-cost-item--lack': !mat.enough }">
+              {{ ENHANCE_MATERIAL_NAMES[Number(materialId)] || '材料' }} ×{{ mat.required }}
+              <span class="equip-detail__enhance-cost-owned">(拥有 {{ mat.owned }})</span>
             </div>
             <div class="equip-detail__enhance-cost-item">{{ enhanceCostPreview.gold }} 金币</div>
             <div class="equip-detail__enhance-cost-item equip-detail__enhance-rate">
@@ -196,6 +197,7 @@
           <button
             v-if="enhanceCostPreview"
             class="equip-detail__enhance-btn"
+            :disabled="!enhanceCostPreview.canAfford"
             @click="handleEnhance"
           >
             强化 +{{ (selectedEquipment.enhanceLevel || 0) + 1 }}
@@ -247,6 +249,7 @@
 import { ref, computed, type Component } from 'vue'
 import { Sword, Sparkles, Target } from 'lucide-vue-next'
 import type { EquipmentSlots, EquipmentSlotType, EquipmentRarity, SetBonus } from '../../types/equipment'
+import type { InventoryItem } from '../../types/item'
 import { getSlotConfig, RARITY_COLORS, RARITY_LABELS, RARITY_CSS_VAR, RARITY_LEVEL } from '../../config/equipment_config'
 import { formatAffixValue } from '../../config/affix_config'
 import { getEnhancedValue, getEnhanceCost, ENHANCE_MATERIAL_NAMES, MAX_ENHANCE_LEVEL } from '../../config/enhance_config'
@@ -259,14 +262,16 @@ import { getJobConfigByProfession } from '../../config/job_config'
  * @param portraitUrl - 角色立绘 URL（可选）
  * @param profession - 职业编号（用于占位图标和颜色）
  * @param setBonuses - 套装效果列表（可选）
+ * @param inventoryItems - 背包物品列表（用于材料校验）
  * @emits clickSlot - 点击装备槽位
  */
 
 interface Props {
-  equipment: EquipmentSlots
+  equipment?: EquipmentSlots
   portraitUrl?: string | null
   profession: number
   setBonuses?: SetBonus[]
+  inventoryItems?: InventoryItem[]
 }
 
 interface Emits {
@@ -276,8 +281,10 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  equipment: () => ({ weapon: null, helmet: null, chest: null, legs: null, accessory1: null, accessory2: null }),
   portraitUrl: null,
-  setBonuses: () => []
+  setBonuses: () => [],
+  inventoryItems: () => []
 })
 
 const emit = defineEmits<Emits>()
@@ -294,6 +301,11 @@ const selectedEquipment = computed(() => {
 /** 职业配置 */
 const jobConfig = computed(() => {
   return getJobConfigByProfession(props.profession)
+})
+
+/** 解析立绘URL：优先使用传入的 portraitUrl，否则使用职业默认立绘 */
+const resolvedPortraitUrl = computed(() => {
+  return props.portraitUrl || jobConfig.value.portrait
 })
 
 /** 职业图标 */
@@ -396,12 +408,24 @@ function handleEnhance() {
 }
 
 /**
- * 获取当前装备的强化消耗预览
+ * 获取当前装备的强化消耗预览（含材料充足校验）
  */
 const enhanceCostPreview = computed(() => {
   if (!selectedEquipment.value) return null
   const level = selectedEquipment.value.enhanceLevel || 0
   if (level >= MAX_ENHANCE_LEVEL) return null
-  return getEnhanceCost(level)
+  const cost = getEnhanceCost(level)
+  if (!cost) return null
+  // 校验材料是否充足
+  const materialsAvailable: Record<number, { required: number; owned: number; enough: boolean }> = {}
+  for (const [matId, required] of Object.entries(cost.materials)) {
+    const id = Number(matId)
+    const owned = props.inventoryItems
+      .filter(i => i.itemId === id || i.item.itemId === id)
+      .reduce((sum, i) => sum + i.quantity, 0)
+    materialsAvailable[id] = { required, owned, enough: owned >= required }
+  }
+  const canAfford = Object.values(materialsAvailable).every(m => m.enough)
+  return { ...cost, materialsAvailable, canAfford }
 })
 </script>

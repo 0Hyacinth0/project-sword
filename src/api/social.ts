@@ -6,10 +6,31 @@ import request from './request'
 import type { ApiResponse } from './request'
 import type { FriendInfo, FriendRequest, SearchPlayerResult } from '../types/social'
 import { isMockEnabled } from '../utils/mockConfig'
+import { getMockCurrentCharacterProfile } from './mockSession'
 
 /** Mock 延迟 */
 function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * 将好友请求中的默认 Mock 角色替换为当前选中角色。
+ * @param request - 原始好友请求
+ * @returns 归一化后的好友请求
+ */
+function normalizeOwnFriendRequest(request: FriendRequest): FriendRequest {
+  const currentProfile = getMockCurrentCharacterProfile()
+  const nextRequest = { ...request }
+  if (nextRequest.fromCharacterId === 'mock-char-1') {
+    nextRequest.fromCharacterId = currentProfile.characterId
+    nextRequest.fromCharacterName = currentProfile.characterName
+    nextRequest.fromProfession = currentProfile.profession
+    nextRequest.fromLevel = currentProfile.level
+  }
+  if (nextRequest.toCharacterId === 'mock-char-1') {
+    nextRequest.toCharacterId = currentProfile.characterId
+  }
+  return nextRequest
 }
 
 // ──────────────────────────────────────────
@@ -183,8 +204,8 @@ async function mockGetFriendList(): Promise<ApiResponse<{ friends: FriendInfo[];
     message: '获取成功',
     data: {
       friends: [...mockFriends],
-      pendingRequests: [...mockPendingRequests],
-      sentRequests: [...mockSentRequests]
+      pendingRequests: mockPendingRequests.map(normalizeOwnFriendRequest),
+      sentRequests: mockSentRequests.map(normalizeOwnFriendRequest)
     }
   }
 }
@@ -271,12 +292,13 @@ async function mockSendFriendRequest(toCharacterId: string): Promise<ApiResponse
   }
 
   // 创建新请求
+  const currentProfile = getMockCurrentCharacterProfile()
   const newRequest: FriendRequest = {
     id: `req-sent-${Date.now()}`,
-    fromCharacterId: 'mock-char-1',
-    fromCharacterName: '当前角色',
-    fromProfession: 'Warrior',
-    fromLevel: 20,
+    fromCharacterId: currentProfile.characterId,
+    fromCharacterName: currentProfile.characterName,
+    fromProfession: currentProfile.profession,
+    fromLevel: currentProfile.level,
     toCharacterId,
     status: 'pending',
     createdAt: new Date().toISOString()

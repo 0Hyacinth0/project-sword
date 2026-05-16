@@ -25,7 +25,7 @@ const request = axios.create({
 /** 不需要携带 token 的接口路径 */
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/check-username']
 
-// ── 请求拦截器：自动注入 Token ──
+// ── 请求拦截器：自动注入 Token 和 userId ──
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 公开接口不发 token，避免后端误校验
@@ -39,6 +39,24 @@ request.interceptors.request.use(
     if (token) {
       config.headers['X-Access-Token'] = token
     }
+
+    // 所有非 GET 请求自动注入 userId 和 characterId
+    if (config.method !== 'get') {
+      try {
+        const body = (config.data ??= {}) as Record<string, unknown>
+
+        const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}')
+        if (authUser.id && !body.userId) {
+          body.userId = authUser.id
+        }
+
+        const characterId = sessionStorage.getItem('selected_character_id')
+        if (characterId && !body.characterId) {
+          body.characterId = characterId
+        }
+      } catch { /* 忽略解析失败 */ }
+    }
+
     return config
   },
   (error) => Promise.reject(error)
@@ -82,9 +100,13 @@ request.interceptors.response.use(
       if (status === 401) {
         localStorage.removeItem('auth_user')
         localStorage.removeItem('access_token')
-        // 避免在登录页重复跳转
         if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+          // 使用 router 进行 SPA 导航，避免丢失 Pinia 状态
+          import('../router').then((mod) => {
+            mod.default.push('/login')
+          }).catch(() => {
+            window.location.href = '/login'
+          })
         }
       }
 

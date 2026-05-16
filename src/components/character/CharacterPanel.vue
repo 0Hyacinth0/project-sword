@@ -23,18 +23,13 @@
     </div>
 
     <!-- 标签页切换 -->
-    <div class="char-panel__tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        class="char-panel__tab"
-        :class="{ 'char-panel__tab--active': activeTab === tab.key }"
-        @click="activeTab = tab.key"
-      >
-        <component :is="tab.icon" :size="14" />
-        <span>{{ tab.label }}</span>
-      </button>
-    </div>
+    <UiTabs
+      class="char-panel__tabs"
+      size="sm"
+      :model-value="activeTab"
+      :items="tabs"
+      @update:model-value="handleTabChange"
+    />
 
     <!-- 内容区域 -->
     <div class="char-panel__content">
@@ -50,10 +45,11 @@
       <!-- 装备概览（纸娃娃布局） -->
       <CharacterEquipmentGrid
         v-if="activeTab === 'equipment'"
-        :equipment="character.equipment"
+        :equipment="character.equipment ?? undefined"
         :portrait-url="character.portraitUrl"
         :profession="character.profession"
         :set-bonuses="setBonuses"
+        :inventory-items="inventoryItems"
         @click-slot="handleClickSlot"
         @unequip="handleUnequip"
         @enhance="handleEnhance"
@@ -83,6 +79,7 @@
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { Activity, Shirt, PawPrint } from 'lucide-vue-next'
+import { UiTabs, type UiTabItem } from '../ui'
 import CharacterStats from './CharacterStats.vue'
 import CharacterEquipmentGrid from './CharacterEquipmentGrid.vue'
 import PetListPanel from '../pet/PetListPanel.vue'
@@ -111,6 +108,7 @@ interface Props {
   petLoading?: boolean
   expItems?: InventoryItem[]
   equipItems?: InventoryItem[]
+  inventoryItems?: InventoryItem[]
   levelUpResult?: LevelUpResult | null
 }
 
@@ -137,18 +135,21 @@ const props = withDefaults(defineProps<Props>(), {
   petLoading: false,
   expItems: () => [],
   equipItems: () => [],
+  inventoryItems: () => [],
   levelUpResult: null
 })
 const emit = defineEmits<Emits>()
 
+type PanelTab = 'stats' | 'equipment' | 'pet'
+
 /** 当前激活的标签页 */
-const activeTab = ref<'stats' | 'equipment' | 'pet'>('stats')
+const activeTab = ref<PanelTab>('stats')
 
 /** 标签页配置 */
-const tabs: Array<{ key: 'stats' | 'equipment' | 'pet'; label: string; icon: Component }> = [
-  { key: 'stats', label: '属性', icon: Activity },
-  { key: 'equipment', label: '装备', icon: Shirt },
-  { key: 'pet', label: '战宠', icon: PawPrint }
+const tabs: UiTabItem[] = [
+  { value: 'stats', label: '属性', icon: Activity as Component },
+  { value: 'equipment', label: '装备', icon: Shirt as Component },
+  { value: 'pet', label: '战宠', icon: PawPrint as Component }
 ]
 
 /** 职业配置（用于名称和颜色） */
@@ -158,6 +159,15 @@ const jobConfig = computed(() => {
 
 /** 出战战宠（从 petList 中找到 isActive 的那只） */
 const activePet = computed(() => props.petList.find(p => p.isActive) ?? null)
+
+/**
+ * 切换角色面板标签。
+ * @param value - UiTabs 派发的标签值
+ * @returns 无返回值
+ */
+function handleTabChange(value: string | number): void {
+  activeTab.value = value as PanelTab
+}
 
 /**
  * 刷新角色数据

@@ -30,6 +30,7 @@ export interface JobConfig {
   color: string             // 职业主题色
   colorLight: string        // 职业浅色
   icon: string              // Lucide 图标名
+  portrait: string          // 立绘图片路径
   baseStr: number
   baseInt: number
   baseAgi: number
@@ -47,6 +48,7 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     color: '#ff6b35',
     colorLight: 'rgba(255, 107, 53, 0.15)',
     icon: 'Sword',
+    portrait: '/assets/portraits/warrior.png',
     baseStr: 10,
     baseInt: 3,
     baseAgi: 5,
@@ -74,6 +76,7 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     color: '#7c5cfc',
     colorLight: 'rgba(124, 92, 252, 0.15)',
     icon: 'Sparkles',
+    portrait: '/assets/portraits/mage.png',
     baseStr: 2,
     baseInt: 12,
     baseAgi: 4,
@@ -101,6 +104,7 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     color: '#22c55e',
     colorLight: 'rgba(34, 197, 94, 0.15)',
     icon: 'Target',
+    portrait: '/assets/portraits/hunter.png',
     baseStr: 5,
     baseInt: 4,
     baseAgi: 11,

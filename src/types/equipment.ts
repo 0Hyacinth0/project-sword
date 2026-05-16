@@ -6,8 +6,10 @@
 /** 装备槽位类型 */
 export type EquipmentSlotType = 'weapon' | 'helmet' | 'chest' | 'legs' | 'accessory1' | 'accessory2'
 
-/** 装备稀有度（品质） */
-export type EquipmentRarity = 'Normal' | 'Rare' | 'Epic' | 'Legendary'
+import type { ItemRarity } from './item'
+
+/** 装备稀有度（品质），统一使用 ItemRarity 类型 */
+export type EquipmentRarity = ItemRarity
 
 /** 装备属性 */
 export interface EquipmentStats {

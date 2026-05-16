@@ -5,10 +5,11 @@
   支持使用消耗品、丢弃物品操作
 -->
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="item" class="item-modal__overlay" @click.self="$emit('close')">
-        <div class="item-modal">
+  <UiModal
+    :model-value="Boolean(item)"
+    @update:model-value="handleModalUpdate"
+  >
+    <div v-if="item" class="item-modal">
           <!-- 顶部：图标 + 名称 -->
           <div class="item-modal__header">
             <div class="item-modal__icon" :style="{ borderColor: rarityColor, background: rarityBg }">
@@ -26,9 +27,9 @@
                 {{ rarityLabel }} · {{ categoryLabel }}
               </span>
             </div>
-            <button class="item-modal__close" @click="$emit('close')">
+            <UiIconButton class="item-modal__close" variant="ghost" size="sm" label="关闭物品详情" @click="emit('close')">
               <X :size="16" />
-            </button>
+            </UiIconButton>
           </div>
 
           <!-- 描述 -->
@@ -109,32 +110,39 @@
 
           <!-- 操作按钮区 -->
           <div class="item-modal__actions">
-            <button
+            <UiButton
               v-if="item.item.category === 'consumable'"
-              class="item-modal__btn item-modal__btn--use"
+              class="item-modal__btn"
+              size="sm"
+              block
               :disabled="actionLoading"
               @click="startAction('use')"
             >
-              <Sparkles :size="14" />
+              <template #icon><Sparkles :size="14" /></template>
               使用
-            </button>
-            <button
+            </UiButton>
+            <UiButton
               v-if="item.item.category === 'equipment'"
-              class="item-modal__btn item-modal__btn--use"
+              class="item-modal__btn"
+              size="sm"
+              block
               :disabled="actionLoading"
               @click="handleEquip"
             >
-              <Sparkles :size="14" />
+              <template #icon><Sparkles :size="14" /></template>
               装备
-            </button>
-            <button
-              class="item-modal__btn item-modal__btn--discard"
+            </UiButton>
+            <UiButton
+              class="item-modal__btn"
+              variant="danger"
+              size="sm"
+              block
               :disabled="actionLoading"
               @click="startAction('discard')"
             >
-              <Trash2 :size="14" />
+              <template #icon><Trash2 :size="14" /></template>
               丢弃
-            </button>
+            </UiButton>
           </div>
 
           <!-- 数量选择器（展开时显示） -->
@@ -145,9 +153,9 @@
               </div>
               <div class="item-modal__quantity-row">
                 <div class="item-modal__quantity-controls">
-                  <button class="item-modal__qty-btn" @click="adjustQuantity(-1)">
+                  <UiIconButton class="item-modal__qty-btn" variant="secondary" size="sm" label="减少数量" @click="adjustQuantity(-1)">
                     <Minus :size="14" />
-                  </button>
+                  </UiIconButton>
                   <input
                     v-model.number="selectedQuantity"
                     class="item-modal__qty-input"
@@ -155,22 +163,24 @@
                     :min="1"
                     :max="item.quantity"
                   />
-                  <button class="item-modal__qty-btn" @click="adjustQuantity(1)">
+                  <UiIconButton class="item-modal__qty-btn" variant="secondary" size="sm" label="增加数量" @click="adjustQuantity(1)">
                     <Plus :size="14" />
-                  </button>
+                  </UiIconButton>
                 </div>
                 <div class="item-modal__quantity-actions">
-                  <button
+                  <UiButton
                     class="item-modal__btn item-modal__btn--sm"
-                    :class="activeAction === 'use' ? 'item-modal__btn--use' : 'item-modal__btn--discard'"
+                    :variant="activeAction === 'use' ? 'primary' : 'danger'"
+                    size="sm"
                     :disabled="selectedQuantity < 1 || selectedQuantity > item.quantity || actionLoading"
+                    :loading="actionLoading"
                     @click="confirmAction"
                   >
-                    {{ actionLoading ? '...' : '确认' }}
-                  </button>
-                  <button class="item-modal__btn item-modal__btn--sm item-modal__btn--cancel" @click="cancelAction">
+                    确认
+                  </UiButton>
+                  <UiButton class="item-modal__btn item-modal__btn--sm" variant="secondary" size="sm" @click="cancelAction">
                     取消
-                  </button>
+                  </UiButton>
                 </div>
               </div>
             </div>
@@ -183,33 +193,36 @@
                 确定丢弃 <span :style="{ color: rarityColor }">{{ item.item.name }}</span> ×{{ selectedQuantity }}？
               </div>
               <div class="item-modal__confirm-actions">
-                <button
-                  class="item-modal__btn item-modal__btn--discard"
+                <UiButton
+                  class="item-modal__btn"
+                  variant="danger"
+                  size="sm"
+                  block
                   :disabled="actionLoading"
+                  :loading="actionLoading"
                   @click="executeDiscard"
                 >
-                  {{ actionLoading ? '处理中...' : '确认丢弃' }}
-                </button>
-                <button class="item-modal__btn item-modal__btn--cancel" @click="showDiscardConfirm = false">
+                  确认丢弃
+                </UiButton>
+                <UiButton class="item-modal__btn" variant="secondary" size="sm" block @click="showDiscardConfirm = false">
                   再想想
-                </button>
+                </UiButton>
               </div>
             </div>
           </Transition>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+    </div>
+  </UiModal>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { X, Sparkles, Trash2, Minus, Plus } from 'lucide-vue-next'
 import type { InventoryItem } from '../../types/item'
-import { getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel, RARITY_COLORS } from '../../config/item_config'
+import { getRarityColorVar, getRarityLabel, getCategoryIcon, getCategoryLabel } from '../../config/item_config'
 import { AFFIX_LABELS, formatAffixValue } from '../../config/affix_config'
 import { getEnhancedValue } from '../../config/enhance_config'
 import type { ExtraStat, Equipment, EquipmentRarity } from '../../types/equipment'
+import { UiButton, UiIconButton, UiModal } from '../ui'
 
 /**
  * 物品详情弹窗组件
@@ -230,7 +243,7 @@ interface Emits {
   (e: 'close'): void
   (e: 'use', inventoryId: string, quantity: number): void
   (e: 'discard', inventoryId: string, quantity: number): void
-  (e: 'equip', inventoryId: string): void
+  (e: 'equip', inventoryId: string, slotType?: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -254,11 +267,10 @@ const rarityColor = computed(() => {
   return getRarityColorVar(props.item.item.rarity)
 })
 
-/** 稀有度背景色（半透明，使用 hex 透明度） */
+/** 稀有度背景色（半透明设计变量） */
 const rarityBg = computed(() => {
   if (!props.item) return 'transparent'
-  const color = RARITY_COLORS[props.item.item.rarity].light
-  return color + '14'
+  return `color-mix(in srgb, ${rarityColor.value} 12%, transparent)`
 })
 
 /** 稀有度标签 */
@@ -289,6 +301,11 @@ const STAT_LABELS: Record<string, string> = {
 
 /**
  * 获取装备某属性的总值（基础 stats + 强化加成 + extraStats）
+ * @param stats - 装备基础属性
+ * @param extraStats - 装备随机词条
+ * @param enhanceLevel - 强化等级
+ * @param rarity - 装备品质
+ * @returns 查询指定属性总值的函数
  */
 function getTotalStat(
   stats: Record<string, number | undefined> | undefined,
@@ -353,6 +370,8 @@ const compareStats = computed(() => {
 
 /**
  * 获取词条属性中文名
+ * @param key - 词条属性 key
+ * @returns 词条中文名
  */
 function affixLabel(key: string): string {
   return AFFIX_LABELS[key] || key
@@ -360,8 +379,10 @@ function affixLabel(key: string): string {
 
 /**
  * 开始操作（展开数量选择器）
+ * @param action - 当前操作类型
+ * @returns 无返回值
  */
-function startAction(action: 'use' | 'discard') {
+function startAction(action: 'use' | 'discard'): void {
   activeAction.value = action
   selectedQuantity.value = 1
   showDiscardConfirm.value = false
@@ -369,8 +390,10 @@ function startAction(action: 'use' | 'discard') {
 
 /**
  * 调整数量（+1 或 -1）
+ * @param delta - 数量增量
+ * @returns 无返回值
  */
-function adjustQuantity(delta: number) {
+function adjustQuantity(delta: number): void {
   if (!props.item) return
   const newVal = selectedQuantity.value + delta
   selectedQuantity.value = Math.max(1, Math.min(newVal, props.item.quantity))
@@ -378,8 +401,9 @@ function adjustQuantity(delta: number) {
 
 /**
  * 确认操作
+ * @returns 无返回值
  */
-function confirmAction() {
+function confirmAction(): void {
   if (!props.item || selectedQuantity.value < 1) return
   if (activeAction.value === 'use') {
     emit('use', props.item.id, selectedQuantity.value)
@@ -391,25 +415,37 @@ function confirmAction() {
 
 /**
  * 执行丢弃（二次确认后）
+ * @returns 无返回值
  */
-function executeDiscard() {
+function executeDiscard(): void {
   if (!props.item) return
   emit('discard', props.item.id, selectedQuantity.value)
 }
 
 /**
  * 取消操作（收起数量选择器）
+ * @returns 无返回值
  */
-function cancelAction() {
+function cancelAction(): void {
   activeAction.value = null
   selectedQuantity.value = 1
 }
 
 /**
  * 装备物品
+ * @returns 无返回值
  */
-function handleEquip() {
+function handleEquip(): void {
   if (!props.item) return
-  emit('equip', props.item.id)
+  emit('equip', props.item.id, props.item.item.slotType)
+}
+
+/**
+ * 处理通用弹窗关闭回写。
+ * @param value - UiModal 传出的显示状态
+ * @returns 无返回值
+ */
+function handleModalUpdate(value: boolean): void {
+  if (!value) emit('close')
 }
 </script>

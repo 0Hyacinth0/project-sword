@@ -348,7 +348,7 @@ async function handleAction(action: BattleAction) {
  * @param targetUid - 需要复活的队友 UID
  */
 async function handleRevive(targetUid: string) {
-  await store.submitAction({ type: 'revive', targetUid })
+  await store.submitAction({ type: 'revive', actorUid: store.currentPlayer?.uid || '', targetUid })
 }
 
 /**

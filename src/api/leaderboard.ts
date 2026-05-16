@@ -67,5 +67,6 @@ export async function getLeaderboardApi(
     const data = generateMockEntries(category, count)
     return { code: 200, message: '操作成功', data }
   }
-  return request.get(`/leaderboard/${category}`, { params: { scope } })
+  const res = await request.get<ApiResponse<LeaderboardResponse>>(`/leaderboard/${category}`, { params: { scope } })
+  return res.data
 }

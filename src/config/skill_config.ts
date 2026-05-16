@@ -190,6 +190,7 @@ const MAGE_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'Flame',
     element: 1,
+    isMagicAttack: true,
     description: '投掷灼热火球，对单体造成 160% 魔法伤害'
   },
   {
@@ -206,6 +207,7 @@ const MAGE_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'CloudLightning',
     element: 1,
+    isMagicAttack: true,
     description: '召唤陨石从天而降，对所有敌人造成伤害并附带灼烧'
   },
   {
@@ -262,6 +264,7 @@ const MAGE_SKILLS: SkillConfig[] = [
     unlockLevel: 10,
     icon: 'Snowflake',
     element: 2,
+    isMagicAttack: true,
     description: '释放寒冰攻击单体，并降低其速度，持续 2 回合'
   }
 ]
@@ -423,7 +426,7 @@ export function getJobSkills(jobType: string, level: number): SkillConfig[] {
 export function getActiveBattleSkills(jobType: string, level: number): BattleSkill[] {
   return getJobSkills(jobType, level)
     .filter(s => s.type !== 'passive')
-    .map(({ passiveTrigger, triggerChance, owner, isDefault, unlockLevel, icon, element, ...battleSkill }) => battleSkill)
+    .map(({ passiveTrigger, triggerChance, owner, isDefault, unlockLevel, icon, ...battleSkill }) => battleSkill)
 }
 
 /**

@@ -2,7 +2,15 @@
  * 装备静态配置数据
  * 前端展示用，包含槽位图标、品质颜色等
  */
-import type { EquipmentSlotType, EquipmentRarity } from '../types/equipment'
+import type { EquipmentSlotType } from '../types/equipment'
+import type { ItemRarity } from '../types/item'
+import {
+  RARITY_COLORS as ITEM_RARITY_COLORS,
+  RARITY_CSS_VAR as ITEM_RARITY_CSS_VAR,
+  RARITY_LEVEL as ITEM_RARITY_LEVEL,
+  RARITY_LABELS as ITEM_RARITY_LABELS,
+  getRarityColor as getItemRarityColor
+} from './item_config'
 import { Sword, Crown, Shield, Footprints, Gem } from 'lucide-vue-next'
 import type { Component } from 'vue'
 
@@ -57,56 +65,28 @@ export const EQUIPMENT_SLOT_CONFIGS: Record<EquipmentSlotType, SlotConfig> = {
 /** 槽位列表（按位置排序） */
 export const SLOT_LIST: EquipmentSlotType[] = ['weapon', 'helmet', 'chest', 'legs', 'accessory1', 'accessory2']
 
-/** 装备稀有度颜色（参考 DESIGN.md） */
-export const RARITY_COLORS: Record<EquipmentRarity, { light: string; dark: string }> = {
-  Normal: {
-    light: '#6e6e73',
-    dark: '#f4f1ff'
-  },
-  Rare: {
-    light: '#0071e3',
-    dark: '#59a6ff'
-  },
-  Epic: {
-    light: '#af52de',
-    dark: '#c282ff'
-  },
-  Legendary: {
-    light: '#ff9500',
-    dark: '#ff9b52'
-  }
-}
+// ──────────────────────────────────────────
+// 稀有度配置（从 item_config 重导出，类型适配为 EquipmentRarity）
+// ──────────────────────────────────────────
 
-/** 稀有度对应的 CSS 变量名 */
-export const RARITY_CSS_VAR: Record<EquipmentRarity, string> = {
-  Normal: '--rarity-normal',
-  Rare: '--rarity-rare',
-  Epic: '--rarity-epic',
-  Legendary: '--rarity-legendary'
-}
+/** 装备稀有度颜色（重导出自 item_config） */
+export const RARITY_COLORS = ITEM_RARITY_COLORS as Record<ItemRarity, { light: string; dark: string }>
 
-/** 稀有度等级数值（用于排序和判断光效强度） */
-export const RARITY_LEVEL: Record<EquipmentRarity, number> = {
-  Normal: 0,
-  Rare: 1,
-  Epic: 2,
-  Legendary: 3
-}
+/** 稀有度对应的 CSS 变量名（重导出自 item_config） */
+export const RARITY_CSS_VAR = ITEM_RARITY_CSS_VAR as Record<ItemRarity, string>
 
-/** 稀有度标签（中文） */
-export const RARITY_LABELS: Record<EquipmentRarity, string> = {
-  Normal: '普通',
-  Rare: '稀有',
-  Epic: '史诗',
-  Legendary: '传说'
-}
+/** 稀有度等级数值（重导出自 item_config） */
+export const RARITY_LEVEL = ITEM_RARITY_LEVEL as Record<ItemRarity, number>
+
+/** 稀有度标签（重导出自 item_config） */
+export const RARITY_LABELS = ITEM_RARITY_LABELS as Record<ItemRarity, string>
 
 /** 获取槽位配置 */
 export function getSlotConfig(slotType: EquipmentSlotType): SlotConfig {
   return EQUIPMENT_SLOT_CONFIGS[slotType]
 }
 
-/** 获取稀有度颜色（根据主题） */
-export function getRarityColor(rarity: EquipmentRarity, isDark: boolean = false): string {
-  return isDark ? RARITY_COLORS[rarity].dark : RARITY_COLORS[rarity].light
+/** 获取稀有度颜色（根据主题，委托给 item_config） */
+export function getRarityColor(rarity: ItemRarity, isDark: boolean = false): string {
+  return getItemRarityColor(rarity, isDark)
 }

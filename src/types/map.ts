@@ -12,6 +12,8 @@ export interface AreaMonster {
   level: number
   /** 怪物类型：普通/精英/Boss */
   type: 'normal' | 'elite' | 'boss'
+  /** 掉落配置（可选） */
+  drops?: any[]
 }
 
 /** 区域掉落预览 */

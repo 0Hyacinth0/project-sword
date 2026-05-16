@@ -154,17 +154,13 @@ export const useCharacterStore = defineStore('character', () => {
   }
 
   /** 穿戴装备 */
-  async function equipItem(characterId: string, inventoryId: string): Promise<{ success: boolean; message: string }> {
+  async function equipItem(characterId: string, inventoryId: string, slotType?: string): Promise<{ success: boolean; message: string }> {
     loading.value = true
     try {
-      const res = await equipItemApi(characterId, inventoryId)
+      const res = await equipItemApi(characterId, inventoryId, slotType)
       if (res.code === 200) {
-        characterDetail.value = res.data
-        const index = characters.value.findIndex(c => c.id === characterId)
-        if (index !== -1) {
-          characters.value[index] = res.data
-        }
-        return { success: true, message: res.message }
+        await fetchCharacterDetail(characterId)
+        return { success: true, message: res.message || '穿戴成功' }
       }
       return { success: false, message: res.message }
     } catch (err: unknown) {
@@ -181,12 +177,8 @@ export const useCharacterStore = defineStore('character', () => {
     try {
       const res = await unequipItemApi(characterId, slotType)
       if (res.code === 200) {
-        characterDetail.value = res.data
-        const index = characters.value.findIndex(c => c.id === characterId)
-        if (index !== -1) {
-          characters.value[index] = res.data
-        }
-        return { success: true, message: res.message }
+        await fetchCharacterDetail(characterId)
+        return { success: true, message: res.message || '卸下成功' }
       }
       return { success: false, message: res.message }
     } catch (err: unknown) {
@@ -202,15 +194,11 @@ export const useCharacterStore = defineStore('character', () => {
     loading.value = true
     try {
       const res = await enhanceEquipmentApi(characterId, slotType)
-      if (res.code === 200 && res.data.success) {
-        characterDetail.value = res.data.character
-        const index = characters.value.findIndex(c => c.id === characterId)
-        if (index !== -1) {
-          characters.value[index] = res.data.character
-        }
-        return { success: true, message: res.data.message }
+      if (res.code === 200) {
+        await fetchCharacterDetail(characterId)
+        return { success: true, message: res.message || '强化成功' }
       }
-      return { success: false, message: res.data?.message || res.message }
+      return { success: false, message: res.message }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : '强化失败'
       return { success: false, message }
@@ -225,6 +213,23 @@ export const useCharacterStore = defineStore('character', () => {
     selectedCharacterId.value = null
     characterDetail.value = null
     sessionStorage.removeItem('selected_character_id')
+  }
+
+  /**
+   * 重新加载当前选中角色的详情
+   * 用于消耗品使用后刷新角色状态
+   */
+  async function loadCharacter(): Promise<void> {
+    const id = selectedCharacterId.value
+    if (!id) return
+    try {
+      const res = await getCharacterInfoApi(id)
+      if (res.code === 200) {
+        characterDetail.value = res.data
+      }
+    } catch {
+      // 静默失败，不影响主流程
+    }
   }
 
   // 初始化
@@ -247,6 +252,7 @@ export const useCharacterStore = defineStore('character', () => {
     equipItem,
     unequipItem,
     enhanceItem,
+    loadCharacter,
     clear
   }
 })

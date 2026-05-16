@@ -14,11 +14,11 @@ function delay(ms: number): Promise<void> {
 
 /** Mock 赛季数据 */
 const mockSeasonData: ArenaSeason = {
-  seasonId: 'season-3',
-  seasonName: '龙焰纪元',
-  seasonNumber: 3,
-  startDate: '2025-10-01',
-  endDate: '2026-01-01',
+  seasonId: 'season-4',
+  seasonName: '星辉远征',
+  seasonNumber: 4,
+  startDate: '2026-05-01',
+  endDate: '2026-08-01',
   isActive: true
 }
 
@@ -30,7 +30,7 @@ const mockPlayerData: ArenaPlayerData = {
   wins: 42,
   losses: 28,
   winRate: 60,
-  seasonId: 'season-3'
+  seasonId: 'season-4'
 }
 
 /**

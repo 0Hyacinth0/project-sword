@@ -23,8 +23,8 @@ const STR_TO_PHYSICAL_ATTACK = 2
 /** 智力对魔法攻击的换算系数：1 点智力 = 2 魔攻 */
 const INT_TO_MAGIC_ATTACK = 2
 
-/** 敏捷对物理攻击的换算系数：1 点敏捷 = 0.5 物攻 */
-const AGI_TO_PHYSICAL_ATTACK = 0.5
+/** 敏捷对物理攻击的换算系数：1 点敏捷 = 1 物攻（根据开发方案.md 猎人设定） */
+const AGI_TO_PHYSICAL_ATTACK = 1
 
 /** 敏捷对闪避率的换算系数：1 点敏捷 = 0.5% 闪避 */
 const AGI_TO_DODGE = 0.005
@@ -142,7 +142,7 @@ export function calculateBaseStats(attrs: BaseAttributes, profession: number): D
 }
 
 /**
- * 汇总所有装备的属性加成
+ * 汇总所有装备的属性加成（含强化等级和随机词条）
  * @param equipment - 六槽位装备数据
  * @returns 装备属性汇总
  */
@@ -163,14 +163,34 @@ export function sumEquipmentStats(equipment: EquipmentSlots | null): DerivedStat
   return slots.reduce<DerivedStats>((sum, eq) => {
     if (!eq) return sum
     const s: EquipmentStats = eq.stats
+
+    // 强化等级加成：每级 +10% 基础属性
+    const enhanceMultiplier = 1 + (eq.enhanceLevel ?? 0) * 0.1
+
+    // 随机词条加成
+    let extraHp = 0, extraMp = 0, extraPhysAtk = 0, extraMagAtk = 0, extraDef = 0, extraDodge = 0, extraCrit = 0
+    if (eq.extraStats) {
+      for (const es of eq.extraStats) {
+        switch (es.key) {
+          case 'hp': extraHp += es.value; break
+          case 'mp': extraMp += es.value; break
+          case 'physicalAttack': extraPhysAtk += es.value; break
+          case 'magicAttack': extraMagAtk += es.value; break
+          case 'defense': extraDef += es.value; break
+          case 'dodgeRate': extraDodge += es.value; break
+          case 'criticalRate': extraCrit += es.value; break
+        }
+      }
+    }
+
     return {
-      maxHp: sum.maxHp + (s.hp ?? 0),
-      maxMp: sum.maxMp + (s.mp ?? 0),
-      physicalAttack: sum.physicalAttack + (s.physicalAttack ?? 0),
-      magicAttack: sum.magicAttack + (s.magicAttack ?? 0),
-      defense: sum.defense + (s.defense ?? 0),
-      dodgeRate: sum.dodgeRate + (s.dodgeRate ?? 0),
-      criticalRate: sum.criticalRate + (s.criticalRate ?? 0)
+      maxHp: sum.maxHp + Math.floor((s.hp ?? 0) * enhanceMultiplier) + extraHp,
+      maxMp: sum.maxMp + Math.floor((s.mp ?? 0) * enhanceMultiplier) + extraMp,
+      physicalAttack: sum.physicalAttack + Math.floor((s.physicalAttack ?? 0) * enhanceMultiplier) + extraPhysAtk,
+      magicAttack: sum.magicAttack + Math.floor((s.magicAttack ?? 0) * enhanceMultiplier) + extraMagAtk,
+      defense: sum.defense + Math.floor((s.defense ?? 0) * enhanceMultiplier) + extraDef,
+      dodgeRate: sum.dodgeRate + (s.dodgeRate ?? 0) + extraDodge,
+      criticalRate: sum.criticalRate + (s.criticalRate ?? 0) + extraCrit
     }
   }, { maxHp: 0, maxMp: 0, physicalAttack: 0, magicAttack: 0, defense: 0, dodgeRate: 0, criticalRate: 0 })
 }
@@ -188,7 +208,7 @@ export function getPetBonus(petBonus: PetOwnerBonus | null): DerivedStats {
     maxHp: petBonus.hp ?? 0,
     maxMp: 0,
     physicalAttack: petBonus.attack ?? 0,
-    magicAttack: 0,
+    magicAttack: petBonus.magicAttack ?? 0,
     defense: petBonus.defense ?? 0,
     dodgeRate: petBonus.dodgeRate ?? 0,
     criticalRate: petBonus.criticalRate ?? 0

@@ -2,14 +2,12 @@
   <div class="world-map-panel">
     <!-- 标题栏 -->
     <header class="map-header">
-      <button class="map-header__back" @click="$emit('back')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-        <span>返回</span>
-      </button>
+      <UiButton class="map-header__back" variant="ghost" size="sm" @click="emit('back')">
+        <template #icon><ChevronLeft :size="18" :stroke-width="1.8" /></template>
+        返回
+      </UiButton>
       <h1 class="map-header__title">世界地图</h1>
-      <span class="map-header__level-badge">Lv.{{ characterLevel }}</span>
+      <UiBadge class="map-header__level-badge" tone="warning" size="sm">Lv.{{ characterLevel }}</UiBadge>
     </header>
 
     <!-- 区域列表 -->
@@ -31,9 +29,9 @@
             <h3 class="area-card__name">{{ getAreaStatus(area) === 'undiscovered' ? '???' : area.name }}</h3>
             <span class="area-card__level-range">Lv.{{ area.levelRange[0] }}-{{ area.levelRange[1] }}</span>
           </div>
-          <span :class="['area-card__status', `area-card__status--${getAreaStatus(area)}`]">
+          <UiBadge class="area-card__status" :tone="areaStatusTone(getAreaStatus(area))" size="sm">
             {{ statusLabel(getAreaStatus(area)) }}
-          </span>
+          </UiBadge>
         </div>
 
         <!-- 展开详情面板 -->
@@ -49,13 +47,15 @@
               <div class="area-detail__section">
                 <h4 class="area-detail__section-title">怪物</h4>
                 <div class="area-detail__tags">
-                  <span
+                  <UiBadge
                     v-for="monster in area.monsters"
                     :key="monster.id"
-                    :class="['area-detail__tag', 'area-detail__tag--monster', `area-detail__tag--${monster.type}`]"
+                    class="area-detail__tag"
+                    :tone="monsterBadgeTone(monster.type)"
+                    size="sm"
                   >
                     {{ monster.name }} Lv.{{ monster.level }}
-                  </span>
+                  </UiBadge>
                 </div>
               </div>
 
@@ -63,24 +63,26 @@
               <div v-if="area.drops.length" class="area-detail__section">
                 <h4 class="area-detail__section-title">掉落</h4>
                 <div class="area-detail__tags">
-                  <span
+                  <UiBadge
                     v-for="drop in area.drops"
                     :key="drop.itemId"
-                    :class="['area-detail__tag', 'area-detail__tag--drop', `area-detail__tag--${drop.rarity}`]"
+                    class="area-detail__tag"
+                    :tone="rarityBadgeTone(drop.rarity)"
+                    size="sm"
                   >
                     {{ drop.name }}
-                  </span>
+                  </UiBadge>
                 </div>
               </div>
 
               <!-- 操作按钮 -->
               <div class="area-detail__actions">
-                <button class="area-detail__btn area-detail__btn--explore" @click.stop="handleEnterArea(area)">
+                <UiButton class="area-detail__btn" size="sm" @click.stop="handleEnterArea(area)">
                   进入探索
-                </button>
-                <button class="area-detail__btn area-detail__btn--dungeon" @click.stop="handleDungeon(area)">
+                </UiButton>
+                <UiButton class="area-detail__btn" variant="secondary" size="sm" @click.stop="handleDungeon(area)">
                   副本
-                </button>
+                </UiButton>
               </div>
             </div>
           </div>
@@ -92,18 +94,29 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { useMapStore } from '../../stores/map'
 import { useCharacterStore } from '../../stores/character'
-import { enterAreaApi } from '../../api/map'
+import { useBattleStore } from '../../stores/battle'
+import { createWildMonsterCombatant } from '../../api/map'
+import { getActiveBattleSkills } from '../../config/skill_config'
+import { calculateFullStats } from '../../utils/attributeCalculator'
+import { professionToJobType } from '../../config/job_config'
 import type { MapArea, AreaStatus } from '../../types/map'
+import { ChevronLeft } from 'lucide-vue-next'
+import { UiBadge, UiButton, type BadgeTone } from '../ui'
 
-defineEmits<{
+const emit = defineEmits<{
   /** 返回上一级 */
   back: []
+  /** 打开副本面板 */
+  openDungeon: [areaId: string]
 }>()
 
+const router = useRouter()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
+const battleStore = useBattleStore()
 
 /** 角色等级 */
 const characterLevel = computed(() => characterStore.characterDetail?.level ?? 1)
@@ -159,6 +172,46 @@ function statusLabel(status: AreaStatus): string {
 }
 
 /**
+ * 获取地图区域状态对应的徽标色调。
+ * @param status - 区域解锁状态
+ * @returns 通用徽标色调
+ */
+function areaStatusTone(status: AreaStatus): BadgeTone {
+  const tones: Record<AreaStatus, BadgeTone> = {
+    current: 'warning',
+    unlocked: 'success',
+    locked: 'neutral',
+    undiscovered: 'neutral'
+  }
+  return tones[status]
+}
+
+/**
+ * 获取怪物类型对应的徽标色调。
+ * @param type - 怪物类型
+ * @returns 通用徽标色调
+ */
+function monsterBadgeTone(type: string): BadgeTone {
+  if (type === 'elite') return 'epic'
+  if (type === 'boss') return 'warning'
+  return 'primary'
+}
+
+/**
+ * 获取掉落品质对应的徽标色调。
+ * @param rarity - 掉落品质
+ * @returns 通用徽标色调
+ */
+function rarityBadgeTone(rarity: string): BadgeTone {
+  const tones: Record<string, BadgeTone> = {
+    Rare: 'rare',
+    Epic: 'epic',
+    Legendary: 'legendary'
+  }
+  return tones[rarity] ?? 'neutral'
+}
+
+/**
  * 处理区域卡片点击事件
  * 仅 current 或 unlocked 状态可展开/折叠
  * @param area - 被点击的区域
@@ -172,32 +225,60 @@ function handleCardClick(area: MapArea): void {
 
 /**
  * 处理"进入探索"按钮点击
+ * 随机遭遇区域怪物并启动战斗
  * @param area - 目标区域
  */
 async function handleEnterArea(area: MapArea): Promise<void> {
   const characterId = characterStore.selectedCharacterId
-  if (!characterId) {
+  const charDetail = characterStore.characterDetail
+  if (!characterId || !charDetail) {
     showToast('请先选择角色', 'error')
     return
   }
-  try {
-    const res = await enterAreaApi({ characterId, areaId: area.id })
-    if (res.code === 200) {
-      showToast(`即将进入${area.name}探索`, 'success')
-    } else {
-      showToast(res.message || '进入失败', 'error')
-    }
-  } catch {
-    showToast('进入区域失败，请稍后重试', 'error')
+
+  // 随机选择一只区域怪物
+  const monsters = area.monsters
+  const chosen = monsters[Math.floor(Math.random() * monsters.length)]
+  const enemy = createWildMonsterCombatant(chosen)
+
+  // 获取角色技能
+  const jobType = professionToJobType(charDetail.profession)
+  const skills = getActiveBattleSkills(jobType, charDetail.level)
+
+  // 构造角色完整属性
+  const attrs = {
+    strength: charDetail.strength,
+    intelligence: charDetail.intelligence,
+    agility: charDetail.agility
+  }
+  const statsBreakdown = calculateFullStats(
+    attrs,
+    charDetail.profession,
+    charDetail.equipment,
+    null
+  )
+
+  const result = await battleStore.startWildBattle(
+    characterId,
+    charDetail.characterName,
+    statsBreakdown,
+    skills,
+    enemy
+  )
+
+  if (result.success) {
+    router.push({ name: 'battle' })
+  } else {
+    showToast(result.message, 'error')
   }
 }
 
 /**
  * 处理"副本"按钮点击
- * @param _area - 目标区域（暂未使用）
+ * @param area - 目标区域
  */
-function handleDungeon(_area: MapArea): void {
-  showToast('副本功能开发中', 'info')
+function handleDungeon(area: MapArea): void {
+  emit('openDungeon', area.id)
 }
 </script>
 
@@ -218,27 +299,7 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .map-header__back {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--bg-panel-light);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  padding: 6px 12px;
   color: var(--accent-blue);
-  font-size: var(--font-size-small);
-  cursor: pointer;
-  transition: filter 0.2s, transform 0.1s;
-}
-
-.map-header__back:hover {
-  filter: brightness(1.1);
-}
-
-.map-header__back:active {
-  transform: scale(0.98);
 }
 
 .map-header__title {
@@ -252,12 +313,6 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .map-header__level-badge {
-  font-size: var(--font-size-xs);
-  font-weight: 500;
-  color: var(--accent-gold);
-  background: rgba(255, 149, 0, 0.1);
-  padding: 4px 10px;
-  border-radius: 980px;
   letter-spacing: 0.02em;
 }
 
@@ -280,7 +335,7 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .map-area-list::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--border-light);
   border-radius: 2px;
 }
 
@@ -306,13 +361,13 @@ function handleDungeon(_area: MapArea): void {
 
 /* ── 卡片状态：当前区域 ── */
 .area-card--current {
-  border-color: rgba(255, 149, 0, 0.4);
-  box-shadow: 0 0 12px rgba(255, 149, 0, 0.15);
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-elevated);
   cursor: pointer;
 }
 
 .area-card--current:hover {
-  box-shadow: 0 0 18px rgba(255, 149, 0, 0.25);
+  box-shadow: var(--shadow-float);
 }
 
 /* ── 卡片状态：已解锁 ── */
@@ -328,7 +383,7 @@ function handleDungeon(_area: MapArea): void {
 /* ── 卡片状态：未解锁 ── */
 .area-card--locked {
   border-style: dashed;
-  border-color: rgba(142, 142, 147, 0.3);
+  border-color: var(--border-light);
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -375,32 +430,8 @@ function handleDungeon(_area: MapArea): void {
 
 /* ── 状态标签 ── */
 .area-card__status {
-  font-size: var(--font-size-caption);
-  font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 6px;
   flex-shrink: 0;
   letter-spacing: 0.02em;
-}
-
-.area-card__status--current {
-  background: rgba(255, 149, 0, 0.12);
-  color: var(--accent-gold);
-}
-
-.area-card__status--unlocked {
-  background: rgba(52, 199, 89, 0.1);
-  color: var(--accent-green);
-}
-
-.area-card__status--locked {
-  background: rgba(142, 142, 147, 0.1);
-  color: var(--text-muted);
-}
-
-.area-card__status--undiscovered {
-  background: rgba(142, 142, 147, 0.06);
-  color: var(--text-muted);
 }
 
 /* ── 展开详情面板 ── */
@@ -442,41 +473,7 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .area-detail__tag {
-  font-size: var(--font-size-caption);
-  font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 5px;
   line-height: 1.2;
-}
-
-.area-detail__tag--monster.area-detail__tag--normal {
-  background: rgba(0, 113, 227, 0.1);
-  color: var(--accent-blue);
-}
-
-.area-detail__tag--monster.area-detail__tag--elite {
-  background: rgba(175, 82, 222, 0.12);
-  color: #af52de;
-}
-
-.area-detail__tag--monster.area-detail__tag--boss {
-  background: rgba(255, 149, 0, 0.12);
-  color: var(--accent-gold);
-}
-
-.area-detail__tag--drop.area-detail__tag--Rare {
-  background: rgba(0, 113, 227, 0.1);
-  color: var(--accent-blue);
-}
-
-.area-detail__tag--drop.area-detail__tag--Epic {
-  background: rgba(175, 82, 222, 0.12);
-  color: #af52de;
-}
-
-.area-detail__tag--drop.area-detail__tag--Legendary {
-  background: rgba(255, 149, 0, 0.12);
-  color: var(--accent-gold);
 }
 
 /* ── 操作按钮 ── */
@@ -487,34 +484,7 @@ function handleDungeon(_area: MapArea): void {
 }
 
 .area-detail__btn {
-  padding: 7px 16px;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: filter 0.2s, transform 0.1s;
-}
-
-.area-detail__btn:hover {
-  filter: brightness(1.1);
-}
-
-.area-detail__btn:active {
-  transform: scale(0.98);
-}
-
-.area-detail__btn--explore {
-  background: var(--accent-gold);
-  color: var(--button-text);
-}
-
-.area-detail__btn--dungeon {
-  background: var(--bg-panel-light);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  border: 1px solid var(--border-light);
-  color: var(--text-primary);
+  min-width: 96px;
 }
 
 /* ── 展开动画 ── */

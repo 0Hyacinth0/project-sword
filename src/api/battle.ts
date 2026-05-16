@@ -13,6 +13,7 @@ import type {
   PlayerActionResponse,
   BattleEndResponse
 } from '../types/battle'
+import type { RoomMember } from '../types/team'
 import { isMockEnabled } from '../utils/mockConfig'
 import {
   createBattleState,
@@ -338,5 +339,48 @@ export function createPetCombatant(
     actionValue: 0,
     masterUid,
     petBonusToMaster: petBonus
+  }
+}
+
+/**
+ * 创建房间成员 AI 控制的友方战斗单位
+ * 根据职业和等级生成属性，由 AI 自动行动
+ * @param member - 房间成员信息
+ * @returns AI 友方战斗单位
+ */
+export function createAllyCombatantFromRoomMember(member: RoomMember): Combatant {
+  const lv = member.level
+  const professionMultipliers: Record<string, { hp: number; pa: number; ma: number; def: number; spd: number }> = {
+    Warrior: { hp: 1.2, pa: 1.1, ma: 0.6, def: 1.2, spd: 0.8 },
+    Mage: { hp: 0.8, pa: 0.6, ma: 1.3, def: 0.7, spd: 1.0 },
+    Hunter: { hp: 0.9, pa: 1.0, ma: 0.8, def: 0.9, spd: 1.3 }
+  }
+  const m = professionMultipliers[member.profession] ?? professionMultipliers.Warrior
+  const maxHp = Math.floor((80 + lv * 12) * m.hp)
+  const maxMp = Math.floor((30 + lv * 5) * m.ma)
+
+  return {
+    uid: `ally-member-${member.characterId}`,
+    sourceId: member.characterId,
+    name: member.characterName,
+    side: 'ally',
+    type: 'player',
+    stats: {
+      maxHp,
+      hp: maxHp,
+      maxMp,
+      mp: maxMp,
+      physicalAttack: Math.floor((5 + lv * 3) * m.pa),
+      magicAttack: Math.floor((3 + lv * 2) * m.ma),
+      defense: Math.floor((3 + lv * 2) * m.def),
+      speed: Math.floor((5 + lv * 1.5) * m.spd),
+      dodgeRate: Math.min(0.05 + lv * 0.005, 0.2),
+      criticalRate: Math.min(0.03 + lv * 0.003, 0.15)
+    },
+    skills: [MOCK_PLAYER_SKILLS[0], MOCK_PLAYER_SKILLS[1]],
+    buffs: [],
+    cooldowns: {},
+    isAlive: true,
+    actionValue: 0
   }
 }

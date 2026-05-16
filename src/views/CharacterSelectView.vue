@@ -27,13 +27,15 @@
         @click="handleSelect(char.id)"
       >
         <!-- 删除按钮 -->
-        <button
+        <UiIconButton
           class="char-card__delete"
-          title="删除角色"
+          label="删除角色"
+          variant="ghost"
+          size="sm"
           @click.stop="showDeleteConfirm(char)"
         >
           <Trash2 :size="14" :stroke-width="1.8" />
-        </button>
+        </UiIconButton>
 
         <div
           class="char-card__job-icon"
@@ -72,67 +74,52 @@
 
     <!-- 退出登录 -->
     <div class="char-select__footer">
-      <button class="char-select__logout" @click="handleLogout">
-        <LogOut :size="16" :stroke-width="1.8" />
+      <UiButton class="char-select__logout" variant="ghost" @click="handleLogout">
+        <template #icon><LogOut :size="16" :stroke-width="1.8" /></template>
         退出登录
-      </button>
+      </UiButton>
     </div>
 
     <!-- Toast 提示 -->
-    <Teleport to="body">
-      <transition name="toast-fade">
-        <div v-if="toast.visible" :class="['toast', `toast--${toast.type}`]">
-          <component :is="toast.icon" :size="18" :stroke-width="1.8" />
-          <span>{{ toast.message }}</span>
-        </div>
-      </transition>
-    </Teleport>
+    <UiToastHost :toasts="selectToasts" @dismiss="hideToast" />
 
     <!-- 删除确认弹窗 -->
-    <Teleport to="body">
-      <transition name="modal-fade">
-        <div v-if="deleteConfirm.visible" class="modal-overlay" @click.self="cancelDelete">
-          <div class="modal-dialog">
-            <div class="modal-dialog__icon modal-dialog__icon--danger">
-              <AlertTriangle :size="28" :stroke-width="1.5" />
-            </div>
-            <h3 class="modal-dialog__title">确认删除角色</h3>
-            <p class="modal-dialog__desc">
-              你确定要删除角色
-              <strong>「{{ deleteConfirm.character?.characterName }}」</strong>
-              吗？此操作无法撤销。
-            </p>
-            <div class="modal-dialog__actions">
-              <button class="modal-dialog__btn modal-dialog__btn--cancel" @click="cancelDelete">
-                取消
-              </button>
-              <button
-                class="modal-dialog__btn modal-dialog__btn--danger"
-                :disabled="charStore.loading"
-                @click="confirmDelete"
-              >
-                <Loader2 v-if="charStore.loading" :size="16" class="char-select__loading-spinner" />
-                {{ charStore.loading ? '删除中...' : '确认删除' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </transition>
-    </Teleport>
+    <UiModal v-model="deleteConfirm.visible" title="确认删除角色" variant="danger" @close="cancelDelete">
+      <template #icon>
+        <AlertTriangle :size="28" :stroke-width="1.5" />
+      </template>
+      <p class="char-select__modal-desc">
+        你确定要删除角色
+        <strong>「{{ deleteConfirm.character?.characterName }}」</strong>
+        吗？此操作无法撤销。
+      </p>
+      <template #footer>
+        <UiButton variant="secondary" @click="cancelDelete">取消</UiButton>
+        <UiButton
+          variant="danger"
+          :loading="charStore.loading"
+          :disabled="charStore.loading"
+          @click="confirmDelete"
+        >
+          {{ charStore.loading ? '删除中...' : '确认删除' }}
+        </UiButton>
+      </template>
+    </UiModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive, onMounted, type Component } from 'vue'
+import { computed, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
 import { getJobConfigByProfession } from '../config/job_config'
 import type { CharacterInfo } from '../api'
 import ThemeToggle from '../components/ThemeToggle.vue'
+import { UiButton, UiIconButton, UiModal, UiToastHost, type UiToastItem } from '../components/ui'
 import {
   Swords, Sword, Sparkles, Target, Plus, LogOut, Loader2,
-  Trash2, AlertTriangle, CheckCircle, XCircle
+  Trash2, AlertTriangle
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -144,8 +131,7 @@ type ToastType = 'success' | 'error'
 const toast = reactive({
   visible: false,
   type: 'success' as ToastType,
-  message: '',
-  icon: CheckCircle as Component
+  message: ''
 })
 
 const deleteConfirm = reactive({
@@ -153,10 +139,22 @@ const deleteConfirm = reactive({
   character: null as CharacterInfo | null
 })
 
-function showToast(type: ToastType, message: string) {
+/** 当前角色选择页 Toast 列表。 */
+const selectToasts = computed<UiToastItem[]>(() =>
+  toast.visible
+    ? [{ id: 'character-select-toast', message: toast.message, type: toast.type }]
+    : []
+)
+
+/**
+ * 显示角色选择页 Toast。
+ * @param type - Toast 类型
+ * @param message - 展示文案
+ * @returns 无返回值
+ */
+function showToast(type: ToastType, message: string): void {
   toast.type = type
   toast.message = message
-  toast.icon = type === 'success' ? CheckCircle : XCircle
   toast.visible = true
 
   setTimeout(() => {
@@ -164,31 +162,67 @@ function showToast(type: ToastType, message: string) {
   }, 3000)
 }
 
+/**
+ * 隐藏当前 Toast。
+ * @returns 无返回值
+ */
+function hideToast(): void {
+  toast.visible = false
+}
+
+/**
+ * 获取职业展示配置。
+ * @param profession - 职业数值标识
+ * @returns 职业配置
+ */
 function getJobCfg(profession: number) {
   return getJobConfigByProfession(profession)
 }
 
+/**
+ * 获取职业对应的 lucide 图标。
+ * @param profession - 职业数值标识
+ * @returns 图标组件
+ */
 function getJobLucideIcon(profession: number) {
   const iconMap: Record<number, unknown> = { 1: Sword, 2: Sparkles, 3: Target }
   return iconMap[profession] || Sword
 }
 
-function handleSelect(characterId: string) {
+/**
+ * 选择角色并进入游戏主页。
+ * @param characterId - 角色 ID
+ * @returns 无返回值
+ */
+function handleSelect(characterId: string): void {
   charStore.selectCharacter(characterId)
   router.push({ name: 'home' })
 }
 
-function showDeleteConfirm(char: CharacterInfo) {
+/**
+ * 打开删除角色确认弹窗。
+ * @param char - 待删除角色
+ * @returns 无返回值
+ */
+function showDeleteConfirm(char: CharacterInfo): void {
   deleteConfirm.character = char
   deleteConfirm.visible = true
 }
 
-function cancelDelete() {
+/**
+ * 关闭删除确认弹窗并清空目标角色。
+ * @returns 无返回值
+ */
+function cancelDelete(): void {
   deleteConfirm.visible = false
   deleteConfirm.character = null
 }
 
-async function confirmDelete() {
+/**
+ * 确认删除当前选中的角色。
+ * @returns Promise，无业务返回值
+ */
+async function confirmDelete(): Promise<void> {
   if (!deleteConfirm.character) return
 
   const result = await charStore.deleteCharacter(deleteConfirm.character.id)
@@ -200,8 +234,12 @@ async function confirmDelete() {
   }
 }
 
-function handleLogout() {
-  auth.logout()
+/**
+ * 退出登录并回到登录页。
+ * @returns Promise，无业务返回值
+ */
+async function handleLogout(): Promise<void> {
+  await auth.logout()
   charStore.clear()
   router.push({ name: 'login' })
 }

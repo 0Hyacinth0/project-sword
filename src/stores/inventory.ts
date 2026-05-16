@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getInventoryApi, useItemApi, discardItemApi } from '../api/inventory'
 import type { InventoryItem, BackpackTab, UseItemResult, SortField, SortOrder, ItemRarity } from '../types/item'
+import { useCharacterStore } from './character'
 
 /** 稀有度排序权重（数值越高越稀有） */
 const RARITY_WEIGHT: Record<ItemRarity, number> = {
@@ -149,6 +150,9 @@ export const useInventoryStore = defineStore('inventory', () => {
       const res = await useItemApi(characterId, inventoryId, quantity)
       if (res.code === 200) {
         await fetchInventory(characterId)
+        // 使用成功后刷新角色状态（HP/MP/EXP 可能变化）
+        const characterStore = useCharacterStore()
+        await characterStore.loadCharacter()
         return res.data
       } else {
         actionErrorMsg.value = res.message

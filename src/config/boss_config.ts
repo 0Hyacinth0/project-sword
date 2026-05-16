@@ -114,5 +114,5 @@ export function getBossConfig(bossId: string): BossBattleConfig | undefined {
  * @param skillId - 技能 ID
  */
 export function getBossSkill(skillId: number): typeof BOSS_SKILLS[keyof typeof BOSS_SKILLS] | undefined {
-  return BOSS_SKILLS[skillId]
+  return (BOSS_SKILLS as any)[skillId]
 }

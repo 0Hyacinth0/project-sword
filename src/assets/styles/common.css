@@ -6,58 +6,86 @@
 /* ═══ MockToggle ═══ */
 .mock-toggle {
   position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 9999;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 120;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  border-radius: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.6);
+  padding: 7px 12px;
+  border-radius: 980px;
+  background: var(--bg-panel-light);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
   font-size: var(--font-size-label, 13px);
   font-family: var(--font-text, -apple-system, BlinkMacSystemFont, sans-serif);
   cursor: pointer;
   user-select: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  transition:
+    transform 0.2s var(--ease-smooth),
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.3s var(--ease-smooth),
+    background 0.3s var(--ease-smooth);
+  box-shadow: var(--shadow-subtle);
 }
 
 .mock-toggle:hover {
-  background: rgba(0, 0, 0, 0.65);
-  transform: scale(1.05);
+  color: var(--text-primary);
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-card);
+  transform: translateY(-1px);
 }
 
 .mock-toggle.active {
-  background: rgba(52, 199, 89, 0.2);
-  border-color: rgba(52, 199, 89, 0.4);
+  background: var(--bg-panel);
+  border-color: var(--accent-green);
   color: var(--accent-green, #34c759);
 }
 
 .mock-toggle.active:hover {
-  background: rgba(52, 199, 89, 0.3);
+  color: var(--accent-green, #34c759);
 }
 
 .mock-toggle__dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transition: background 0.25s ease;
+  background: currentColor;
+  opacity: 0.45;
+  transition: opacity 0.25s ease;
 }
 
 .mock-toggle.active .mock-toggle__dot {
-  background: var(--accent-green, #34c759);
-  box-shadow: 0 0 6px rgba(52, 199, 89, 0.6);
+  opacity: 1;
 }
 
 .mock-toggle__label {
   font-weight: 500;
-  letter-spacing: 0.3px;
+  letter-spacing: 0;
+}
+
+@media (max-width: 720px) {
+  .mock-toggle {
+    position: static;
+    width: max-content;
+    height: 32px;
+    margin: 12px max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) auto;
+    justify-content: center;
+    padding: 0 10px;
+    transform: none;
+  }
+
+  .mock-toggle__label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+  }
 }
 
 /* ═══ ThemeToggle 过渡动画 ═══ */
@@ -225,13 +253,13 @@
 .levelup-modal__card {
   width: 100%;
   max-width: 360px;
-  background: var(--bg-glass, rgba(255, 255, 255, 0.72));
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
-  border: 1px solid var(--border-glass, rgba(255, 255, 255, 0.3));
+  background: var(--bg-modal);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-elevated);
 }
 
 .levelup-modal__header {
@@ -239,7 +267,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: var(--font-size-large, 18px);
+  font-size: var(--font-size-section);
   font-weight: 600;
   color: var(--accent-gold, #f59e0b);
 }
@@ -263,7 +291,7 @@
 }
 
 .levelup-modal__level-old {
-  font-size: var(--font-size-large, 18px);
+  font-size: var(--font-size-section);
   color: var(--text-muted, rgba(0, 0, 0, 0.56));
 }
 

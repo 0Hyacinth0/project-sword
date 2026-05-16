@@ -171,7 +171,7 @@ export interface DamageBreakdown {
  * @param skillMultiplier - 技能倍率（普通攻击 = 1.0）
  * @param attackerElement - 攻击者元素
  * @param defenderElement - 防御者元素
- * @param isSkillAttack - 是否为技能攻击（影响防御计算）
+ * @param isMagicAttack - 是否使用魔法攻击力（默认 false，使用物理攻击力）
  * @returns 伤害计算结果（含明细）
  */
 export function calculateDamage(
@@ -179,12 +179,15 @@ export function calculateDamage(
   defenderStats: CombatantStats,
   skillMultiplier: number = 1.0,
   attackerElement: Element = 0,
-  defenderElement: Element = 0
+  defenderElement: Element = 0,
+  isMagicAttack: boolean = false
 ): DamageBreakdown {
+  const attackStat = isMagicAttack ? attackerStats.magicAttack : attackerStats.physicalAttack
+
   const result: DamageBreakdown = {
-    attackerRawAttack: attackerStats.physicalAttack,
+    attackerRawAttack: attackStat,
     skillMultiplier,
-    attackerBuffedAttack: attackerStats.physicalAttack,
+    attackerBuffedAttack: attackStat,
     defenderRawDefense: defenderStats.defense,
     defenderBuffedDefense: defenderStats.defense,
     effectiveDefense: 0,
@@ -203,7 +206,7 @@ export function calculateDamage(
 
   // 1. 基础伤害 = 攻击力 × 技能倍率 - 防御力 × 0.5
   result.effectiveDefense = Math.floor(defenderStats.defense * DEFENSE_EFFICIENCY)
-  result.baseDamage = Math.max(0, Math.floor(attackerStats.physicalAttack * skillMultiplier) - result.effectiveDefense)
+  result.baseDamage = Math.max(0, Math.floor(attackStat * skillMultiplier) - result.effectiveDefense)
 
   // 2. 随机波动 (±10%)
   result.varianceFactor = 1 + (Math.random() * 2 - 1) * DAMAGE_VARIANCE

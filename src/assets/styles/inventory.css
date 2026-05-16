@@ -59,7 +59,7 @@
 
 /* ── 空格子 ── */
 .backpack-cell--empty {
-  border: 1px solid var(--border-light, rgba(0, 0, 0, 0.06));
+  border: 1px solid var(--border-light);
   opacity: 0.3;
   cursor: default;
   aspect-ratio: 1;
@@ -89,7 +89,7 @@
   line-height: 16px;
   font-size: 9px;
   font-weight: 600;
-  color: #fff;
+  color: var(--button-text);
   border-radius: 0 0 6px 0;
   letter-spacing: 0.02em;
   opacity: 0.85;
@@ -106,9 +106,9 @@
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.05) 30%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.05) 70%,
+    color-mix(in srgb, var(--button-text) 5%, transparent) 30%,
+    color-mix(in srgb, var(--button-text) 40%, transparent) 50%,
+    color-mix(in srgb, var(--button-text) 5%, transparent) 70%,
     transparent 100%
   );
   pointer-events: none;
@@ -122,32 +122,32 @@
 
 /* ── 史诗品质格子：加强扫光 + 内发光 ── */
 .backpack-cell--epic {
-  box-shadow: inset 0 0 12px rgba(175, 82, 222, 0.15);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--rarity-epic) 16%, transparent);
 }
 
 .backpack-cell--epic::after {
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.08) 25%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0.08) 75%,
+    color-mix(in srgb, var(--button-text) 8%, transparent) 25%,
+    color-mix(in srgb, var(--button-text) 50%, transparent) 50%,
+    color-mix(in srgb, var(--button-text) 8%, transparent) 75%,
     transparent 100%
   );
 }
 
 /* ── 传说品质格子：强烈扫光 + 内发光 ── */
 .backpack-cell--legendary {
-  box-shadow: inset 0 0 16px rgba(255, 149, 0, 0.2);
+  box-shadow: inset 0 0 16px color-mix(in srgb, var(--rarity-legendary) 20%, transparent);
 }
 
 .backpack-cell--legendary::after {
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.1) 20%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.1) 80%,
+    color-mix(in srgb, var(--button-text) 10%, transparent) 20%,
+    color-mix(in srgb, var(--button-text) 60%, transparent) 50%,
+    color-mix(in srgb, var(--button-text) 10%, transparent) 80%,
     transparent 100%
   );
 }
@@ -161,20 +161,16 @@
   position: absolute;
   right: 3px;
   bottom: 2px;
-  font-size: var(--font-size-caption, 11px);
+  font-size: var(--font-size-caption);
   font-weight: 600;
   line-height: 1;
   padding: 1px 4px;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
+  background: var(--bg-modal);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
   font-variant-numeric: tabular-nums;
   z-index: 3;
-}
-
-[data-theme='dark'] .backpack-cell__count {
-  background: rgba(255, 255, 255, 0.5);
-  color: #000;
 }
 
 /* ── 悬浮提示（在外层，不受 overflow 影响）── */
@@ -189,9 +185,11 @@
   max-width: 200px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: rgba(30, 30, 30, 0.92);
-  backdrop-filter: blur(12px);
-  color: #fff;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  color: var(--text-primary);
   text-align: center;
   pointer-events: none;
   white-space: nowrap;
@@ -203,15 +201,15 @@
 
 .backpack-cell__tooltip-name {
   display: block;
-  font-size: var(--font-size-label, 13px);
+  font-size: var(--font-size-label);
   font-weight: 600;
   margin-bottom: 2px;
 }
 
 .backpack-cell__tooltip-rarity {
   display: block;
-  font-size: var(--font-size-caption, 11px);
-  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
 }
 
 /* ── 扫光动画：从右上划到左下 ── */
@@ -235,65 +233,48 @@
 /* ── 史诗呼吸外发光（亮色模式）── */
 @keyframes glow-breathe-epic {
   0%, 100% {
-    box-shadow: 0 0 4px 1px rgba(175, 82, 222, 0.2);
+    box-shadow: 0 0 4px 1px color-mix(in srgb, var(--rarity-epic) 20%, transparent);
   }
   50% {
-    box-shadow: 0 0 10px 3px rgba(175, 82, 222, 0.45);
+    box-shadow: 0 0 10px 3px color-mix(in srgb, var(--rarity-epic) 45%, transparent);
   }
 }
 
 /* ── 史诗呼吸外发光（暗色模式）── */
 @keyframes glow-breathe-epic-dark {
   0%, 100% {
-    box-shadow: 0 0 4px 1px rgba(194, 130, 255, 0.2);
+    box-shadow: 0 0 4px 1px color-mix(in srgb, var(--rarity-epic) 20%, transparent);
   }
   50% {
-    box-shadow: 0 0 10px 3px rgba(194, 130, 255, 0.45);
+    box-shadow: 0 0 10px 3px color-mix(in srgb, var(--rarity-epic) 45%, transparent);
   }
 }
 
 /* ── 传说脉动外发光（亮色模式）── */
 @keyframes glow-pulse-legendary {
   0%, 100% {
-    box-shadow: 0 0 4px 1px rgba(255, 149, 0, 0.25);
+    box-shadow: 0 0 4px 1px color-mix(in srgb, var(--rarity-legendary) 25%, transparent);
   }
   50% {
-    box-shadow: 0 0 14px 4px rgba(255, 149, 0, 0.55);
+    box-shadow: 0 0 14px 4px color-mix(in srgb, var(--rarity-legendary) 55%, transparent);
   }
 }
 
 /* ── 传说脉动外发光（暗色模式）── */
 @keyframes glow-pulse-legendary-dark {
   0%, 100% {
-    box-shadow: 0 0 4px 1px rgba(255, 155, 82, 0.25);
+    box-shadow: 0 0 4px 1px color-mix(in srgb, var(--rarity-legendary) 25%, transparent);
   }
   50% {
-    box-shadow: 0 0 14px 4px rgba(255, 155, 82, 0.55);
+    box-shadow: 0 0 14px 4px color-mix(in srgb, var(--rarity-legendary) 55%, transparent);
   }
 }
 
 /* ═══ ItemDetailModal ═══ */
-.item-modal__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
-}
-
 .item-modal {
-  width: 320px;
-  max-width: 90vw;
-  background: var(--bg-modal);
-  backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  width: 100%;
   color: var(--text-primary);
+  text-align: left;
 }
 
 /* 头部 */
@@ -322,7 +303,7 @@
 
 .item-modal__name {
   display: block;
-  font-size: var(--font-size-base, 16px);
+  font-size: var(--font-size-base);
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -337,23 +318,7 @@
 }
 
 .item-modal__close {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
   flex-shrink: 0;
-}
-
-.item-modal__close:hover {
-  background: rgba(128, 128, 128, 0.15);
-  color: var(--text-primary);
 }
 
 /* 描述 */
@@ -391,7 +356,7 @@
 }
 
 .item-modal__compare-header {
-  background: rgba(128, 128, 128, 0.06);
+  background: var(--bg-panel-light);
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -402,12 +367,12 @@
 }
 
 .item-modal__compare-up {
-  color: var(--accent-green, #34c759);
+  color: var(--accent-green);
   font-weight: 600;
 }
 
 .item-modal__compare-down {
-  color: var(--accent-red, #ff3b30);
+  color: var(--accent-red);
   font-weight: 600;
 }
 
@@ -421,7 +386,7 @@
 .item-modal__compare-enhance {
   padding: 4px 8px;
   font-size: var(--font-size-xs);
-  color: var(--accent-gold, #f59e0b);
+  color: var(--accent-gold);
   text-align: center;
   border-top: 1px solid var(--border-light);
 }
@@ -430,15 +395,15 @@
 .item-modal__affix {
   margin-bottom: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(52, 199, 89, 0.2);
-  background: rgba(52, 199, 89, 0.04);
+  border: 1px solid color-mix(in srgb, var(--accent-green) 22%, transparent);
+  background: color-mix(in srgb, var(--accent-green) 6%, transparent);
   padding: 8px 10px;
 }
 
 .item-modal__affix-title {
   font-size: var(--font-size-xs);
   font-weight: 600;
-  color: var(--accent-green, #34c759);
+  color: var(--accent-green);
   margin-bottom: 6px;
 }
 
@@ -455,7 +420,7 @@
 }
 
 .item-modal__affix-value {
-  color: var(--accent-green, #34c759);
+  color: var(--accent-green);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -514,53 +479,11 @@
 }
 
 .item-modal__btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
-  font-size: var(--font-size-small);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.item-modal__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.item-modal__btn--use {
-  background: var(--accent-blue);
-  color: #fff;
-}
-
-.item-modal__btn--use:hover:not(:disabled) {
-  background: var(--accent-blue-dark);
-}
-
-.item-modal__btn--discard {
-  background: rgba(255, 59, 48, 0.1);
-  color: var(--accent-red);
-}
-
-.item-modal__btn--discard:hover:not(:disabled) {
-  background: rgba(255, 59, 48, 0.2);
+  flex: 1;
 }
 
 .item-modal__btn--confirm {
   flex: 1;
-}
-
-.item-modal__btn--cancel {
-  background: rgba(128, 128, 128, 0.12);
-  color: var(--text-muted);
-}
-
-.item-modal__btn--cancel:hover {
-  background: rgba(128, 128, 128, 0.2);
 }
 
 /* ── 数量选择器 ── */
@@ -595,26 +518,11 @@
 }
 
 .item-modal__btn--sm {
-  padding: 6px 12px;
-  font-size: var(--font-size-xs);
+  flex: 0 0 auto;
 }
 
 .item-modal__qty-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--border-light);
-  border-radius: 8px;
-  background: rgba(128, 128, 128, 0.08);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.item-modal__qty-btn:hover {
-  background: rgba(128, 128, 128, 0.16);
+  flex-shrink: 0;
 }
 
 .item-modal__qty-input {
@@ -623,7 +531,7 @@
   text-align: center;
   border: 1px solid var(--border-light);
   border-radius: 8px;
-  background: rgba(128, 128, 128, 0.08);
+  background: var(--bg-panel-light);
   font-size: var(--font-size-small);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -647,8 +555,8 @@
   margin-top: 12px;
   padding: 12px;
   border-radius: 10px;
-  background: rgba(255, 59, 48, 0.06);
-  border: 1px solid rgba(255, 59, 48, 0.15);
+  background: color-mix(in srgb, var(--accent-red) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-red) 18%, transparent);
 }
 
 .item-modal__confirm-text {
@@ -663,21 +571,6 @@
 }
 
 /* ── 过渡动画 ── */
-.modal-enter-active,
-.modal-leave-active {
-  transition: all 0.2s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from .item-modal,
-.modal-leave-to .item-modal {
-  transform: scale(0.95);
-}
-
 .slide-enter-active,
 .slide-leave-active {
   transition: all 0.2s ease;

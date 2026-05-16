@@ -2,26 +2,22 @@
   <div class="leaderboard-panel">
     <!-- 顶部：分类 Tab + 范围 Toggle -->
     <div class="leaderboard-panel__header">
-      <div class="leaderboard-panel__tabs">
-        <button
-          v-for="tab in categoryTabs"
-          :key="tab.value"
-          :class="['leaderboard-panel__tab', { 'leaderboard-panel__tab--active': store.category === tab.value }]"
-          @click="store.setCategory(tab.value)"
-        >
-          {{ tab.label }}
-        </button>
-      </div>
-      <div class="leaderboard-panel__scope">
-        <button
-          :class="['leaderboard-panel__scope-btn', { 'leaderboard-panel__scope-btn--active': store.scope === 'all' }]"
-          @click="store.setScope('all')"
-        >全服</button>
-        <button
-          :class="['leaderboard-panel__scope-btn', { 'leaderboard-panel__scope-btn--active': store.scope === 'friends' }]"
-          @click="store.setScope('friends')"
-        >好友</button>
-      </div>
+      <UiTabs
+        class="leaderboard-panel__tabs"
+        :model-value="store.category"
+        :items="categoryTabs"
+        size="sm"
+        :block="false"
+        @update:model-value="handleCategoryChange"
+      />
+      <UiTabs
+        class="leaderboard-panel__scope"
+        :model-value="store.scope"
+        :items="scopeTabs"
+        size="sm"
+        :block="false"
+        @update:model-value="handleScopeChange"
+      />
     </div>
 
     <!-- 加载态 -->
@@ -101,20 +97,46 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useLeaderboardStore } from '../../stores/leaderboard'
-import type { LeaderboardCategory } from '../../types/leaderboard'
+import type { LeaderboardCategory, LeaderboardScope } from '../../types/leaderboard'
+import { UiTabs, type UiTabItem } from '../ui'
 
 const store = useLeaderboardStore()
 
 /** 分类 Tab 配置 */
-const categoryTabs: { label: string; value: LeaderboardCategory }[] = [
+const categoryTabs: UiTabItem[] = [
   { label: '等级', value: 'level' },
   { label: '战力', value: 'power' },
   { label: '竞技', value: 'arena' }
 ]
 
+/** 范围 Tab 配置 */
+const scopeTabs: UiTabItem[] = [
+  { label: '全服', value: 'all' },
+  { label: '好友', value: 'friends' }
+]
+
+/**
+ * 切换排行榜分类。
+ * @param value - UiTabs 传出的分类值
+ * @returns 无返回值
+ */
+function handleCategoryChange(value: string | number): void {
+  store.setCategory(value as LeaderboardCategory)
+}
+
+/**
+ * 切换排行榜范围。
+ * @param value - UiTabs 传出的范围值
+ * @returns 无返回值
+ */
+function handleScopeChange(value: string | number): void {
+  store.setScope(value as LeaderboardScope)
+}
+
 /**
  * 职业转 CSS 类名
  * @param profession - 职业名
+ * @returns 职业样式类名片段
  */
 function professionClass(profession: string): string {
   const map: Record<string, string> = { Warrior: 'warrior', Mage: 'mage', Hunter: 'hunter' }
@@ -124,6 +146,7 @@ function professionClass(profession: string): string {
 /**
  * 格式化数值显示
  * @param value - 排序值
+ * @returns 格式化后的数值文本
  */
 function formatValue(value: number): string {
   if (value >= 10000) return `${(value / 10000).toFixed(1)}万`
@@ -150,56 +173,16 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
 .leaderboard-panel__tabs {
-  display: flex;
-  gap: 0;
-  background: rgba(142, 142, 147, 0.12);
-  border-radius: 10px;
-  padding: 3px;
-}
-
-.leaderboard-panel__tab {
-  padding: 6px 16px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: var(--font-size-caption);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.leaderboard-panel__tab--active {
-  background: var(--accent-blue);
-  color: white;
-  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .leaderboard-panel__scope {
-  display: flex;
-  gap: 0;
-  background: rgba(142, 142, 147, 0.08);
-  border-radius: 8px;
-  padding: 2px;
-}
-
-.leaderboard-panel__scope-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.leaderboard-panel__scope-btn--active {
-  background: var(--accent-blue);
-  color: white;
+  flex: 0 0 auto;
 }
 
 /* ── 加载态 ── */
@@ -217,7 +200,7 @@ onMounted(() => {
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid rgba(142, 142, 147, 0.2);
+  border: 2px solid var(--border-light);
   border-top-color: var(--accent-blue);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -257,36 +240,36 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  color: white;
+  color: var(--button-text);
 }
 
 .podium-item--gold .podium-item__avatar {
   width: 48px;
   height: 48px;
   font-size: 18px;
-  background: linear-gradient(135deg, #ffd700, #ffb800);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  background: var(--accent-gold);
+  box-shadow: var(--shadow-float);
 }
 
 .podium-item--silver .podium-item__avatar {
   width: 40px;
   height: 40px;
   font-size: 15px;
-  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
-  box-shadow: 0 0 8px rgba(192, 192, 192, 0.3);
+  background: var(--text-muted);
+  box-shadow: var(--shadow-card);
 }
 
 .podium-item--bronze .podium-item__avatar {
   width: 40px;
   height: 40px;
   font-size: 15px;
-  background: linear-gradient(135deg, #cd7f32, #e8a849);
-  box-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+  background: var(--rarity-legendary);
+  box-shadow: var(--shadow-card);
 }
 
-.podium-item__avatar--warrior { background: linear-gradient(135deg, #ff6b6b, #ee5a24) !important; }
-.podium-item__avatar--mage { background: linear-gradient(135deg, #7c5cfc, #6c5ce7) !important; }
-.podium-item__avatar--hunter { background: linear-gradient(135deg, #00b894, #00a884) !important; }
+.podium-item__avatar--warrior { background: var(--accent-red) !important; }
+.podium-item__avatar--mage { background: var(--rarity-epic) !important; }
+.podium-item__avatar--hunter { background: var(--accent-green) !important; }
 
 .podium-item__online {
   position: absolute;
@@ -295,8 +278,8 @@ onMounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #4cd137;
-  border: 2px solid var(--bg-primary);
+  background: var(--accent-green);
+  border: 2px solid var(--bg-panel);
 }
 
 .podium-item__rank {
@@ -304,9 +287,9 @@ onMounted(() => {
   font-size: 16px;
 }
 
-.podium-item__rank--1 { color: #ffd700; }
-.podium-item__rank--2 { color: #c0c0c0; }
-.podium-item__rank--3 { color: #cd7f32; }
+.podium-item__rank--1 { color: var(--accent-gold); }
+.podium-item__rank--2 { color: var(--text-muted); }
+.podium-item__rank--3 { color: var(--rarity-legendary); }
 
 .podium-item__name {
   font-size: var(--font-size-caption);
@@ -315,7 +298,7 @@ onMounted(() => {
 }
 
 .podium-item__value {
-  font-size: 11px;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
 }
 
@@ -333,7 +316,7 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-panel-light);
   border-radius: 10px;
   position: relative;
 }
@@ -355,12 +338,11 @@ onMounted(() => {
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: white;
 }
 
-.list-row__avatar--warrior { background: rgba(255, 107, 107, 0.2); color: #ff6b6b; }
-.list-row__avatar--mage { background: rgba(124, 92, 252, 0.2); color: #7c5cfc; }
-.list-row__avatar--hunter { background: rgba(0, 184, 148, 0.2); color: #00b894; }
+.list-row__avatar--warrior { background: color-mix(in srgb, var(--accent-red) 14%, transparent); color: var(--accent-red); }
+.list-row__avatar--mage { background: color-mix(in srgb, var(--rarity-epic) 14%, transparent); color: var(--rarity-epic); }
+.list-row__avatar--hunter { background: color-mix(in srgb, var(--accent-green) 14%, transparent); color: var(--accent-green); }
 
 .list-row__name {
   flex: 1;
@@ -379,7 +361,7 @@ onMounted(() => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #4cd137;
+  background: var(--accent-green);
 }
 
 /* ── 自己排名 ── */
@@ -388,8 +370,8 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  background: linear-gradient(135deg, rgba(0, 113, 227, 0.12), rgba(0, 113, 227, 0.06));
-  border: 1px solid rgba(0, 113, 227, 0.2);
+  background: color-mix(in srgb, var(--accent-blue) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-blue) 24%, transparent);
   border-radius: 12px;
   margin-top: auto;
 }

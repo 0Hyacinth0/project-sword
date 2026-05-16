@@ -6,63 +6,29 @@
 -->
 <template>
   <div class="char-stats">
-    <!-- HP 条 -->
-    <div class="stat-bar">
-      <div class="stat-bar__header">
-        <span class="stat-bar__label" style="color: var(--accent-green)">HP</span>
-        <span class="stat-bar__value">{{ character.hp }} / {{ character.maxHp }}</span>
-      </div>
-      <div class="stat-bar__track">
-        <div
-          class="stat-bar__fill stat-bar__fill--hp"
-          :class="{
-            'low': hpPercent < 25,
-            'warning': hpPercent >= 25 && hpPercent < 50
-          }"
-          :style="{ width: hpPercent + '%' }"
-        />
-      </div>
-    </div>
+    <UiStatBar
+      label="HP"
+      :value="character.hp"
+      :max="character.maxHp"
+      :tone="hpTone"
+    />
 
-    <!-- MP 条 -->
-    <div class="stat-bar">
-      <div class="stat-bar__header">
-        <span class="stat-bar__label" style="color: var(--accent-blue)">MP</span>
-        <span class="stat-bar__value">{{ character.mp }} / {{ character.maxMp }}</span>
-      </div>
-      <div class="stat-bar__track">
-        <div
-          class="stat-bar__fill stat-bar__fill--mp"
-          :style="{ width: mpPercent + '%' }"
-        />
-      </div>
-    </div>
+    <UiStatBar
+      label="MP"
+      :value="character.mp"
+      :max="character.maxMp"
+      tone="mp"
+    />
 
-    <!-- 经验条 -->
-    <div class="stat-bar">
-      <div class="stat-bar__header">
-        <span class="stat-bar__label" style="color: var(--accent-gold)">
-          EXP
-          <span v-if="character.level >= 100" class="stat-bar__max-tag">MAX</span>
-        </span>
-        <span class="stat-bar__value">
-          {{ character.level >= 100 ? '已满级' : `${character.experience} / ${character.nextLevelExp}` }}
-        </span>
-      </div>
-      <div class="stat-bar__track">
-        <!-- 正常填充 -->
-        <div
-          class="stat-bar__fill stat-bar__fill--exp"
-          :class="{ 'stat-bar__fill--exp-flash': isExpFlashing }"
-          :style="{ width: displayedExpPercent + '%' }"
-        />
-        <!-- 升级闪光效果 -->
-        <div
-          v-if="isExpFlashing"
-          class="stat-bar__flash"
-        />
-      </div>
-    </div>
+    <UiStatBar
+      label="EXP"
+      :value="displayedExpPercent"
+      :max="100"
+      tone="exp"
+      :tag="character.level >= 100 ? 'MAX' : ''"
+      :value-text="expValueText"
+      :flash="isExpFlashing"
+    />
 
     <!-- 基础属性区域 -->
     <div class="char-stats__section">
@@ -109,7 +75,7 @@
 
       <!-- 可用点数提示 -->
       <div v-if="character.availablePoints > 0 && !isAllocating" class="char-stats__points-tip">
-        <Sparkles :size="14" style="color: var(--accent-gold)" />
+        <Sparkles :size="14" class="char-stats__points-icon" />
         <span>有 {{ character.availablePoints }} 点属性点可分配</span>
       </div>
     </div>
@@ -182,6 +148,7 @@ import CharacterStatItem from './CharacterStatItem.vue'
 import CharacterAttributePoint from './CharacterAttributePoint.vue'
 import LevelUpEffect from '../common/LevelUpEffect.vue'
 import LevelUpModal from '../common/LevelUpModal.vue'
+import { UiStatBar, type StatTone } from '../ui'
 
 /**
  * 角色属性面板组件
@@ -251,10 +218,25 @@ const hpPercent = computed(() => {
   return Math.max(0, Math.min(100, (props.character.hp / props.character.maxHp) * 100))
 })
 
-/** MP百分比 */
-const mpPercent = computed(() => {
-  return Math.max(0, Math.min(100, (props.character.mp / props.character.maxMp) * 100))
+/**
+ * 根据血量百分比返回状态条色调。
+ * @returns HP 状态条使用的视觉语义
+ */
+const hpTone = computed<StatTone>(() => {
+  if (hpPercent.value < 25) return 'danger'
+  if (hpPercent.value < 50) return 'warning'
+  return 'hp'
 })
+
+/**
+ * 格式化经验值展示文案。
+ * @returns 满级提示或当前经验进度
+ */
+const expValueText = computed(() =>
+  props.character.level >= 100
+    ? '已满级'
+    : `${props.character.experience} / ${props.character.nextLevelExp}`
+)
 
 /** 属性加成明细（基础 + 装备 + 战宠） */
 const statsBreakdown = computed(() => {

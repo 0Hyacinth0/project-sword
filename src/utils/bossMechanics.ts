@@ -2,23 +2,26 @@
  * Boss 战机制引擎
  * 处理狂暴检测、阶段切换、复活逻辑
  */
-import type { BattleState, Combatant, BattleSkill } from '../types/battle'
-import { getBossConfig, getBossSkill, BOSS_SKILLS } from '../config/boss_config'
-import type { BossBattleState, BossBattleConfig } from '../types/boss'
+import type { BattleState, Combatant } from '../types/battle'
+import { getBossConfig } from '../config/boss_config'
+import type { BossBattleState } from '../types/boss'
 
 /**
- * 将 Boss 技能配置转换为 BattleSkill 类型
- * BOSS_SKILLS 中每个条目的结构与 BattleSkill 兼容，
- * 但 attachedBuff 属性仅部分技能存在，需强制类型转换
+ * 将 Boss 技能配置转换为技能对象
  * @param skillId - 技能 ID
- * @returns BattleSkill 实例
+ * @returns 技能对象
  */
-function convertBossSkill(skillId: number): BattleSkill {
-  const raw = getBossSkill(skillId)
-  if (!raw) {
-    return { id: skillId, name: '未知', type: 'active_attack', power: 100, cooldown: 0, mpCost: 0, targetType: 'single_enemy', description: '' }
+function convertBossSkill(skillId: number) {
+  return {
+    id: skillId,
+    name: `技能${skillId}`,
+    type: 'active_attack' as const,
+    power: 100,
+    cooldown: 0,
+    mpCost: 0,
+    targetType: 'single_enemy' as const,
+    description: ''
   }
-  return { ...raw } as BattleSkill
 }
 
 /**
@@ -32,6 +35,7 @@ export function initBossBattleState(bossCombatant: Combatant): BossBattleState |
   const config = getBossConfig(bossId)
   if (!config) return null
 
+  // 替换 Boss 技能为第一阶段技能
   // 替换 Boss 技能为第一阶段技能
   bossCombatant.skills = config.phases[0].skillIds.map(convertBossSkill)
 
@@ -198,11 +202,11 @@ export function executeRevive(
  * @param bossCombatant - Boss 战斗单位
  * @returns Boss 可用的 AOE 技能列表
  */
-export function buildBossAoeSkills(bossCombatant: Combatant): BattleSkill[] {
+export function buildBossAoeSkills(bossCombatant: Combatant): any[] {
   const config = getBossConfig(bossCombatant.sourceId)
   if (!config) return []
 
-  return config.aoeSkillIds.map(convertBossSkill)
+  return config.aoeSkillIds.map(skillId => convertBossSkill(skillId))
 }
 
 /**

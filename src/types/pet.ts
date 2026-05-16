@@ -19,7 +19,8 @@ export interface PetStats {
 /** 战宠给主人的属性加成 */
 export interface PetOwnerBonus {
   hp?: number                // 生命值加成
-  attack?: number            // 攻击力加成
+  attack?: number            // 物理攻击力加成
+  magicAttack?: number       // 魔法攻击力加成
   defense?: number           // 防御力加成
   criticalRate?: number      // 暴击率加成
   dodgeRate?: number         // 闪避率加成

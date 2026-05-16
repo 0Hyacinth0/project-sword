@@ -3,10 +3,11 @@
  * 获取角色战宠列表、出战/收回战宠、喂食、进化、重命名
  */
 import request from './request'
+import { mockInventoryItems } from './inventory'
 import type { ApiResponse } from './request'
 import type { PetInfo, PetDetailInfo, PetListResult } from '../types/pet'
 import { isMockEnabled } from '../utils/mockConfig'
-import { PET_TYPE_CONFIGS, getLearnedSkills } from '../config/pet_config'
+import { EVOLVE_MATERIALS, PET_TYPE_CONFIGS, getLearnedSkills } from '../config/pet_config'
 
 /** Mock 延迟 */
 function delay(ms: number): Promise<void> {
@@ -23,15 +24,15 @@ const mockPets: Record<string, PetInfo[]> = {
       id: 'pet-001',
       petTypeId: 1001,
       nickname: '小火焰',
-      level: 10,
-      exp: 8500,
-      maxExp: 10000,
+      level: 15,
+      exp: 2000,
+      maxExp: 12000,
       rarity: 3,
       isActive: true,
-      stats: { hp: 180, maxHp: 180, attack: 25, defense: 12, speed: 18 },
-      bonusToOwner: { hp: 18, attack: 3, defense: 1 },
+      stats: { hp: 230, maxHp: 230, attack: 35, defense: 18, speed: 22 },
+      bonusToOwner: { hp: 23, attack: 4, defense: 2 },
       skills: PET_TYPE_CONFIGS[1001]?.skills.slice(0, 2) || [],
-      learnedSkills: getLearnedSkills(1001, 10),
+      learnedSkills: getLearnedSkills(1001, 15),
       equipment: {
         armor: { id: 'pet-eq-001', name: '火焰护甲', rarity: 'Rare', slotType: 'chest', stats: { hp: 30, defense: 8 }, enhanceLevel: 2 },
         accessory: null
@@ -248,14 +249,27 @@ async function mockSetActivePet(characterId: string, petId: string): Promise<Api
   return { code: 200, message: `${target.nickname} 已设为出战`, data: { pets: [...pets], capacity: { max: 3, current: pets.length } } }
 }
 
-async function mockFeedPet(characterId: string, petId: string, _inventoryId: string, quantity: number): Promise<ApiResponse<PetListResult>> {
+async function mockFeedPet(characterId: string, petId: string, inventoryId: string, quantity: number): Promise<ApiResponse<PetListResult>> {
   await delay(500)
   const pets = mockPets[characterId]
   if (!pets) return { code: 404, message: '角色不存在', data: null as unknown as PetListResult }
   const pet = pets.find(p => p.id === petId)
   if (!pet) return { code: 404, message: '战宠不存在', data: null as unknown as PetListResult }
-  // Mock：每份经验道具给 100 exp
-  const expGain = quantity * 100
+  const invItem = mockInventoryItems.find(item => item.id === inventoryId && item.characterId === characterId)
+  if (!invItem) return { code: 404, message: '经验道具不存在', data: null as unknown as PetListResult }
+  const expEffect = invItem.item.effects?.find(effect => effect.type === 'add_exp')
+  if (!expEffect) return { code: 400, message: '该物品不能用于战宠喂食', data: null as unknown as PetListResult }
+  if (quantity <= 0 || quantity > invItem.quantity) {
+    return { code: 400, message: '经验道具数量不足', data: null as unknown as PetListResult }
+  }
+
+  const expGain = quantity * expEffect.value
+  invItem.quantity -= quantity
+  if (invItem.quantity <= 0) {
+    const index = mockInventoryItems.findIndex(item => item.id === inventoryId)
+    if (index !== -1) mockInventoryItems.splice(index, 1)
+  }
+
   pet.exp += expGain
   // 检查是否升级
   while (pet.exp >= pet.maxExp) {
@@ -268,6 +282,7 @@ async function mockFeedPet(characterId: string, petId: string, _inventoryId: str
     pet.stats.attack = Math.round(pet.stats.attack * 1.06)
     pet.stats.defense = Math.round(pet.stats.defense * 1.04)
     pet.stats.speed = Math.round(pet.stats.speed * 1.03)
+    pet.learnedSkills = getLearnedSkills(pet.petTypeId, pet.level)
   }
   return { code: 200, message: `喂食成功，${pet.nickname} 获得 ${expGain} 经验`, data: { pets: [...pets], capacity: { max: 3, current: pets.length } } }
 }
@@ -281,6 +296,10 @@ async function mockEvolvePet(characterId: string, petId: string): Promise<ApiRes
   const typeConfig = PET_TYPE_CONFIGS[pet.petTypeId]
   if (!typeConfig?.evolveTo) return { code: 400, message: '该战宠无法进化', data: null as unknown as PetListResult }
   if (pet.level < (typeConfig.evolveLevel || 999)) return { code: 400, message: `等级不足，需要 Lv.${typeConfig.evolveLevel}`, data: null as unknown as PetListResult }
+  const materialCheck = consumeMockEvolutionMaterials(characterId, pet.petTypeId)
+  if (!materialCheck.success) {
+    return { code: 400, message: materialCheck.message, data: null as unknown as PetListResult }
+  }
   // 进化：变更类型，属性大幅提升
   const evolveConfig = PET_TYPE_CONFIGS[typeConfig.evolveTo]
   pet.petTypeId = typeConfig.evolveTo
@@ -293,7 +312,41 @@ async function mockEvolvePet(characterId: string, petId: string): Promise<ApiRes
   pet.stats.defense = Math.round(pet.stats.defense * 1.3)
   pet.stats.speed = Math.round(pet.stats.speed * 1.2)
   pet.skills = evolveConfig?.skills || pet.skills
+  pet.learnedSkills = evolveConfig?.skills || pet.learnedSkills
   return { code: 200, message: `${pet.nickname} 进化成功！`, data: { pets: [...pets], capacity: { max: 3, current: pets.length } } }
+}
+
+/**
+ * 校验并扣除 Mock 战宠进化材料。
+ * @param characterId - 角色 ID
+ * @param petTypeId - 战宠类型 ID
+ * @returns 材料扣除结果
+ */
+function consumeMockEvolutionMaterials(characterId: string, petTypeId: number): { success: boolean; message: string } {
+  const requirements = EVOLVE_MATERIALS[petTypeId] ?? []
+  for (const requirement of requirements) {
+    const total = mockInventoryItems
+      .filter(item => item.characterId === characterId && item.itemId === requirement.itemId)
+      .reduce((sum, item) => sum + item.quantity, 0)
+    if (total < requirement.quantity) {
+      return { success: false, message: `进化材料不足：${requirement.itemId} 需要 ${requirement.quantity}` }
+    }
+  }
+
+  for (const requirement of requirements) {
+    let remaining = requirement.quantity
+    for (const item of mockInventoryItems.filter(entry => entry.characterId === characterId && entry.itemId === requirement.itemId)) {
+      const consumeCount = Math.min(item.quantity, remaining)
+      item.quantity -= consumeCount
+      remaining -= consumeCount
+      if (remaining <= 0) break
+    }
+    for (let index = mockInventoryItems.length - 1; index >= 0; index--) {
+      if (mockInventoryItems[index].quantity <= 0) mockInventoryItems.splice(index, 1)
+    }
+  }
+
+  return { success: true, message: '材料扣除成功' }
 }
 
 async function mockRenamePet(characterId: string, petId: string, nickname: string): Promise<ApiResponse<PetListResult>> {

@@ -51,6 +51,10 @@ export interface BaseItem {
   stats?: EquipmentStats
   /** 等级需求（仅 category='equipment'） */
   levelRequirement?: number
+  /** 套装 ID（仅 category='equipment'） */
+  setId?: string
+  /** 套装名称（仅 category='equipment'） */
+  setName?: string
 }
 
 /** 背包物品实例（对应后端 character_inventory 表） */
@@ -67,6 +71,8 @@ export interface InventoryItem {
   quantity: number
   /** 获取时间 */
   obtainedAt: string
+  /** 强化等级（仅装备类物品） */
+  enhanceLevel?: number
   /** 随机词条（仅装备类物品，稀有以上） */
   extraStats?: ExtraStat[]
 }

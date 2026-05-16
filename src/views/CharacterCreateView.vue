@@ -5,28 +5,21 @@
 
     <!-- 顶部导航 -->
     <div class="char-create__nav">
-      <button class="char-create__back" @click="router.push({ name: 'characters' })">
-        <ArrowLeft :size="16" :stroke-width="1.8" />
+      <UiButton class="char-create__back" variant="ghost" @click="router.push({ name: 'characters' })">
+        <template #icon><ArrowLeft :size="16" :stroke-width="1.8" /></template>
         返回
-      </button>
+      </UiButton>
       <h1 class="char-create__page-title">创建角色</h1>
+      <span class="char-create__nav-spacer" aria-hidden="true" />
     </div>
 
     <!-- 消息提示 -->
-    <div
-      v-if="message.text"
-      class="char-create__message"
-      :class="`char-create__message--${message.type}`"
-    >
-      <CircleCheck v-if="message.type === 'success'" :size="16" />
-      <CircleX v-else :size="16" />
-      <span>{{ message.text }}</span>
-    </div>
+    <UiToastHost :toasts="createToasts" @dismiss="message.text = ''" />
 
     <!-- 主内容 -->
     <div class="char-create__content">
       <!-- 左侧：雷达图 + 技能 -->
-      <div class="char-create__preview">
+      <UiPanel class="char-create__preview" padding="lg" elevated>
         <div class="char-create__radar-wrap">
           <v-chart :option="radarOption" autoresize />
         </div>
@@ -46,25 +39,28 @@
             <span class="skill-item__level">Lv.{{ skill.level }}</span>
           </div>
         </div>
-      </div>
+      </UiPanel>
 
       <!-- 右侧：表单 -->
-      <div class="char-create__form-panel">
+      <UiPanel class="char-create__form-panel" padding="lg" elevated stretch>
         <!-- 职业切换 -->
         <div class="job-switcher">
-          <button
+          <UiButton
             v-for="job in JOB_LIST"
             :key="job"
             class="job-switcher__btn"
             :class="{ 'job-switcher__btn--active': selectedJob === job }"
-            :style="selectedJob === job ? { color: JOB_CONFIGS[job].color, borderColor: JOB_CONFIGS[job].color } : {}"
+            variant="secondary"
+            size="sm"
             @click="selectedJob = job"
           >
-            <span class="job-switcher__icon" :style="{ background: JOB_CONFIGS[job].color }">
+            <template #icon>
+              <span class="job-switcher__icon" :style="{ background: JOB_CONFIGS[job].color }">
               <component :is="getJobLucideIcon(job)" :size="18" :stroke-width="1.5" />
-            </span>
+              </span>
+            </template>
             <span class="job-switcher__name">{{ JOB_CONFIGS[job].name }}</span>
-          </button>
+          </UiButton>
         </div>
 
         <!-- 角色名 -->
@@ -80,13 +76,13 @@
               maxlength="12"
               @input="onNameInput"
             />
-            <button
-              class="char-create__random-btn"
-              title="随机取名"
+            <UiIconButton
+              label="随机取名"
+              variant="secondary"
               @click="handleRandomName"
             >
               <Dices :size="20" :stroke-width="1.5" />
-            </button>
+            </UiIconButton>
           </div>
           <!-- 名称检测状态 -->
           <div
@@ -132,16 +128,18 @@
         </div>
 
         <!-- 创建按钮 -->
-        <button
+        <UiButton
           class="char-create__submit"
+          block
+          size="lg"
           :disabled="!canSubmit || charStore.loading"
+          :loading="charStore.loading"
           @click="handleCreate"
         >
-          <span v-if="charStore.loading" class="char-create__submit-spinner"></span>
-          <Rocket v-else :size="18" :stroke-width="1.5" />
+          <template #icon><Rocket :size="18" :stroke-width="1.5" /></template>
           {{ charStore.loading ? '创建中...' : '开始冒险' }}
-        </button>
-      </div>
+        </UiButton>
+      </UiPanel>
     </div>
   </div>
 </template>
@@ -154,6 +152,7 @@ import { checkCharacterNameApi } from '../api'
 import { JOB_CONFIGS, JOB_LIST, generateRandomName, jobTypeToProfession } from '../config/job_config'
 import type { JobType } from '../config/job_config'
 import ThemeToggle from '../components/ThemeToggle.vue'
+import { UiButton, UiIconButton, UiPanel, UiToastHost, type UiToastItem } from '../components/ui'
 
 /* ECharts */
 import { use } from 'echarts/core'
@@ -182,6 +181,13 @@ const nameCheckMessage = ref('')
 let nameCheckTimer: ReturnType<typeof setTimeout> | null = null
 
 const message = ref({ text: '', type: 'success' as 'success' | 'error' })
+
+/** 当前角色创建页 Toast 列表。 */
+const createToasts = computed<UiToastItem[]>(() =>
+  message.value.text
+    ? [{ id: 'character-create-message', message: message.value.text, type: message.value.type }]
+    : []
+)
 
 // ── 计算属性 ──
 const currentJob = computed(() => JOB_CONFIGS[selectedJob.value])
