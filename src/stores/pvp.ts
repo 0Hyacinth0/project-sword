@@ -7,6 +7,9 @@ import { ref, computed } from 'vue'
 import { startMatchmakingApi, settlePvpBattleApi } from '../api/pvp'
 import { calculateEloScore, generateOpponentStats, getOpponentSkills } from '../config/pvp_config'
 import { resolveTier } from '../config/arena_config'
+import { getActiveBattleSkills } from '../config/skill_config'
+import { professionToJobType } from '../config/job_config'
+import { calculateFullStats } from '../utils/attributeCalculator'
 import { useArenaStore } from './arena'
 import { useCharacterStore } from './character'
 import { useBattleStore } from './battle'
@@ -33,11 +36,11 @@ function mapOpponentSkills(skills: ReturnType<typeof getOpponentSkills>): Battle
   return skills.map(skill => ({
     id: skill.id,
     name: skill.name,
+    type: 'active_attack' as const,
     mpCost: skill.mpCost,
     power: skill.power,
     targetType: skill.targetType,
     cooldown: skill.cooldown,
-    currentCooldown: 0,
     element: ELEMENT_MAP[skill.element] ?? 0,
     description: ''
   }))
@@ -109,19 +112,14 @@ export const usePvpStore = defineStore('pvp', () => {
   async function confirmBattle(): Promise<{ success: boolean; message: string }> {
     const characterStore = useCharacterStore()
     const battleStore = useBattleStore()
-    const arena = useArenaStore()
 
     if (!opponent.value) {
       return { success: false, message: '没有匹配到的对手' }
     }
 
-    if (!characterStore.characterDetail) {
-      return { success: false, message: '缺少角色详情数据' }
-    }
-
     const detail = characterStore.characterDetail
-    if (!detail.statsBreakdown || !detail.skills) {
-      return { success: false, message: '缺少角色属性或技能数据' }
+    if (!detail) {
+      return { success: false, message: '缺少角色详情数据' }
     }
 
     // 构造敌方 Combatant
@@ -155,12 +153,20 @@ export const usePvpStore = defineStore('pvp', () => {
 
     matchState.value = 'ready'
 
-    // 调用 battleStore.startWildBattle
+    // 计算角色战斗属性
+    const attrs = {
+      strength: detail.strength,
+      intelligence: detail.intelligence,
+      agility: detail.agility
+    }
+    const statsBreakdown = calculateFullStats(attrs, detail.profession, detail.equipment, null)
+    const skills = getActiveBattleSkills(professionToJobType(detail.profession), detail.level)
+
     const result = await battleStore.startWildBattle(
       detail.id,
-      detail.name,
-      detail.statsBreakdown,
-      detail.skills,
+      detail.characterName,
+      statsBreakdown,
+      skills,
       enemyCombatant
     )
 

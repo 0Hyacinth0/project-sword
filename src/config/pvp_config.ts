@@ -3,7 +3,6 @@
  * 简化 Elo 积分计算、Mock 对手池
  */
 import type { PvpOpponent, EstimatedScore } from '../types/pvp'
-import type { ArenaTier, ArenaSubTier } from '../types/arena'
 
 /**
  * 计算简化 Elo 积分变化

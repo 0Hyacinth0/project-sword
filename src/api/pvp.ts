@@ -64,8 +64,8 @@ export async function settlePvpBattleApi(
       oldScore: myScore,
       newScore,
       tierChanged: false,
-      oldTier: { tier: 'gold', subTier: 'I', score: myScore },
-      newTier: { tier: 'gold', subTier: 'I', score: newScore }
+      oldTier: { tier: 'gold', subTier: 'I', tierName: '◆ 黄金 I', progress: 0.5, remainingScore: 100 },
+      newTier: { tier: 'gold', subTier: 'I', tierName: '◆ 黄金 I', progress: 0.6, remainingScore: 80 }
     }
 
     return {
