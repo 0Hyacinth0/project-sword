@@ -844,3 +844,49 @@ onUnmounted(() => {
   if (announceTimer) clearInterval(announceTimer)
 })
 </script>
+
+<style scoped>
+/* ── Dark Mode Overrides ── */
+
+/* 底部导航激活态光晕 — 暗色加深 */
+[data-theme='dark'] .game-bottom-nav__item--active {
+  box-shadow: 0 4px 14px var(--accent-blue-glow);
+}
+
+/* 背包格子悬浮 — 暗色适配 */
+[data-theme='dark'] .backpack-cell:hover {
+  box-shadow: 0 4px 12px var(--accent-blue-glow);
+}
+
+/* 加载状态文字 */
+[data-theme='dark'] .game-loading {
+  color: var(--text-muted);
+}
+
+/* 空状态提示 */
+[data-theme='dark'] .char-info__empty {
+  color: var(--text-muted);
+}
+
+/* 背包加载动画 */
+[data-theme='dark'] .backpack-loading__spinner {
+  color: var(--text-muted);
+}
+
+/* 背包空状态 */
+[data-theme='dark'] .backpack-empty {
+  color: var(--text-muted);
+}
+
+/* 公告文字 */
+[data-theme='dark'] .announcement__text {
+  color: var(--text-muted);
+}
+
+/* UID 标签 */
+[data-theme='dark'] .game-uid {
+  color: var(--text-muted);
+  background: var(--bg-panel-light);
+  border-color: var(--border-light);
+}
+</style>

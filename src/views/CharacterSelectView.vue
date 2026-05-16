@@ -248,3 +248,38 @@ onMounted(() => {
   charStore.fetchCharacters()
 })
 </script>
+
+<style scoped>
+/* ── Dark Mode Overrides ── */
+
+/* 退出登录按钮悬浮 — 暗色适配 */
+[data-theme='dark'] .char-select__logout:hover {
+  border-color: rgba(255, 69, 58, 0.3);
+  background: rgba(255, 69, 58, 0.08);
+}
+
+/* 删除按钮悬浮 */
+[data-theme='dark'] .char-card__delete:hover {
+  background: rgba(255, 69, 58, 0.12);
+}
+
+/* 空角色卡片悬浮 */
+[data-theme='dark'] .char-card--empty:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-panel);
+}
+
+/* 加载状态 */
+[data-theme='dark'] .char-select__loading {
+  color: var(--text-muted);
+}
+
+/* 弹窗描述文字 */
+[data-theme='dark'] .char-select__modal-desc {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .char-select__modal-desc strong {
+  color: var(--text-primary);
+}
+</style>

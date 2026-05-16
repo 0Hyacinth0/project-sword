@@ -523,3 +523,49 @@ async function handleRegister() {
   }
 }
 </script>
+
+<style scoped>
+/* ── Dark Mode Overrides ── */
+
+/* Tab 滑块背景 — 暗色适配 */
+[data-theme='dark'] .login-tabs__slider {
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25), inset 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/* 提交按钮悬浮 — 暗色使用暗蓝 */
+[data-theme='dark'] .login-submit:hover:not(:disabled) {
+  box-shadow:
+    0 8px 24px rgba(10, 132, 255, 0.3),
+    0 2px 8px rgba(10, 132, 255, 0.15);
+}
+
+/* 提交按钮按下 */
+[data-theme='dark'] .login-submit:active:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.15);
+}
+
+/* 提交按钮焦点环 */
+[data-theme='dark'] .login-submit:focus-visible {
+  outline: 3px solid rgba(10, 132, 255, 0.5);
+}
+
+/* 加载旋转器边框 */
+[data-theme='dark'] .login-submit__spinner {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+}
+
+/* 成功消息 */
+[data-theme='dark'] .login-message--success {
+  background: rgba(50, 215, 75, 0.1);
+  border-color: rgba(50, 215, 75, 0.2);
+  color: var(--accent-green);
+}
+
+/* 错误消息 */
+[data-theme='dark'] .login-message--error {
+  background: rgba(255, 69, 58, 0.1);
+  border-color: rgba(255, 69, 58, 0.2);
+  color: var(--accent-red);
+}
+</style>

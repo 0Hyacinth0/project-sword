@@ -364,3 +364,64 @@ watch(selectedJob, () => {
   // 保留名称，仅触发视觉更新
 })
 </script>
+
+<style scoped>
+/* ── Dark Mode Overrides ── */
+
+/* 返回按钮悬浮 */
+[data-theme='dark'] .char-create__back:hover {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+/* 职业切换按钮悬浮 */
+[data-theme='dark'] .job-switcher__btn:hover {
+  background: var(--bg-panel-light);
+}
+
+/* 职业切换按钮激活态 */
+[data-theme='dark'] .job-switcher__btn--active {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* 技能卡片悬浮 */
+[data-theme='dark'] .skill-item:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* 角色名输入框占位符 */
+[data-theme='dark'] .char-create__name-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* 属性行悬浮 */
+[data-theme='dark'] .stat-row:hover {
+  background: var(--bg-panel-light);
+}
+
+/* 提交按钮悬浮 */
+[data-theme='dark'] .char-create__submit:hover:not(:disabled) {
+  box-shadow: var(--shadow-elevated);
+}
+
+/* 名称检测状态文字 */
+[data-theme='dark'] .char-create__name-status--checking {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .char-create__name-status--available {
+  color: var(--accent-green);
+}
+
+[data-theme='dark'] .char-create__name-status--taken {
+  color: var(--accent-red);
+}
+
+[data-theme='dark'] .char-create__name-status--error {
+  color: var(--accent-red);
+}
+</style>
