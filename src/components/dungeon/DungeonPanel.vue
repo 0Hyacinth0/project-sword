@@ -111,7 +111,6 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useDungeonStore } from '../../stores/dungeon'
 import { useCharacterStore } from '../../stores/character'
 import { getDungeonsByArea } from '../../config/dungeon_config'
@@ -125,6 +124,8 @@ import { UiBadge, UiButton, type BadgeTone } from '../ui'
 const emit = defineEmits<{
   /** 返回上一级 */
   back: []
+  /** 通知父级战斗已启动 */
+  'battle-started': []
 }>()
 
 const props = defineProps<{
@@ -132,7 +133,6 @@ const props = defineProps<{
   areaId: string
 }>()
 
-const router = useRouter()
 const dungeonStore = useDungeonStore()
 const characterStore = useCharacterStore()
 const loading = ref(false)
@@ -196,6 +196,7 @@ function cancelEliteEnter(): void {
 /**
  * 执行进入副本逻辑
  * @param dungeon - 副本配置
+ * @returns Promise，无业务返回值
  */
 async function doEnterDungeon(dungeon: DungeonConfig): Promise<void> {
   loading.value = true
@@ -207,7 +208,7 @@ async function doEnterDungeon(dungeon: DungeonConfig): Promise<void> {
 
     const battleResult = await dungeonStore.startFloorBattle()
     if (battleResult.success) {
-      router.push({ name: 'battle' })
+      emit('battle-started')
     }
   } finally {
     loading.value = false

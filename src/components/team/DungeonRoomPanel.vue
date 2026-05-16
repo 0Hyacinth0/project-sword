@@ -3,7 +3,7 @@
     <!-- 未进入房间：副本选择 -->
     <template v-if="!roomStore.isInRoom">
       <header class="room-header">
-        <button class="room-header__back" @click="$emit('back')">
+        <button class="room-header__back" @click="emit('back')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
@@ -157,7 +157,6 @@
  * 包含副本选择和房间内准备/开始流程
  */
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useDungeonRoomStore } from '../../stores/dungeonRoom'
 import { useDungeonStore } from '../../stores/dungeon'
 import { useTeamStore } from '../../stores/team'
@@ -165,9 +164,11 @@ import { useCharacterStore } from '../../stores/character'
 import { getDungeonConfigsForRoomApi } from '../../api/dungeonRoom'
 import type { DungeonConfig } from '../../types/dungeon'
 
-defineEmits<{
+const emit = defineEmits<{
   /** 返回队伍面板 */
   back: []
+  /** 通知父级战斗已启动 */
+  'battle-started': []
 }>()
 
 const JOB_NAMES: Record<string, string> = {
@@ -175,7 +176,6 @@ const JOB_NAMES: Record<string, string> = {
   WARRIOR: '战士', MAGE: '法师', HUNTER: '猎人'
 }
 
-const router = useRouter()
 const roomStore = useDungeonRoomStore()
 const dungeonStore = useDungeonStore()
 const teamStore = useTeamStore()
@@ -239,6 +239,7 @@ async function handleToggleReady(): Promise<void> {
 /**
  * 开始挑战（队长专用）
  * 调用房间 API 后进入多人副本战斗
+ * @returns Promise，无业务返回值
  */
 async function handleStartChallenge(): Promise<void> {
   const room = roomStore.currentRoom
@@ -257,7 +258,7 @@ async function handleStartChallenge(): Promise<void> {
     // 发起多人副本战斗
     const battleResult = await dungeonStore.startMultiPlayerFloorBattle(roomMembers)
     if (battleResult.success) {
-      router.push({ name: 'battle' })
+      emit('battle-started')
     } else {
       alert(battleResult.message)
     }

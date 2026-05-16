@@ -94,7 +94,6 @@
 
 <script setup lang="ts">
 import { computed, reactive } from 'vue'
-import { useRouter } from 'vue-router'
 import { useMapStore } from '../../stores/map'
 import { useCharacterStore } from '../../stores/character'
 import { useBattleStore } from '../../stores/battle'
@@ -111,9 +110,10 @@ const emit = defineEmits<{
   back: []
   /** 打开副本面板 */
   openDungeon: [areaId: string]
+  /** 通知父级战斗已启动 */
+  'battle-started': []
 }>()
 
-const router = useRouter()
 const mapStore = useMapStore()
 const characterStore = useCharacterStore()
 const battleStore = useBattleStore()
@@ -227,6 +227,7 @@ function handleCardClick(area: MapArea): void {
  * 处理"进入探索"按钮点击
  * 随机遭遇区域怪物并启动战斗
  * @param area - 目标区域
+ * @returns Promise，无业务返回值
  */
 async function handleEnterArea(area: MapArea): Promise<void> {
   const characterId = characterStore.selectedCharacterId
@@ -267,7 +268,7 @@ async function handleEnterArea(area: MapArea): Promise<void> {
   )
 
   if (result.success) {
-    router.push({ name: 'battle' })
+    emit('battle-started')
   } else {
     showToast(result.message, 'error')
   }

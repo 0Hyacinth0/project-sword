@@ -1,7 +1,11 @@
 <template>
   <div class="team-panel">
     <!-- 副本大厅视图（覆盖整个面板） -->
-    <DungeonRoomPanel v-if="showDungeonRoom" @back="showDungeonRoom = false" />
+    <DungeonRoomPanel
+      v-if="showDungeonRoom"
+      @back="showDungeonRoom = false"
+      @battle-started="emit('battle-started')"
+    />
 
     <!-- 未在队伍 -->
     <template v-else-if="!teamStore.isInTeam">
@@ -294,6 +298,11 @@ import { useTeamStore } from '../../stores/team'
 import { useSocialStore } from '../../stores/social'
 import DungeonRoomPanel from './DungeonRoomPanel.vue'
 import type { TeamMember } from '../../types/team'
+
+const emit = defineEmits<{
+  /** 通知父级战斗已启动 */
+  'battle-started': []
+}>()
 
 /** 职业名称映射 */
 const JOB_NAMES: Record<string, string> = {
