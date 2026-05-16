@@ -48,6 +48,12 @@
         @select-target="selectedTargetUid = $event"
       />
 
+      <!-- 出招倒计时 -->
+      <div v-if="store.waitingForPlayer" class="turn-timer">
+        <div class="turn-timer__bar" :class="timerBarClass" :style="{ width: `${(turnTimer / TURN_TIMEOUT_SECONDS) * 100}%` }"></div>
+        <span class="turn-timer__text">{{ turnTimer }}s</span>
+      </div>
+
       <BattleActionPanel
         v-model="selectedTargetUid"
         :visible="store.waitingForPlayer"
@@ -102,7 +108,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
 import { BattlePhase } from '../../types/battle'
 import type { BattleAction } from '../../types/battle'
 import { useBattleStore } from '../../stores/battle'
@@ -130,8 +136,69 @@ const dungeonStore = useDungeonStore()
 const selectedTargetUid = ref<string | null>(null)
 const isResolvingDungeonResult = ref(false)
 
+// ── 出招倒计时 ──
+const TURN_TIMEOUT_SECONDS = 30
+const turnTimer = ref(TURN_TIMEOUT_SECONDS)
+let timerInterval: ReturnType<typeof setInterval> | null = null
+
+/**
+ * 启动出招倒计时
+ */
+function startTurnTimer(): void {
+  turnTimer.value = TURN_TIMEOUT_SECONDS
+  if (timerInterval) clearInterval(timerInterval)
+  timerInterval = setInterval(() => {
+    if (turnTimer.value > 0) {
+      turnTimer.value--
+    } else {
+      handleAutoAction()
+    }
+  }, 1000)
+}
+
+/**
+ * 停止并重置出招倒计时
+ */
+function stopTurnTimer(): void {
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+  turnTimer.value = TURN_TIMEOUT_SECONDS
+}
+
+/**
+ * 超时自动执行普攻
+ */
+function handleAutoAction(): void {
+  stopTurnTimer()
+  const targets = store.availableTargets.filter(t => t.isAlive)
+  if (targets.length === 0 || !store.currentActor) return
+  const target = targets[Math.floor(Math.random() * targets.length)]
+  handleAction({ type: 'attack', actorUid: store.currentActor.uid, targetUid: target.uid })
+}
+
+// 监听等待玩家状态，控制计时器
+watch(() => store.waitingForPlayer, (waiting) => {
+  if (waiting) {
+    startTurnTimer()
+  } else {
+    stopTurnTimer()
+  }
+})
+
+// 组件卸载时清理计时器
+onUnmounted(() => {
+  stopTurnTimer()
+})
+
 const isDungeonBattle = computed(() => dungeonStore.runState !== null)
 const phaseLabel = computed(() => getPhaseLabel(store.phase))
+const timerBarClass = computed(() => {
+  if (turnTimer.value <= 5) return 'turn-timer__bar--danger'
+  if (turnTimer.value <= 10) return 'turn-timer__bar--warning'
+  return 'turn-timer__bar--safe'
+})
 const bossEnemy = computed(() => store.combatants.find(unit => unit.side === 'enemy'))
 const bossConfig = computed(() => bossEnemy.value ? getBossConfig(bossEnemy.value.sourceId) : null)
 const isBossMode = computed(() => store.isBossFight || Boolean(bossConfig.value))
@@ -394,5 +461,49 @@ watch(() => store.isBattleOver, (over) => {
     width: 100%;
     justify-content: space-between;
   }
+}
+
+/* ── 出招倒计时 ── */
+.turn-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-panel-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.turn-timer__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  transition: width 0.3s linear, background-color 0.3s ease;
+}
+
+.turn-timer__bar--safe {
+  background: var(--accent-green);
+}
+
+.turn-timer__bar--warning {
+  background: var(--accent-gold);
+}
+
+.turn-timer__bar--danger {
+  background: var(--accent-red);
+  animation: timer-pulse 0.5s infinite;
+}
+
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.turn-timer__text {
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 28px;
+  text-align: right;
 }
 </style>
