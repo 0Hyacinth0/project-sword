@@ -3,6 +3,7 @@
  * 简化 Elo 积分计算、Mock 对手池
  */
 import type { PvpOpponent, EstimatedScore } from '../types/pvp'
+import type { Combatant } from '../types/battle'
 
 /**
  * 计算简化 Elo 积分变化
@@ -100,4 +101,69 @@ export function getOpponentSkills(profession: string): Array<{
     ]
   }
   return skillSets[profession] ?? skillSets.Warrior
+}
+
+/**
+ * 根据好友信息生成镜像 Combatant（用于异步 PVP 挑战）
+ * 复用 generateOpponentStats 和 getOpponentSkills 逻辑
+ * @param friend - 好友信息（FriendInfo 类型，含 profession/level/characterName/characterId）
+ * @returns 敌方 Combatant 对象
+ */
+export function generateFriendMirrorCombatant(friend: {
+  characterId: string
+  characterName: string
+  profession: string
+  level: number
+}): Combatant {
+  const mirrorOpponent: PvpOpponent = {
+    characterId: friend.characterId,
+    characterName: friend.characterName,
+    profession: friend.profession,
+    level: friend.level,
+    tier: 'bronze',
+    subTier: 'I',
+    score: 0
+  }
+
+  const stats = generateOpponentStats(mirrorOpponent)
+  const skills = getOpponentSkills(friend.profession)
+
+  const ELEMENT_MAP: Record<string, number> = {
+    none: 0, fire: 1, water: 2, wind: 3, earth: 4, light: 5, dark: 6
+  }
+
+  return {
+    uid: `enemy-friend-${friend.characterId}`,
+    sourceId: friend.characterId,
+    name: friend.characterName,
+    side: 'enemy',
+    type: 'enemy',
+    stats: {
+      maxHp: stats.maxHp,
+      hp: stats.maxHp,
+      maxMp: stats.maxMp,
+      mp: stats.maxMp,
+      physicalAttack: stats.physicalAttack,
+      magicAttack: stats.magicAttack,
+      defense: stats.defense,
+      speed: stats.speed,
+      dodgeRate: stats.dodgeRate,
+      criticalRate: stats.criticalRate
+    },
+    skills: skills.map(skill => ({
+      id: skill.id,
+      name: skill.name,
+      type: 'active_attack' as const,
+      mpCost: skill.mpCost,
+      power: skill.power,
+      targetType: skill.targetType,
+      cooldown: skill.cooldown,
+      element: ELEMENT_MAP[skill.element] ?? 0,
+      description: ''
+    })),
+    buffs: [],
+    cooldowns: {},
+    isAlive: true,
+    actionValue: 0
+  }
 }
