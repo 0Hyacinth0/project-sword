@@ -1,5 +1,5 @@
 <template>
-  <div class="arena-panel">
+  <div class="arena-panel" style="position: relative">
     <!-- 加载态 -->
     <div v-if="store.loading" class="arena-panel__loading">
       <span class="loading-spinner"></span>
@@ -66,17 +66,49 @@
           <span v-if="item.tier === store.playerData?.tier" class="tier-row__badge">当前</span>
         </div>
       </div>
+
+      <!-- 匹配按钮 -->
+      <button v-if="store.playerData" class="arena-panel__match-btn" @click="handleStartMatch">
+        ⚔️ 开始匹配
+      </button>
     </template>
+
+    <PvpMatchOverlay
+      :visible="pvpStore.isMatching"
+      :state="pvpStore.matchState"
+      :opponent="pvpStore.opponent"
+      :estimated="pvpStore.estimatedScore"
+      @cancel="handleCancelMatch"
+      @start-battle="handleStartBattle"
+    />
+
+    <PvpSettlementOverlay
+      :visible="pvpStore.matchState === 'settling'"
+      :result="pvpStore.scoreResult"
+      :is-victory="(pvpStore.scoreResult?.scoreChange ?? 0) > 0"
+      :wins="store.playerData?.wins ?? 0"
+      :losses="store.playerData?.losses ?? 0"
+      :win-rate="store.playerData?.winRate ?? 0"
+      @close="handleCloseSettlement"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useArenaStore } from '../../stores/arena'
+import { usePvpStore } from '../../stores/pvp'
 import { ARENA_TIER_CONFIGS } from '../../config/arena_config'
+import PvpMatchOverlay from './PvpMatchOverlay.vue'
+import PvpSettlementOverlay from './PvpSettlementOverlay.vue'
 import type { ArenaTierConfig } from '../../types/arena'
 
 const store = useArenaStore()
+const pvpStore = usePvpStore()
+
+const emit = defineEmits<{
+  'battle-started': []
+}>()
 
 /**
  * 段位列表（从高到低：王者 → 青铜）
@@ -149,6 +181,41 @@ function rowStyle(item: ArenaTierConfig): Record<string, string> {
 function formatRange(item: ArenaTierConfig): string {
   if (item.maxScore === -1) return `${item.minScore}+`
   return `${item.minScore} - ${item.maxScore}`
+}
+
+/**
+ * 开始匹配
+ * 触发 PVP 匹配流程
+ */
+function handleStartMatch(): void {
+  pvpStore.startMatchmaking()
+}
+
+/**
+ * 取消匹配
+ * 中止当前进行中的匹配流程
+ */
+function handleCancelMatch(): void {
+  pvpStore.cancelMatchmaking()
+}
+
+/**
+ * 确认开始战斗
+ * 调用 PVP 确认接口，成功后触发 battle-started 事件
+ */
+async function handleStartBattle(): Promise<void> {
+  const result = await pvpStore.confirmBattle()
+  if (result.success) {
+    emit('battle-started')
+  }
+}
+
+/**
+ * 关闭结算面板
+ * 重置匹配状态，回到初始界面
+ */
+function handleCloseSettlement(): void {
+  pvpStore.resetMatch()
 }
 
 onMounted(() => {
@@ -371,5 +438,23 @@ onMounted(() => {
   padding: 1px 6px;
   border-radius: 4px;
   font-weight: 600;
+}
+
+/* ── 匹配按钮 ── */
+.arena-panel__match-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-blue), #7c5cfc);
+  color: white;
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.arena-panel__match-btn:hover {
+  opacity: 0.9;
 }
 </style>
