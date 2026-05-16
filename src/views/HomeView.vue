@@ -64,14 +64,27 @@
 
       <!-- ═══ 中间面板 ═══ -->
       <div class="game-center">
+        <!-- 战斗视图 -->
+        <UiPanel v-if="centerView === 'battle'" class="game-main game-main--battle" stretch>
+          <BattleConsole @return-view="returnFromBattle" />
+        </UiPanel>
+
         <!-- 地图视图 -->
-        <UiPanel v-if="centerView === 'map'" class="game-main" stretch>
-          <WorldMapPanel @back="centerView = 'home'" @open-dungeon="handleOpenDungeon" />
+        <UiPanel v-else-if="centerView === 'map'" class="game-main" stretch>
+          <WorldMapPanel
+            @back="centerView = 'home'"
+            @open-dungeon="handleOpenDungeon"
+            @battle-started="enterBattleView('map')"
+          />
         </UiPanel>
 
         <!-- 副本视图 -->
-        <UiPanel v-if="centerView === 'dungeon' && selectedAreaId" class="game-main" stretch>
-          <DungeonPanel :area-id="selectedAreaId" @back="centerView = 'map'" />
+        <UiPanel v-else-if="centerView === 'dungeon' && selectedAreaId" class="game-main" stretch>
+          <DungeonPanel
+            :area-id="selectedAreaId"
+            @back="centerView = 'map'"
+            @battle-started="enterBattleView('dungeon')"
+          />
         </UiPanel>
 
         <!-- 好友视图 -->
@@ -86,7 +99,7 @@
 
         <!-- 组队视图 -->
         <UiPanel v-else-if="centerView === 'team'" class="game-main" stretch>
-          <TeamPanel />
+          <TeamPanel @battle-started="enterBattleView('team')" />
         </UiPanel>
 
         <!-- 排行榜视图 -->
@@ -96,7 +109,7 @@
 
         <!-- 竞技场视图 -->
         <UiPanel v-else-if="centerView === 'arena'" class="game-main" stretch>
-          <ArenaPanel />
+          <ArenaPanel @battle-started="enterBattleView('arena')" />
         </UiPanel>
 
         <!-- 主页欢迎视图 -->
@@ -230,6 +243,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
 import { useInventoryStore } from '../stores/inventory'
+import { usePvpStore } from '../stores/pvp'
+import { useBattleStore } from '../stores/battle'
 import { getPetListApi, setActivePetApi, feedPetApi, evolvePetApi, renamePetApi, equipSkillApi, unequipSkillApi, equipPetItemApi, unequipPetItemApi } from '../api/pet'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
@@ -241,6 +256,7 @@ import ChatPanel from '../components/social/ChatPanel.vue'
 import TeamPanel from '../components/team/TeamPanel.vue'
 import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
 import ArenaPanel from '../components/arena/ArenaPanel.vue'
+import BattleConsole from '../components/battle/BattleConsole.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem, type UiToastItem } from '../components/ui'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
@@ -258,7 +274,8 @@ import {
 
 const RARITIES: ItemRarity[] = ['Normal', 'Rare', 'Epic', 'Legendary']
 
-type CenterView = 'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard' | 'arena'
+type CenterView = 'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard' | 'arena' | 'battle'
+type BattleReturnView = Exclude<CenterView, 'home' | 'battle'>
 
 /** 排序选项配置 */
 const sortOptions: { field: SortField; label: string; icon: Component }[] = [
@@ -289,8 +306,11 @@ const loading = ref(false)
 /** 中间面板当前视图 */
 const centerView = ref<CenterView>('home')
 
+/** 战斗结束后返回的中栏视图 */
+const battleReturnView = ref<BattleReturnView>('map')
+
 /** 底部主导航配置 */
-const bottomNavItems: { value: Exclude<CenterView, 'home' | 'dungeon'>; label: string; icon: Component }[] = [
+const bottomNavItems: { value: Exclude<CenterView, 'home' | 'dungeon' | 'battle'>; label: string; icon: Component }[] = [
   { value: 'map', label: '地图', icon: markRaw(Map) },
   { value: 'chat', label: '聊天', icon: markRaw(MessageCircle) },
   { value: 'friend', label: '好友', icon: markRaw(UserPlus) },
@@ -369,6 +389,35 @@ function showToast(message: string) {
  */
 function handleBackpackTabChange(value: string | number): void {
   inventory.setActiveTab(value as BackpackTab)
+}
+
+/**
+ * 进入内嵌战斗视图并记录战斗结束后的返回位置。
+ * @param returnView - 战斗结束后需要恢复的中栏视图
+ * @returns 无返回值
+ */
+function enterBattleView(returnView: BattleReturnView): void {
+  battleReturnView.value = returnView
+  centerView.value = 'battle'
+}
+
+/**
+ * 从内嵌战斗视图返回到进入战斗前记录的中栏视图。
+ * 如果是从竞技场 PVP 返回，触发积分结算。
+ * @returns 无返回值
+ */
+async function returnFromBattle(): Promise<void> {
+  const returnView = battleReturnView.value
+  centerView.value = returnView
+
+  if (returnView === 'arena') {
+    const battleStore = useBattleStore()
+    const pvpStore = usePvpStore()
+    if (pvpStore.matchState === 'in_battle' && battleStore.battleOutcome) {
+      const won = battleStore.battleOutcome === 'victory'
+      await pvpStore.settleBattle(won)
+    }
+  }
 }
 
 /**
