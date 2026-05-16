@@ -1,9 +1,10 @@
 /**
  * Axios 请求实例
- * 统一处理：baseURL、JWT 注入、响应拦截、错误处理
+ * 统一处理：baseURL、JWT 注入、响应拦截、错误处理、接口节流
  */
 import axios from 'axios'
 import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios'
+import { getThrottleInterval } from '../utils/apiGuard'
 
 /** 后端统一响应格式 */
 export interface ApiResponse<T = unknown> {
@@ -25,6 +26,9 @@ const request = axios.create({
 /** 不需要携带 token 的接口路径 */
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/auth/check-username']
 
+/** 高频接口节流记录：url → 最后请求时间戳 */
+const throttleTimestamps = new Map<string, number>()
+
 // ── 请求拦截器：自动注入 Token 和 userId ──
 request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -32,6 +36,18 @@ request.interceptors.request.use(
     const isPublic = PUBLIC_PATHS.some(path => config.url?.includes(path))
     if (isPublic) {
       return config
+    }
+
+    // 高频接口节流：POST 请求检查节流间隔
+    const interval = getThrottleInterval(config.url)
+    if (interval > 0 && config.method !== 'get') {
+      const now = Date.now()
+      const key = config.url ?? ''
+      const lastTime = throttleTimestamps.get(key) ?? 0
+      if (now - lastTime < interval) {
+        return Promise.reject(new ApiError(429, '操作过快，请稍后再试'))
+      }
+      throttleTimestamps.set(key, now)
     }
 
     // jeecg-boot 使用 X-Access-Token 请求头
