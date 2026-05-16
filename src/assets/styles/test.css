@@ -1,0 +1,758 @@
+/* ============================================
+   测试套件运行器 - Liquid Glass 页面样式
+   严格遵循 DESIGN.md 设计规范，复用 variables.css 变量
+   ============================================ */
+
+/* ── 根容器 ── */
+.test-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  padding: 12px;
+  gap: 12px;
+  font-family: var(--font-text);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* ── 顶部标题栏 ── */
+.test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.test-header__title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-section);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.test-header__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.test-header__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-text);
+  font-size: var(--font-size-small);
+  color: var(--text-primary);
+  background: var(--bg-panel-light);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-header__btn:hover {
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-subtle);
+}
+
+.test-header__btn--primary {
+  color: var(--button-text);
+  background: var(--accent-blue);
+  border-color: transparent;
+}
+
+.test-header__btn--primary:hover {
+  background: var(--accent-blue-dark);
+  box-shadow: 0 4px 14px var(--accent-blue-glow);
+}
+
+/* ── 三栏主体区域 ── */
+.test-body {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   左侧 - 测试模块侧边栏
+   ═══════════════════════════════════════════ */
+.test-sidebar {
+  width: 220px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  overflow-y: auto;
+}
+
+/* 侧边栏模块列表 */
+.test-sidebar__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+/* 模块行，可点击 */
+.test-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  font-size: var(--font-size-small);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.test-sidebar__item:hover {
+  background: var(--bg-panel-light);
+}
+
+/* 选中的模块 - 蓝色高亮 */
+.test-sidebar__item--active {
+  background: rgba(0, 113, 227, 0.08);
+  border-left-color: var(--accent-blue);
+  color: var(--accent-blue);
+  font-weight: 500;
+}
+
+/* 全部通过的模块 - 绿色左边框 */
+.test-sidebar__item--pass {
+  border-left-color: var(--accent-green);
+}
+
+/* 存在失败的模块 - 红色左边框 */
+.test-sidebar__item--fail {
+  border-left-color: var(--accent-red);
+}
+
+/* 正在运行的模块 - 蓝色光晕 */
+.test-sidebar__item--running {
+  border-left-color: var(--accent-blue);
+  box-shadow: inset 3px 0 8px -2px var(--accent-blue-glow);
+  animation: test-pulse-glow 2s ease-in-out infinite;
+}
+
+/* 脉冲光晕动画 */
+@keyframes test-pulse-glow {
+  0%, 100% {
+    box-shadow: inset 3px 0 8px -2px var(--accent-blue-glow);
+  }
+  50% {
+    box-shadow: inset 3px 0 16px -2px var(--accent-blue-glow);
+  }
+}
+
+/* 模块名称 */
+.test-sidebar__item-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 模块状态图标 */
+.test-sidebar__item-icon {
+  font-size: var(--font-size-xs);
+  flex-shrink: 0;
+}
+
+/* 模块用例计数 */
+.test-sidebar__item-count {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* 侧边栏底部统计摘要 */
+.test-sidebar__stats {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 4px 0;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-light);
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+}
+
+.test-sidebar__stats-pass {
+  color: var(--accent-green);
+}
+
+.test-sidebar__stats-fail {
+  color: var(--accent-red);
+}
+
+/* ═══════════════════════════════════════════
+   中间 - 测试用例面板
+   ═══════════════════════════════════════════ */
+.test-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* 顶部工具栏 */
+.test-panel__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.test-panel__toolbar-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* 工具栏按钮 */
+.test-panel__toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  font-family: var(--font-text);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  background: var(--bg-panel-light);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-panel__toolbar-btn:hover {
+  background: var(--bg-panel);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* 主要操作按钮（蓝色强调） */
+.test-panel__toolbar-btn--primary {
+  color: var(--button-text);
+  background: var(--accent-blue);
+  border-color: transparent;
+}
+
+.test-panel__toolbar-btn--primary:hover {
+  background: var(--accent-blue-dark);
+  box-shadow: 0 4px 14px var(--accent-blue-glow);
+}
+
+/* 用例列表（可滚动） */
+.test-panel__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 单条测试用例行 */
+.test-panel__case {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: var(--font-size-small);
+  color: var(--text-primary);
+  transition: background 0.2s ease;
+}
+
+.test-panel__case:hover {
+  background: var(--bg-panel-light);
+}
+
+/* 用例状态图标区域 */
+.test-panel__case-icon {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+}
+
+/* 通过 - 绿色图标 */
+.test-panel__case--pass .test-panel__case-icon {
+  color: var(--accent-green);
+}
+
+/* 失败 - 红色图标 */
+.test-panel__case--fail .test-panel__case-icon {
+  color: var(--accent-red);
+}
+
+/* 运行中 - 蓝色旋转动画 */
+.test-panel__case--running .test-panel__case-icon {
+  color: var(--accent-blue);
+  animation: test-spin 1s linear infinite;
+}
+
+@keyframes test-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 跳过 - 灰色 */
+.test-panel__case--skipped {
+  color: var(--text-muted);
+}
+
+.test-panel__case--skipped .test-panel__case-icon {
+  color: var(--text-muted);
+}
+
+/* 用例名称 */
+.test-panel__case-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 用例耗时 */
+.test-panel__case-time {
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* 可展开的错误详情（红色调） */
+.test-panel__error {
+  margin: 4px 0 4px 28px;
+  padding: 10px 12px;
+  background: rgba(255, 59, 48, 0.06);
+  border-left: 3px solid var(--accent-red);
+  border-radius: 0 6px 6px 0;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+  color: var(--accent-red);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 底部统计栏 */
+.test-panel__summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 10px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-light);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.test-panel__summary-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.test-panel__summary-pass {
+  color: var(--accent-green);
+}
+
+.test-panel__summary-fail {
+  color: var(--accent-red);
+}
+
+.test-panel__summary-skip {
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════
+   右侧 - 日志面板
+   ═══════════════════════════════════════════ */
+.test-log {
+  width: 320px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/* 日志头部（带清空/复制按钮） */
+.test-log__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.test-log__header-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.test-log__header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.test-log__header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-family: var(--font-text);
+  font-size: var(--font-size-caption);
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.test-log__header-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-panel-light);
+}
+
+/* 日志列表（可滚动） */
+.test-log__list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 单条日志条目（等宽字体） */
+.test-log__entry {
+  padding: 4px 8px;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: var(--font-size-caption);
+  line-height: 1.5;
+  color: var(--text-primary);
+  border-left: 3px solid transparent;
+  border-radius: 0 4px 4px 0;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+
+/* 请求日志 - 蓝色左边框 */
+.test-log__entry--request {
+  border-left-color: var(--accent-blue);
+  color: var(--accent-blue);
+  background: rgba(0, 113, 227, 0.04);
+}
+
+/* 响应日志 - 绿色左边框 */
+.test-log__entry--response {
+  border-left-color: var(--accent-green);
+  background: rgba(52, 199, 89, 0.04);
+}
+
+/* 错误日志 - 红色左边框 */
+.test-log__entry--error {
+  border-left-color: var(--accent-red);
+  color: var(--accent-red);
+  background: rgba(255, 59, 48, 0.04);
+}
+
+/* 信息日志 - 灰色左边框 */
+.test-log__entry--info {
+  border-left-color: var(--text-muted);
+  color: var(--text-muted);
+}
+
+/* 日志时间戳 */
+.test-log__entry-time {
+  color: var(--text-muted);
+  margin-right: 6px;
+}
+
+/* 日志方向标记 */
+.test-log__entry-direction {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* ── 底部进度条 ── */
+.test-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+/* 进度条轨道 */
+.test-footer__progress {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-panel-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* 进度条填充部分（蓝色强调） */
+.test-footer__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-blue-dark));
+  border-radius: 3px;
+  transition: width 0.3s var(--ease-smooth);
+  box-shadow: 0 0 8px var(--accent-blue-glow);
+}
+
+/* 进度文字 */
+.test-footer__text {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════
+   响应式断点
+   ═══════════════════════════════════════════ */
+
+/* ── Tablet (≤960px)：侧边栏堆叠到顶部 ── */
+@media (max-width: 960px) {
+  .test-body {
+    flex-wrap: wrap;
+  }
+
+  .test-sidebar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .test-sidebar__list {
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .test-sidebar__item {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 6px 10px;
+  }
+
+  .test-sidebar__item--active {
+    border-bottom-color: var(--accent-blue);
+    border-left-color: transparent;
+  }
+
+  .test-sidebar__item--pass {
+    border-bottom-color: var(--accent-green);
+    border-left-color: transparent;
+  }
+
+  .test-sidebar__item--fail {
+    border-bottom-color: var(--accent-red);
+    border-left-color: transparent;
+  }
+
+  .test-sidebar__item--running {
+    border-bottom-color: var(--accent-blue);
+    border-left-color: transparent;
+    box-shadow: inset 0 -3px 8px -2px var(--accent-blue-glow);
+  }
+
+  .test-sidebar__stats {
+    display: none;
+  }
+
+  .test-log {
+    width: 100%;
+    min-width: 0;
+    max-height: 200px;
+  }
+}
+
+/* ── Mobile (≤720px)：单列布局 ── */
+@media (max-width: 720px) {
+  .test-page {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .test-header {
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .test-header__title {
+    font-size: var(--font-size-base);
+  }
+
+  .test-header__btn {
+    padding: 5px 10px;
+    font-size: var(--font-size-xs);
+  }
+
+  .test-body {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .test-sidebar {
+    border-radius: 10px;
+    padding: 8px;
+  }
+
+  .test-panel {
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .test-panel__toolbar {
+    flex-wrap: wrap;
+  }
+
+  .test-panel__toolbar-btn {
+    padding: 4px 8px;
+    font-size: var(--font-size-caption);
+  }
+
+  .test-log {
+    border-radius: 10px;
+    padding: 8px;
+    max-height: 160px;
+  }
+
+  .test-footer {
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+
+  .test-footer__text {
+    font-size: var(--font-size-caption);
+  }
+}
+
+/* ── Small phone (≤375px) ── */
+@media (max-width: 375px) {
+  .test-page {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .test-header {
+    padding: 8px 10px;
+    border-radius: 8px;
+    gap: 4px;
+  }
+
+  .test-header__title {
+    font-size: var(--font-size-small);
+  }
+
+  .test-header__controls {
+    gap: 4px;
+  }
+
+  .test-sidebar,
+  .test-panel,
+  .test-log,
+  .test-footer {
+    border-radius: 8px;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   暗色模式适配
+   ═══════════════════════════════════════════ */
+
+/* 用例失败展开详情 — 暗色加深 */
+[data-theme='dark'] .test-panel__error {
+  background: rgba(255, 69, 58, 0.1);
+}
+
+/* 请求日志条目 — 暗色加深 */
+[data-theme='dark'] .test-log__entry--request {
+  background: rgba(10, 132, 255, 0.08);
+}
+
+/* 响应日志条目 — 暗色加深 */
+[data-theme='dark'] .test-log__entry--response {
+  background: rgba(50, 215, 75, 0.08);
+}
+
+/* 错误日志条目 — 暗色加深 */
+[data-theme='dark'] .test-log__entry--error {
+  background: rgba(255, 69, 58, 0.08);
+}
+
+/* 选中模块高亮 — 暗色加深 */
+[data-theme='dark'] .test-sidebar__item--active {
+  background: rgba(10, 132, 255, 0.12);
+}
+
+/* 用例行悬浮 — 暗色加深 */
+[data-theme='dark'] .test-panel__case:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* 头部按钮悬浮 — 暗色加深 */
+[data-theme='dark'] .test-header__btn:hover {
+  box-shadow: var(--shadow-subtle);
+}
+
+/* 工具栏按钮悬浮 — 暗色加深 */
+[data-theme='dark'] .test-panel__toolbar-btn:hover {
+  box-shadow: var(--shadow-subtle);
+}
