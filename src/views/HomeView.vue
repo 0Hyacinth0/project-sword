@@ -89,7 +89,7 @@
 
         <!-- 好友视图 -->
         <UiPanel v-else-if="centerView === 'friend'" class="game-main" stretch>
-          <FriendPanel />
+          <FriendPanel @battle-started="handleFriendChallenge" />
         </UiPanel>
 
         <!-- 聊天视图 -->
@@ -245,6 +245,7 @@ import { useCharacterStore } from '../stores/character'
 import { useInventoryStore } from '../stores/inventory'
 import { usePvpStore } from '../stores/pvp'
 import { useBattleStore } from '../stores/battle'
+import { useSocialStore } from '../stores/social'
 import { getPetListApi, setActivePetApi, feedPetApi, evolvePetApi, renamePetApi, equipSkillApi, unequipSkillApi, equipPetItemApi, unequipPetItemApi } from '../api/pet'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
@@ -426,6 +427,21 @@ async function returnFromBattle(): Promise<void> {
 function handleOpenDungeon(areaId: string) {
   selectedAreaId.value = areaId
   centerView.value = 'dungeon'
+}
+
+/**
+ * 处理好友异步 PVP 挑战
+ * 通过 social store 发起战斗后切换到战斗视图
+ * @param friend - 被挑战的好友信息
+ */
+async function handleFriendChallenge(friend: {
+  characterId: string; characterName: string; profession: string; level: number
+}): Promise<void> {
+  const socialStore = useSocialStore()
+  const result = await socialStore.startAsyncPvpBattle(friend)
+  if (result.success) {
+    enterBattleView('friend')
+  }
 }
 
 /**

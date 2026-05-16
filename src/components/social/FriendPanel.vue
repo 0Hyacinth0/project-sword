@@ -98,7 +98,10 @@
               <span class="friend-card__name">{{ friend.characterName }}</span>
               <span class="friend-card__meta">{{ getJobName(friend.profession) }} · Lv.{{ friend.level }}</span>
             </div>
-            <button class="friend-btn friend-btn--delete" @click="confirmDelete(friend)">删除</button>
+            <div class="friend-card__actions">
+              <button class="friend-btn friend-btn--challenge" @click="confirmChallenge(friend)">挑战</button>
+              <button class="friend-btn friend-btn--delete" @click="confirmDelete(friend)">删除</button>
+            </div>
           </div>
         </div>
       </div>
@@ -120,7 +123,10 @@
                 <template v-if="friend.lastOnlineAt"> · {{ formatTime(friend.lastOnlineAt) }}</template>
               </span>
             </div>
-            <button class="friend-btn friend-btn--delete" @click="confirmDelete(friend)">删除</button>
+            <div class="friend-card__actions">
+              <button class="friend-btn friend-btn--challenge" @click="confirmChallenge(friend)">挑战</button>
+              <button class="friend-btn friend-btn--delete" @click="confirmDelete(friend)">删除</button>
+            </div>
           </div>
         </div>
       </div>
@@ -211,6 +217,22 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- 挑战确认弹窗 -->
+    <Teleport to="body">
+      <Transition name="friend-dialog">
+        <div v-if="challengeTarget" class="friend-dialog-overlay" @click.self="challengeTarget = null">
+          <div class="friend-dialog-card">
+            <h3 class="friend-dialog__title">挑战好友</h3>
+            <p class="friend-dialog__desc">确定要挑战「{{ challengeTarget.characterName }}」的镜像吗？</p>
+            <div class="friend-dialog__actions">
+              <button class="friend-dialog__btn friend-dialog__btn--cancel" @click="challengeTarget = null">取消</button>
+              <button class="friend-dialog__btn friend-dialog__btn--challenge-confirm" @click="handleChallenge">开始战斗</button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -231,9 +253,15 @@ const JOB_NAMES: Record<string, string> = {
 }
 
 const socialStore = useSocialStore()
+
+const emit = defineEmits<{
+  'battle-started': [friend: { characterId: string; characterName: string; profession: string; level: number }]
+}>()
+
 const activeTab = ref<'friends' | 'requests' | 'sent'>('friends')
 const searchKeyword = ref('')
 const deleteTarget = ref<FriendInfo | null>(null)
+const challengeTarget = ref<FriendInfo | null>(null)
 
 onMounted(() => {
   socialStore.fetchFriendList()
@@ -331,6 +359,24 @@ async function handleDelete(): Promise<void> {
   if (!deleteTarget.value) return
   await socialStore.removeFriend(deleteTarget.value.characterId)
   deleteTarget.value = null
+}
+
+/**
+ * 确认挑战好友
+ * @param friend - 好友信息
+ */
+function confirmChallenge(friend: FriendInfo): void {
+  challengeTarget.value = friend
+}
+
+/**
+ * 执行异步 PVP 挑战
+ */
+async function handleChallenge(): Promise<void> {
+  if (!challengeTarget.value) return
+  const target = challengeTarget.value
+  challengeTarget.value = null
+  emit('battle-started', target)
 }
 
 /**
@@ -620,6 +666,18 @@ async function handleCancel(requestId: string): Promise<void> {
 .friend-btn--cancel {
   background: rgba(142, 142, 147, 0.1);
   color: var(--text-muted);
+}
+
+.friend-btn--challenge {
+  background: rgba(0, 113, 227, 0.1);
+  color: var(--accent-blue);
+  font-size: var(--font-size-xs);
+  padding: 4px 8px;
+}
+
+.friend-dialog__btn--challenge-confirm {
+  background: var(--accent-blue);
+  color: var(--button-text);
 }
 
 /* ── 标签 ── */
