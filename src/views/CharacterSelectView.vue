@@ -282,4 +282,123 @@ onMounted(() => {
 [data-theme='dark'] .char-select__modal-desc strong {
   color: var(--text-primary);
 }
+
+/* ═══ 响应式断点 ═══ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .char-select__slots {
+    gap: 16px;
+    max-width: 640px;
+  }
+
+  .char-card {
+    padding: 24px 16px;
+    min-height: 200px;
+  }
+
+  .char-card__job-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+
+  .char-select__header {
+    margin-bottom: 32px;
+  }
+}
+
+/* ── Mobile landscape (≤768px) ── */
+@media (max-width: 768px) {
+  .char-select {
+    padding: 20px 14px;
+  }
+
+  .char-select__slots {
+    grid-template-columns: 1fr;
+    max-width: 340px;
+    gap: 14px;
+  }
+
+  .char-card {
+    min-height: 160px;
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .char-card__job-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 10px;
+  }
+
+  .char-card__name {
+    font-size: var(--font-size-small);
+  }
+
+  .char-select__title {
+    font-size: var(--font-size-base);
+  }
+
+  .char-select__header {
+    margin-bottom: 28px;
+  }
+
+  .char-select__logout {
+    padding: 8px 18px;
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ── Small phone (≤375px) ── */
+@media (max-width: 375px) {
+  .char-select {
+    padding: 14px 10px;
+    padding-top: 48px;
+    justify-content: flex-start;
+  }
+
+  .char-select__header {
+    margin-bottom: 22px;
+  }
+
+  .char-select__title {
+    font-size: var(--font-size-small);
+    gap: 6px;
+  }
+
+  .char-select__subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .char-select__slots {
+    gap: 12px;
+    max-width: 300px;
+  }
+
+  .char-card {
+    min-height: 140px;
+    padding: 16px 12px;
+    border-radius: 14px;
+  }
+
+  .char-card__job-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 8px;
+  }
+
+  .char-card__name {
+    font-size: var(--font-size-xs);
+  }
+
+  .char-card__job-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .char-card__level {
+    font-size: var(--font-size-xs);
+  }
+}
 </style>

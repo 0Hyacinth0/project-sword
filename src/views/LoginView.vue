@@ -568,4 +568,104 @@ async function handleRegister() {
   border-color: rgba(255, 69, 58, 0.2);
   color: var(--accent-red);
 }
+
+/* ═══ 响应式断点 ═══ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .login-card {
+    max-width: 400px;
+    padding: 28px 24px;
+    border-radius: 18px;
+  }
+
+  .login-brand {
+    margin-bottom: 28px;
+  }
+}
+
+/* ── Mobile landscape (≤768px) ── */
+@media (max-width: 768px) {
+  .login-page {
+    padding: 20px 14px;
+  }
+
+  .login-card {
+    max-width: 100%;
+    padding: 24px 20px;
+    border-radius: 16px;
+  }
+
+  .login-brand {
+    margin-bottom: 24px;
+  }
+
+  .login-brand__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+  }
+
+  .login-brand__title {
+    font-size: var(--font-size-base);
+  }
+
+  .login-brand__subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .login-tabs {
+    margin-bottom: 24px;
+  }
+
+  .login-submit {
+    padding: 12px 16px;
+    border-radius: 8px;
+  }
+
+  .login-footer {
+    margin-top: 16px;
+    padding-top: 16px;
+  }
+}
+
+/* ── Small phone (≤375px) ── */
+@media (max-width: 375px) {
+  .login-page {
+    padding: 14px 10px;
+    justify-content: flex-start;
+    padding-top: 56px;
+  }
+
+  .login-brand {
+    margin-bottom: 20px;
+  }
+
+  .login-brand__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+  }
+
+  .login-card {
+    padding: 20px 14px;
+    border-radius: 14px;
+  }
+
+  .login-form {
+    gap: 14px;
+  }
+
+  .form-group__input {
+    padding: 10px 10px 10px 36px;
+    font-size: var(--font-size-xs);
+  }
+
+  .login-submit {
+    padding: 11px 14px;
+    font-size: var(--font-size-small);
+    border-radius: 8px;
+  }
+}
 </style>

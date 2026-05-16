@@ -889,4 +889,116 @@ onUnmounted(() => {
   background: var(--bg-panel-light);
   border-color: var(--border-light);
 }
+
+/* ═══ 响应式断点 ═══ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .game-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .game-left,
+  .game-right {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+/* ── Mobile landscape (≤768px) ── */
+@media (max-width: 768px) {
+  .game-home {
+    padding: 8px;
+  }
+
+  .game-header {
+    padding: 8px 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .game-header__center {
+    margin: 0 4px;
+  }
+
+  .game-header__title {
+    font-size: var(--font-size-caption);
+  }
+
+  .game-body {
+    gap: 8px;
+  }
+
+  .game-main__welcome {
+    font-size: var(--font-size-base);
+  }
+
+  .game-main__desc {
+    font-size: var(--font-size-xs);
+  }
+
+  .game-main__actions,
+  .game-bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .game-bottom-nav__item {
+    min-width: 0;
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .game-uid {
+    position: static;
+    align-self: flex-start;
+    margin-top: 8px;
+  }
+}
+
+/* ── Small phone (≤375px) ── */
+@media (max-width: 375px) {
+  .game-home {
+    padding: 6px;
+  }
+
+  .game-header {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .game-body {
+    gap: 6px;
+  }
+
+  .game-left {
+    gap: 8px;
+  }
+
+  .game-main__actions,
+  .game-bottom-nav {
+    gap: 6px;
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .backpack-search {
+    padding: 4px 6px;
+  }
+
+  .backpack-filters {
+    gap: 4px;
+  }
+}
 </style>

@@ -424,4 +424,175 @@ watch(selectedJob, () => {
 [data-theme='dark'] .char-create__name-status--error {
   color: var(--accent-red);
 }
+
+/* ═══ 响应式断点 ═══ */
+
+/* ── Tablet (≤1024px) ── */
+@media (max-width: 1024px) {
+  .char-create__content {
+    gap: 20px;
+  }
+
+  .char-create__radar-wrap {
+    max-height: 260px;
+  }
+
+  .job-switcher__btn {
+    padding: 12px 6px;
+  }
+
+  .job-switcher__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .skill-item {
+    padding: 10px;
+  }
+
+  .skill-item__icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ── Mobile landscape (≤768px) ── */
+@media (max-width: 768px) {
+  .char-create {
+    padding: 16px 12px max(16px, env(safe-area-inset-bottom));
+  }
+
+  .char-create__nav {
+    --char-create-nav-side: 72px;
+    margin-bottom: 18px;
+  }
+
+  .char-create__content {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .char-create__radar-wrap {
+    max-height: 240px;
+  }
+
+  .char-create__page-title {
+    font-size: var(--font-size-small);
+  }
+
+  .char-create__preview,
+  .char-create__form-panel {
+    border-radius: 16px;
+  }
+
+  .job-switcher {
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .char-create__name-group {
+    margin-bottom: 20px;
+  }
+
+  .char-create__stats {
+    margin-bottom: 22px;
+  }
+}
+
+/* ── Small phone (≤375px) ── */
+@media (max-width: 375px) {
+  .char-create {
+    padding: 12px 8px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .char-create__nav {
+    --char-create-nav-side: 56px;
+    margin-bottom: 14px;
+  }
+
+  .char-create__page-title {
+    font-size: var(--font-size-xs);
+  }
+
+  .char-create__content {
+    gap: 12px;
+  }
+
+  .char-create__preview,
+  .char-create__form-panel {
+    padding: 14px 10px;
+    border-radius: 14px;
+  }
+
+  .char-create__radar-wrap {
+    max-height: 200px;
+    margin-bottom: 14px;
+  }
+
+  .char-create__job-desc {
+    font-size: var(--font-size-xs);
+    margin-bottom: 14px;
+  }
+
+  .job-switcher {
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .job-switcher__btn {
+    padding: 8px 4px;
+    gap: 4px;
+  }
+
+  .job-switcher__icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .job-switcher__name {
+    font-size: 10px;
+  }
+
+  .skill-item {
+    padding: 8px;
+    gap: 8px;
+    border-radius: 10px;
+  }
+
+  .skill-item__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .skill-item__name {
+    font-size: var(--font-size-xs);
+  }
+
+  .skill-item__desc {
+    font-size: 10px;
+  }
+
+  .char-create__name-group {
+    margin-bottom: 16px;
+  }
+
+  .char-create__name-input {
+    padding: 10px 12px;
+    font-size: var(--font-size-xs);
+  }
+
+  .stat-row {
+    padding: 8px 10px;
+    margin-bottom: 4px;
+  }
+
+  .stat-row__label {
+    font-size: var(--font-size-xs);
+  }
+
+  .stat-row__value {
+    font-size: var(--font-size-small);
+  }
+}
 </style>
