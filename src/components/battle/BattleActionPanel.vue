@@ -48,9 +48,9 @@
           :key="target.uid"
           class="target-btn"
           :class="{ selected: selectedTargetUid === target.uid }"
-          @click="selectedTargetUid = target.uid"
+          @click="setSelectedTarget(target.uid)"
         >
-          {{ target.name }}
+          <span class="target-name">{{ target.name }}</span>
           <span class="target-hp">HP: {{ target.stats.hp }}</span>
         </button>
       </div>
@@ -59,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { BattlePhase } from '../../types/battle'
 import type { BattleAction, BattleSkill, Combatant } from '../../types/battle'
 
@@ -72,25 +72,30 @@ const props = defineProps<{
   targets: Combatant[]
   cooldowns: Record<string, number>
   currentMp: number
+  modelValue?: string | null
 }>()
 
 const emit = defineEmits<{
   action: [action: BattleAction]
+  'update:modelValue': [targetUid: string | null]
 }>()
 
 const selectedTargetUid = ref<string | null>(null)
 
-/** 阶段标签 */
-const phaseLabel = (() => {
+const phaseLabel = computed(() => {
   switch (props.phase) {
     case BattlePhase.ACTION_SELECT: return '行动选择'
     case BattlePhase.BUFF_SETTLEMENT: return 'Buff结算'
     case BattlePhase.SETTLEMENT: return '结算中'
     default: return ''
   }
-})()
+})
 
-/** 检查技能是否不可用（MP不足或冷却中） */
+/**
+ * 判断技能当前是否不可用。
+ * @param skill 需要检查可用性的战斗技能。
+ * @returns 技能为被动、MP 不足或仍在冷却时返回 true，否则返回 false。
+ */
 function isSkillDisabled(skill: BattleSkill): boolean {
   if (skill.type === 'passive') return true
   if (skill.mpCost && props.currentMp < skill.mpCost) return true
@@ -98,13 +103,31 @@ function isSkillDisabled(skill: BattleSkill): boolean {
   return false
 }
 
-/** 获取技能冷却 */
+/**
+ * 获取指定技能的剩余冷却回合。
+ * @param skillId 需要查询冷却的技能 ID。
+ * @returns 剩余冷却回合数；没有冷却记录时返回 0。
+ */
 function getCooldown(skillId: number): number {
   return props.cooldowns[String(skillId)] ?? 0
 }
 
-/** 处理技能点击 */
-function handleSkillClick(skill: BattleSkill) {
+/**
+ * 同步当前选中的目标，并通知外部 v-model。
+ * @param targetUid 目标单位 uid，传入 null 表示清空选择。
+ * @returns 无返回值。
+ */
+function setSelectedTarget(targetUid: string | null): void {
+  selectedTargetUid.value = targetUid
+  emit('update:modelValue', targetUid)
+}
+
+/**
+ * 处理技能按钮点击并派发技能行动。
+ * @param skill 被点击的战斗技能。
+ * @returns 无返回值。
+ */
+function handleSkillClick(skill: BattleSkill): void {
   if (isSkillDisabled(skill)) return
   emit('action', {
     type: 'skill',
@@ -114,10 +137,14 @@ function handleSkillClick(skill: BattleSkill) {
   })
 }
 
+watch(() => props.modelValue, (targetUid) => {
+  selectedTargetUid.value = targetUid ?? null
+}, { immediate: true })
+
 // 自动选中第一个目标
 watch(() => props.targets, (targets) => {
   if (targets.length > 0 && !targets.find(t => t.uid === selectedTargetUid.value)) {
-    selectedTargetUid.value = targets[0].uid
+    setSelectedTarget(targets[0].uid)
   }
 }, { immediate: true })
 </script>
@@ -274,6 +301,8 @@ watch(() => props.targets, (targets) => {
 
 .target-btn {
   padding: 6px 14px;
+  min-width: 0;
+  max-width: 100%;
   font-size: var(--font-size-small);
   border-radius: 8px;
   border: 1px solid var(--border-light);
@@ -284,6 +313,7 @@ watch(() => props.targets, (targets) => {
   display: flex;
   align-items: center;
   gap: 6px;
+  overflow-wrap: anywhere;
 }
 
 .target-btn:hover { background: rgba(255, 59, 48, 0.06); }
@@ -295,7 +325,12 @@ watch(() => props.targets, (targets) => {
   font-weight: 500;
 }
 
+.target-name {
+  min-width: 0;
+}
+
 .target-hp {
+  flex: 0 0 auto;
   font-size: var(--font-size-caption);
   color: var(--text-muted);
 }
