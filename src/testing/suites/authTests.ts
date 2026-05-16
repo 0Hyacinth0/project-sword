@@ -15,7 +15,6 @@ import {
   resetTestContext,
   clearAuthState,
   setAuthState,
-  setSelectedCharacter,
   disableMock,
   generateTestUsername,
   safeCall,

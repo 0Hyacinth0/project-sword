@@ -24,7 +24,6 @@ import {
   testContext,
   setAuthState,
   setSelectedCharacter,
-  disableMock,
   generateTestUsername,
   generateTestCharName,
   safeCall,

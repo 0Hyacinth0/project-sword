@@ -24,7 +24,6 @@ import {
   safeCall,
 } from '../utils/testHelper'
 import type { InventoryItem } from '../../types/item'
-import type { PetInfo } from '../../types/pet'
 
 /** 存储测试过程中获取的战宠 ID */
 let testPetId: string = ''

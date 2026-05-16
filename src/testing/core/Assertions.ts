@@ -3,8 +3,6 @@
  * 提供链式断言 API，支持同步/异步断言，失败时抛出 AssertionError
  */
 
-import type { LogEntry } from './types'
-
 /**
  * 断言错误类
  * 扩展原生 Error，携带实际值、期望值和比较运算符，便于调试定位
@@ -85,6 +83,8 @@ interface Assertions {
   toBeLessThan(expected: number): void
   /** 断言实际值大于或等于期望值 */
   toBeGreaterThanOrEqual(expected: number): void
+  /** 断言实际值小于或等于期望值 */
+  toBeLessThanOrEqual(expected: number): void
   /** 断言实际值具有指定长度 */
   toHaveLength(expected: number): void
   /** 断言实际值（数组/字符串）包含期望值 */
@@ -253,6 +253,22 @@ function createAssertions(actual: unknown): Assertions {
           actual,
           expected,
           'toBeGreaterThanOrEqual'
+        )
+      }
+    },
+
+    /**
+     * 断言实际值小于或等于期望值
+     * @param expected - 期望比较的数值
+     * @throws AssertionError 当实际值大于期望值时
+     */
+    toBeLessThanOrEqual(expected: number): void {
+      if (typeof actual !== 'number' || actual > expected) {
+        throw new AssertionError(
+          createMessage(actual, expected, '小于或等于 (<=)'),
+          actual,
+          expected,
+          'toBeLessThanOrEqual'
         )
       }
     },
@@ -456,10 +472,10 @@ export function expect(actual: unknown): Assertions {
 }
 
 /**
- * 异步断言命名空间
+ * 异步断言工具对象
  * 提供 resolves 和 rejects 用于测试 Promise 的 resolve/reject 值
  */
-export namespace expect {
+export const expectAsync = {
   /**
    * 断言 Promise 成功 resolve，并验证 resolve 的值
    * @param promise - 待验证的 Promise
@@ -467,9 +483,9 @@ export namespace expect {
    * @throws AssertionError 当 Promise 被 reject 时
    *
    * @example
-   * await expect.resolves(fetchData()).toEqual({ id: 1 })
+   * await expectAsync.resolves(fetchData()).toEqual({ id: 1 })
    */
-  export async function resolves<T>(promise: Promise<T>): Promise<Assertions> {
+  async resolves<T>(promise: Promise<T>): Promise<Assertions> {
     let result: T
     try {
       result = await promise
@@ -483,7 +499,7 @@ export namespace expect {
       )
     }
     return createAssertions(result)
-  }
+  },
 
   /**
    * 断言 Promise 被 reject，并验证 reject 的原因
@@ -492,9 +508,9 @@ export namespace expect {
    * @throws AssertionError 当 Promise 成功 resolve 时
    *
    * @example
-   * await expect.rejects(Promise.reject(new Error('fail'))).toThrow('fail')
+   * await expectAsync.rejects(Promise.reject(new Error('fail'))).toThrow('fail')
    */
-  export async function rejects<T>(promise: Promise<T>): Promise<Assertions> {
+  async rejects<T>(promise: Promise<T>): Promise<Assertions> {
     let error: unknown
     try {
       await promise
