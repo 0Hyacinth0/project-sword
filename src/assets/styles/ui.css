@@ -624,12 +624,154 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
 }
 
-@media (max-width: 720px) {
+/* ═══ 响应式 ═══ */
+@media (max-width: 1024px) {
+  .ui-panel--padding-lg {
+    padding: 20px;
+  }
+
+  .ui-modal__dialog {
+    max-width: 340px;
+    padding: 20px;
+  }
+
+  .ui-button--lg {
+    min-height: 42px;
+    padding: 12px 20px;
+  }
+
+  .ui-icon-button--lg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ui-tabs--md .ui-tabs__button {
+    min-height: 30px;
+    padding: 6px 8px;
+  }
+
+  .ui-stat-bar__track {
+    height: 12px;
+  }
+}
+
+@media (max-width: 768px) {
   .ui-modal__footer {
     flex-direction: column-reverse;
   }
 
   .ui-modal__footer .ui-button {
     width: 100%;
+  }
+
+  .ui-modal__dialog {
+    max-width: 320px;
+    padding: 18px;
+  }
+
+  .ui-modal__icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+
+  .ui-panel--padding-md {
+    padding: 12px;
+  }
+
+  .ui-panel--padding-lg {
+    padding: 16px;
+  }
+
+  .ui-panel__header {
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+  }
+
+  .ui-button--lg {
+    min-height: 40px;
+    padding: 10px 18px;
+    font-size: var(--font-size-small);
+  }
+
+  .ui-toast-host {
+    width: min(360px, calc(100vw - 24px));
+  }
+
+  .ui-toast {
+    padding: 8px 12px;
+  }
+
+  .ui-badge--md {
+    min-height: 20px;
+    padding: 3px 8px;
+  }
+}
+
+@media (max-width: 375px) {
+  .ui-modal {
+    padding: 8px;
+  }
+
+  .ui-modal__dialog {
+    max-width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .ui-modal__title {
+    font-size: var(--font-size-base);
+  }
+
+  .ui-panel--padding-sm {
+    padding: 8px;
+  }
+
+  .ui-panel--padding-md {
+    padding: 10px;
+  }
+
+  .ui-panel--padding-lg {
+    padding: 12px;
+  }
+
+  .ui-button--md {
+    min-height: 34px;
+    padding: 8px 14px;
+  }
+
+  .ui-button--lg {
+    min-height: 38px;
+    padding: 9px 16px;
+  }
+
+  .ui-tabs {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .ui-tabs--sm .ui-tabs__button {
+    min-height: 24px;
+    padding: 4px 5px;
+  }
+
+  .ui-tabs--md .ui-tabs__button {
+    min-height: 28px;
+    padding: 5px 7px;
+    font-size: var(--font-size-caption);
+  }
+
+  .ui-toast-host {
+    width: calc(100vw - 16px);
+    top: 12px;
+  }
+
+  .ui-stat-bar__track {
+    height: 10px;
+  }
+
+  .ui-badge--sm {
+    min-height: 16px;
+    padding: 2px 6px;
   }
 }

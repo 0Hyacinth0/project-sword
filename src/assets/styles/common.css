@@ -67,7 +67,32 @@
   letter-spacing: 0;
 }
 
-@media (max-width: 720px) {
+/* ═══ 响应式 ═══ */
+@media (max-width: 1024px) {
+  .levelup-modal__card {
+    max-width: 320px;
+    padding: 20px;
+  }
+
+  .levelup-effect__burst--active {
+    width: 480px;
+    height: 480px;
+  }
+
+  .levelup-effect__level {
+    font-size: 40px;
+  }
+
+  .levelup-effect__old {
+    font-size: 28px;
+  }
+
+  .levelup-effect__label {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 768px) {
   .mock-toggle {
     position: static;
     width: max-content;
@@ -85,6 +110,53 @@
     overflow: visible;
     clip: auto;
     white-space: normal;
+  }
+
+  .levelup-modal {
+    padding: 12px;
+  }
+
+  .levelup-modal__card {
+    max-width: 300px;
+    padding: 16px;
+  }
+
+  .levelup-modal__level-new {
+    font-size: 24px;
+  }
+
+  .levelup-modal__rewards {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 375px) {
+  .levelup-modal__card {
+    max-width: 100%;
+    padding: 14px;
+  }
+
+  .levelup-modal__derived {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .levelup-effect__burst--active {
+    width: 320px;
+    height: 320px;
+  }
+
+  .levelup-effect__level {
+    font-size: 32px;
+    gap: 8px;
+  }
+
+  .levelup-effect__old {
+    font-size: 22px;
+  }
+
+  .levelup-effect__label {
+    font-size: 18px;
   }
 }
 

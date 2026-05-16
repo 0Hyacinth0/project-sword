@@ -103,6 +103,11 @@
   /* ── 按钮禁用 ── */
   --button-disabled-bg: rgba(0, 0, 0, 0.04);
   --button-disabled-text: rgba(0, 0, 0, 0.48);
+
+  /* ── 响应式断点 ── */
+  --breakpoint-mobile: 375px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
 }
 
 /* ── 暗色模式 ── */

@@ -419,7 +419,7 @@
 /* ══════════════════════════════════════════
    响应式
    ══════════════════════════════════════════ */
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
   .game-home {
     height: auto;
     min-height: 100dvh;
@@ -443,7 +443,7 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 768px) {
   .game-home {
     padding: 8px;
   }
@@ -483,6 +483,56 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+}
+
+@media (max-width: 375px) {
+  .game-home {
+    padding: 6px;
+  }
+
+  .game-header {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+  }
+
+  .game-header__center {
+    margin: 0 4px;
+  }
+
+  .game-body {
+    gap: 6px;
+  }
+
+  .game-left {
+    gap: 8px;
+  }
+
+  .game-main__actions,
+  .game-bottom-nav {
+    gap: 6px;
+  }
+
+  .game-main__welcome {
+    font-size: var(--font-size-base);
+  }
+
+  .game-main__desc {
+    font-size: var(--font-size-xs);
+  }
+
+  .backpack-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+
+  .backpack-search {
+    padding: 4px 6px;
+  }
+
+  .backpack-filters {
+    gap: 4px;
   }
 }
 
