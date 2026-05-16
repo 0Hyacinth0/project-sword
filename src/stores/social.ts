@@ -14,6 +14,12 @@ import {
   cancelFriendRequestApi
 } from '../api/social'
 import type { FriendInfo, FriendRequest, SearchPlayerResult } from '../types/social'
+import { generateFriendMirrorCombatant } from '../config/pvp_config'
+import { getActiveBattleSkills } from '../config/skill_config'
+import { professionToJobType } from '../config/job_config'
+import { calculateFullStats } from '../utils/attributeCalculator'
+import { useBattleStore } from './battle'
+import { useCharacterStore } from './character'
 
 export const useSocialStore = defineStore('social', () => {
   // ── 状态 ──
@@ -219,6 +225,45 @@ export const useSocialStore = defineStore('social', () => {
     errorMsg.value = ''
   }
 
+  /**
+   * 发起异步 PVP 挑战（好友镜像战斗）
+   * 根据好友 profession/level 生成镜像对手，复用战斗引擎
+   * @param friend - 好友信息
+   * @returns 操作结果
+   */
+  async function startAsyncPvpBattle(friend: {
+    characterId: string
+    characterName: string
+    profession: string
+    level: number
+  }): Promise<{ success: boolean; message: string }> {
+    const characterStore = useCharacterStore()
+    const battleStore = useBattleStore()
+    const detail = characterStore.characterDetail
+
+    if (!detail) {
+      return { success: false, message: '缺少角色详情数据' }
+    }
+
+    const enemyCombatant = generateFriendMirrorCombatant(friend)
+
+    const attrs = {
+      strength: detail.strength,
+      intelligence: detail.intelligence,
+      agility: detail.agility
+    }
+    const statsBreakdown = calculateFullStats(attrs, detail.profession, detail.equipment, null)
+    const skills = getActiveBattleSkills(professionToJobType(detail.profession), detail.level)
+
+    return battleStore.startWildBattle(
+      detail.id,
+      detail.characterName,
+      statsBreakdown,
+      skills,
+      enemyCombatant
+    )
+  }
+
   return {
     friends,
     pendingRequests,
@@ -240,6 +285,7 @@ export const useSocialStore = defineStore('social', () => {
     rejectRequest,
     removeFriend,
     cancelSentRequest,
-    clear
+    clear,
+    startAsyncPvpBattle
   }
 })
