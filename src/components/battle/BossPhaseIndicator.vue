@@ -142,4 +142,9 @@ const currentHpPercent = computed(() => {
   color: var(--text-muted);
   margin-top: 4px;
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .boss-phase-indicator__hp-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
 </style>

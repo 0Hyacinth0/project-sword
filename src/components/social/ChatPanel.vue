@@ -518,4 +518,13 @@ async function handleSend(): Promise<void> {
   .chat-conv-card { padding: 8px 10px; }
   .chat-msg { max-width: 85%; }
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .chat-messages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] .chat-conversations::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 </style>

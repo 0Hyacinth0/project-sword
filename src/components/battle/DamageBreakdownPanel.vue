@@ -174,4 +174,13 @@ const elementChain = [
   font-weight: 600;
   color: var(--accent-blue);
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .stat-row {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
 </style>

@@ -650,4 +650,9 @@ function handleBackToTeam(): void {
   .room-member-card { padding: 8px 10px; }
   .room-dungeon-card__inner { padding: 10px; }
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .room-dungeon-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 </style>

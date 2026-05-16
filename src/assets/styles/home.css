@@ -191,11 +191,14 @@
   align-items: stretch;
   justify-content: flex-start;
   text-align: left;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .game-main--battle > .battle-console {
   flex: 1;
+  min-height: 0;
 }
 
 .game-main__welcome {

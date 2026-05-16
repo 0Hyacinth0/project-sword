@@ -9,13 +9,13 @@
       </div>
       <div class="header-actions">
         <button class="icon-btn" :class="{ active: showTimestamp }" @click="showTimestamp = !showTimestamp" title="显示时间">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <Clock3 :size="14" :stroke-width="2" />
         </button>
         <button class="icon-btn" :class="{ active: groupByRound }" @click="groupByRound = !groupByRound" title="按回合分组">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          <ListTree :size="14" :stroke-width="2" />
         </button>
         <button class="icon-btn" @click="copyLog" title="复制日志">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <CopyIcon :size="14" :stroke-width="2" />
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
         :class="{ active: activeFilter === filter.key }"
         @click="activeFilter = filter.key"
       >
-        <span class="filter-icon">{{ filter.icon }}</span>
+        <component :is="filter.icon" class="filter-icon" :size="12" :stroke-width="1.8" />
         <span class="filter-label">{{ filter.label }}</span>
         <span class="filter-count" v-if="filter.key !== 'all'">{{ getFilterCount(filter.key) }}</span>
       </button>
@@ -91,7 +91,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, markRaw, ref, watch, nextTick } from 'vue'
+import { ClipboardList, Clock3, Copy as CopyIcon, HeartPulse, ListTree, Megaphone, Sparkles, Sword } from 'lucide-vue-next'
 import type { BattleLogEntry, LogEntryType } from '../../types/battle'
 
 const props = defineProps<{
@@ -119,11 +120,11 @@ const scrollContainer = ref<HTMLElement | null>(null)
 
 /** 筛选标签配置 */
 const filters = [
-  { key: 'all', label: '全部', icon: '📋' },
-  { key: 'damage', label: '伤害', icon: '⚔' },
-  { key: 'heal', label: '治疗', icon: '💚' },
-  { key: 'buff', label: 'Buff', icon: '✨' },
-  { key: 'system', label: '系统', icon: '📢' }
+  { key: 'all', label: '全部', icon: markRaw(ClipboardList) },
+  { key: 'damage', label: '伤害', icon: markRaw(Sword) },
+  { key: 'heal', label: '治疗', icon: markRaw(HeartPulse) },
+  { key: 'buff', label: 'Buff', icon: markRaw(Sparkles) },
+  { key: 'system', label: '系统', icon: markRaw(Megaphone) }
 ]
 
 /** 伤害相关类型 */
@@ -249,7 +250,8 @@ function formatTime(ts: number): string {
 // ── 操作 ──
 
 /**
- * 复制战斗日志到剪贴板
+ * 复制战斗日志到剪贴板。
+ * @returns Promise，无业务返回值。
  */
 async function copyLog(): Promise<void> {
   const lines = props.entries.map(e =>
@@ -276,6 +278,9 @@ watch(() => props.entries.length, async () => {
 
 <style scoped>
 .battle-log {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 14px 16px;
   border-radius: 14px;
   background: var(--bg-panel-light);
@@ -283,6 +288,7 @@ watch(() => props.entries.length, async () => {
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
   position: relative;
+  overflow: hidden;
 }
 
 /* ── 头部 ── */
@@ -291,6 +297,7 @@ watch(() => props.entries.length, async () => {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .header-left {
@@ -363,6 +370,8 @@ watch(() => props.entries.length, async () => {
   margin-bottom: 10px;
   overflow-x: auto;
   padding-bottom: 2px;
+  flex-shrink: 0;
+  scrollbar-gutter: stable;
 }
 
 .filter-btn {
@@ -394,7 +403,7 @@ watch(() => props.entries.length, async () => {
 }
 
 .filter-icon {
-  font-size: 12px;
+  flex-shrink: 0;
 }
 
 .filter-label {
@@ -419,10 +428,26 @@ watch(() => props.entries.length, async () => {
 
 /* ── 日志内容 ── */
 .log-entries {
-  max-height: 240px;
-  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: scroll;
   scroll-behavior: smooth;
-  padding-right: 4px;
+  padding-right: 8px;
+  scrollbar-gutter: stable;
+}
+
+.filter-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.log-entries::-webkit-scrollbar {
+  width: 7px;
+}
+
+.log-entries::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 /* ── 回合分组 ── */
@@ -593,5 +618,54 @@ watch(() => props.entries.length, async () => {
   .filter-icon { display: none; }
   .entry-time { display: none; }
   .header-actions { gap: 2px; }
+}
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .round-badge {
+  background: rgba(0, 113, 227, 0.18);
+}
+
+[data-theme='dark'] .count-badge {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .icon-btn.active {
+  background: rgba(0, 113, 227, 0.15);
+}
+
+[data-theme='dark'] .filter-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .filter-btn.active {
+  background: rgba(0, 113, 227, 0.15);
+}
+
+[data-theme='dark'] .filter-count {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme='dark'] .filter-btn.active .filter-count {
+  background: rgba(0, 113, 227, 0.2);
+}
+
+[data-theme='dark'] .log-entry {
+  border-bottom-color: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='dark'] .entry-round {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .copy-toast {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+[data-theme='dark'] .log-entries::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
 }
 </style>

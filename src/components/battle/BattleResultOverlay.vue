@@ -547,4 +547,13 @@ function itemTypeIcon(item: { itemType?: string }): string {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .reward-item { padding: 8px 12px; }
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .drop-icon {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .settlement-card::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 </style>

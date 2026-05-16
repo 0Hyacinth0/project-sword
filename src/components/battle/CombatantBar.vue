@@ -513,4 +513,17 @@ const myFloatingTexts = computed(() => {
   .fct.critical { font-size: 22px; }
   .fct.heal { font-size: 16px; }
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .combatant-level {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .bar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .death-overlay {
+  background: rgba(0, 0, 0, 0.15);
+}
 </style>

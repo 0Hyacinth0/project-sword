@@ -128,17 +128,42 @@ function selectTarget(targetUid: string): void {
 <style scoped>
 .battle-focus-field {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(220px, 1.2fr) minmax(160px, 1fr);
+  grid-template-columns: minmax(120px, 1fr) minmax(190px, 1.2fr) minmax(120px, 1fr);
   align-items: center;
   min-height: 260px;
   gap: 14px;
   padding: 16px;
   border: 1px solid var(--border-light);
   border-radius: 16px;
-  background: var(--bg-panel-light);
+  background:
+    linear-gradient(90deg, rgba(0, 113, 227, 0.08), transparent 34%, transparent 66%, rgba(255, 59, 48, 0.08)),
+    var(--bg-panel-light);
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow: var(--shadow-subtle);
   color: var(--text-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.battle-focus-field::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+  pointer-events: none;
+}
+
+.battle-focus-field::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  pointer-events: none;
+  opacity: 0.45;
 }
 
 .battle-focus-field--boss {
@@ -150,6 +175,8 @@ function selectTarget(targetUid: string): void {
   flex-direction: column;
   min-width: 0;
   gap: 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .battle-focus-unit,
@@ -159,6 +186,8 @@ function selectTarget(targetUid: string): void {
   background: var(--bg-panel-light);
   color: var(--text-primary);
   box-shadow: var(--shadow-subtle);
+  position: relative;
+  z-index: 1;
 }
 
 .battle-focus-unit,
@@ -266,6 +295,7 @@ function selectTarget(targetUid: string): void {
 
 .battle-focus-target {
   border-color: var(--accent-gold);
+  box-shadow: var(--shadow-elevated);
 }
 
 .battle-focus-target__eyebrow {
@@ -275,6 +305,7 @@ function selectTarget(targetUid: string): void {
 .battle-focus-target__name {
   max-width: 100%;
   font-size: var(--font-size-subheading);
+  text-align: center;
 }
 
 .battle-focus-target__meta {

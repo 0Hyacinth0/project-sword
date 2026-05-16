@@ -49,6 +49,11 @@ defineProps<{
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  scrollbar-gutter: stable;
+}
+
+.order-track::-webkit-scrollbar {
+  height: 5px;
 }
 
 .order-card {
@@ -102,5 +107,10 @@ defineProps<{
   font-size: var(--font-size-caption);
   color: var(--text-muted);
   padding: 8px;
+}
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .order-card.current {
+  background: rgba(0, 113, 227, 0.15);
 }
 </style>

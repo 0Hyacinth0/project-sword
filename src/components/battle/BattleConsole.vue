@@ -18,65 +18,89 @@
         </div>
       </header>
 
-      <ActionOrderBar :entries="store.battleState?.actionOrderPreview ?? []" />
+      <div class="battle-console__combat-grid">
+        <div class="battle-console__field-column">
+          <ActionOrderBar class="battle-console__order" :entries="store.battleState?.actionOrderPreview ?? []" />
 
-      <BossPhaseIndicator
-        v-if="isBossMode && bossEnemy && bossConfig"
-        :visible="true"
-        :boss-name="bossEnemy.name"
-        :current-phase="store.bossState?.currentPhase ?? 1"
-        :total-phases="bossConfig.phases.length"
-        :boss-hp="bossEnemy.stats.hp"
-        :boss-max-hp="bossEnemy.stats.maxHp"
-        :phase-changed="store.bossState?.phaseChanged ?? false"
-      />
+          <div v-if="isBossMode" class="battle-console__boss-stack">
+            <BossPhaseIndicator
+              v-if="bossEnemy && bossConfig"
+              :visible="true"
+              :boss-name="bossEnemy.name"
+              :current-phase="store.bossState?.currentPhase ?? 1"
+              :total-phases="bossConfig.phases.length"
+              :boss-hp="bossEnemy.stats.hp"
+              :boss-max-hp="bossEnemy.stats.maxHp"
+              :phase-changed="store.bossState?.phaseChanged ?? false"
+            />
 
-      <BossEnrageTimer
-        v-if="isBossMode && bossConfig"
-        :visible="true"
-        :is-enraged="store.bossState?.isEnraged ?? false"
-        :enrage-round="bossConfig.enrage.enrageRound"
-        :current-round="store.bossState?.currentRound ?? 0"
-        :attack-mult="bossConfig.enrage.attackMultiplier"
-      />
+            <BossEnrageTimer
+              v-if="bossConfig"
+              :visible="true"
+              :is-enraged="store.bossState?.isEnraged ?? false"
+              :enrage-round="bossConfig.enrage.enrageRound"
+              :current-round="store.bossState?.currentRound ?? 0"
+              :attack-mult="bossConfig.enrage.attackMultiplier"
+            />
+          </div>
 
-      <BattleFocusField
-        :combatants="store.combatants"
-        :current-actor-uid="store.currentActor?.uid"
-        :selected-target-uid="selectedTargetUid"
-        :is-boss-mode="isBossMode"
-        @select-target="selectedTargetUid = $event"
-      />
+          <BattleFocusField
+            class="battle-console__field"
+            :combatants="store.combatants"
+            :current-actor-uid="store.currentActor?.uid"
+            :selected-target-uid="selectedTargetUid"
+            :is-boss-mode="isBossMode"
+            @select-target="selectedTargetUid = $event"
+          />
+        </div>
 
-      <!-- 出招倒计时 -->
-      <div v-if="store.waitingForPlayer" class="turn-timer">
-        <div class="turn-timer__bar" :class="timerBarClass" :style="{ width: `${(turnTimer / TURN_TIMEOUT_SECONDS) * 100}%` }"></div>
-        <span class="turn-timer__text">{{ turnTimer }}s</span>
+        <aside class="battle-console__tactics" aria-label="战术指令">
+          <div class="battle-console__tactics-header">
+            <span class="battle-console__tactics-label">战术指令</span>
+            <span class="battle-console__tactics-state" :class="{ 'battle-console__tactics-state--active': store.waitingForPlayer }">
+              {{ store.waitingForPlayer ? '等待出招' : '自动结算' }}
+            </span>
+          </div>
+
+          <!-- 出招倒计时 -->
+          <div v-if="store.waitingForPlayer" class="turn-timer">
+            <div class="turn-timer__track">
+              <div class="turn-timer__bar" :class="timerBarClass" :style="{ width: `${(turnTimer / TURN_TIMEOUT_SECONDS) * 100}%` }"></div>
+            </div>
+            <span class="turn-timer__text">{{ turnTimer }}s</span>
+          </div>
+
+          <BattleActionPanel
+            v-model="selectedTargetUid"
+            :visible="store.waitingForPlayer"
+            :actor-uid="store.currentActor?.uid ?? ''"
+            :actor-name="store.currentActor?.name ?? ''"
+            :phase="store.phase"
+            :skills="store.currentActor?.skills ?? []"
+            :targets="store.availableTargets"
+            :cooldowns="store.currentActor?.cooldowns ?? {}"
+            :current-mp="store.currentActor?.stats.mp ?? 0"
+            @action="handleAction"
+          />
+
+          <div v-if="!store.waitingForPlayer" class="battle-console__status-card">
+            <span class="battle-console__status-label">当前单位</span>
+            <strong>{{ store.currentActor?.name ?? '等待行动' }}</strong>
+            <span>{{ phaseLabel }}</span>
+          </div>
+
+          <ReviveButton
+            v-if="isBossMode && bossConfig && store.waitingForPlayer"
+            :visible="true"
+            :dead-allies="deadAllies"
+            :current-mp="playerCombatant?.stats.mp ?? 0"
+            :mp-cost="bossConfig.revive.mpCost"
+            :revive-count="store.bossState?.reviveCount ?? 0"
+            :max-revives="bossConfig.revive.maxRevives"
+            @revive="handleRevive"
+          />
+        </aside>
       </div>
-
-      <BattleActionPanel
-        v-model="selectedTargetUid"
-        :visible="store.waitingForPlayer"
-        :actor-uid="store.currentActor?.uid ?? ''"
-        :actor-name="store.currentActor?.name ?? ''"
-        :phase="store.phase"
-        :skills="store.currentActor?.skills ?? []"
-        :targets="store.availableTargets"
-        :cooldowns="store.currentActor?.cooldowns ?? {}"
-        :current-mp="store.currentActor?.stats.mp ?? 0"
-        @action="handleAction"
-      />
-
-      <ReviveButton
-        v-if="isBossMode && bossConfig && store.waitingForPlayer"
-        :visible="true"
-        :dead-allies="deadAllies"
-        :current-mp="playerCombatant?.stats.mp ?? 0"
-        :mp-cost="bossConfig.revive.mpCost"
-        :revive-count="store.bossState?.reviveCount ?? 0"
-        :max-revives="bossConfig.revive.maxRevives"
-        @revive="handleRevive"
-      />
 
       <BattleLog class="battle-console__log" :entries="store.log" :current-round="store.round" />
 
@@ -142,7 +166,8 @@ const turnTimer = ref(TURN_TIMEOUT_SECONDS)
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 /**
- * 启动出招倒计时
+ * 启动玩家出招倒计时。
+ * @returns 无返回值。
  */
 function startTurnTimer(): void {
   turnTimer.value = TURN_TIMEOUT_SECONDS
@@ -157,7 +182,8 @@ function startTurnTimer(): void {
 }
 
 /**
- * 停止并重置出招倒计时
+ * 停止并重置玩家出招倒计时。
+ * @returns 无返回值。
  */
 function stopTurnTimer(): void {
   if (timerInterval) {
@@ -168,7 +194,8 @@ function stopTurnTimer(): void {
 }
 
 /**
- * 超时自动执行普攻
+ * 在倒计时结束后自动选择一个可攻击目标并执行普攻。
+ * @returns 无返回值。
  */
 function handleAutoAction(): void {
   stopTurnTimer()
@@ -324,11 +351,14 @@ watch(() => store.isBattleOver, (over) => {
 <style scoped>
 .battle-console {
   width: 100%;
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   color: var(--text-primary);
+  overflow: hidden;
+  container-type: inline-size;
 }
 
 .battle-console__empty {
@@ -370,6 +400,7 @@ watch(() => store.isBattleOver, (over) => {
   box-shadow: var(--shadow-subtle);
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  flex-shrink: 0;
 }
 
 .battle-console__title {
@@ -429,14 +460,119 @@ watch(() => store.isBattleOver, (over) => {
 }
 
 .battle-console__log {
-  min-height: 150px;
-  max-height: 220px;
-  overflow: hidden;
+  flex: 0 0 clamp(190px, 28vh, 280px);
+  min-height: 190px;
+  overflow: visible;
 }
 
 .battle-console__log :deep(.log-entries) {
-  max-height: 160px;
+  max-height: none;
+  overflow-y: scroll;
+}
+
+.battle-console__combat-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.battle-console__field-column,
+.battle-console__tactics,
+.battle-console__boss-stack {
+  min-width: 0;
+  min-height: 0;
+}
+
+.battle-console__field-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.battle-console__field {
+  flex: 1 1 auto;
+}
+
+.battle-console__boss-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.battle-console__tactics {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  background: var(--bg-panel-light);
+  box-shadow: var(--shadow-subtle);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.battle-console__tactics :deep(.action-panel) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.battle-console__tactics-header,
+.battle-console__status-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.battle-console__tactics-label,
+.battle-console__status-label {
+  font-size: var(--font-size-label);
+  letter-spacing: 0.15rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.battle-console__tactics-state {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 980px;
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+  font-size: var(--font-size-caption);
+  font-weight: 600;
+}
+
+.battle-console__tactics-state--active {
+  color: var(--accent-green);
+  border-color: var(--accent-green);
+}
+
+.battle-console__status-card {
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-panel-light);
+  box-shadow: var(--shadow-subtle);
+}
+
+.battle-console__status-card strong {
+  font-size: var(--font-size-section);
+  color: var(--text-primary);
+}
+
+.battle-console__status-card span:last-child {
+  font-size: var(--font-size-small);
+  color: var(--text-muted);
 }
 
 .battle-console--shake {
@@ -463,19 +599,58 @@ watch(() => store.isBattleOver, (over) => {
   }
 }
 
+@media (max-width: 1180px) {
+  .battle-console__combat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .battle-console__tactics {
+    overflow: visible;
+  }
+}
+
+@container (max-width: 900px) {
+  .battle-console__combat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .battle-console__tactics {
+    overflow: visible;
+  }
+}
+
+@media (max-width: 960px) {
+  .battle-console {
+    height: auto;
+    overflow: visible;
+  }
+
+  .battle-console__log {
+    flex-basis: 260px;
+  }
+}
+
 /* ── 出招倒计时 ── */
 .turn-timer {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   background: var(--bg-panel-light);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
-  margin-bottom: 8px;
+  box-shadow: var(--shadow-subtle);
+}
+
+.turn-timer__track {
+  flex: 1;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .turn-timer__bar {
-  flex: 1;
   height: 6px;
   border-radius: 3px;
   transition: width 0.3s linear, background-color 0.3s ease;
@@ -505,5 +680,10 @@ watch(() => store.isBattleOver, (over) => {
   color: var(--text-muted);
   min-width: 28px;
   text-align: right;
+}
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .battle-console__phase {
+  background: rgba(0, 113, 227, 0.18);
 }
 </style>

@@ -8,13 +8,16 @@
     <!-- 普通攻击 / 防御 / 逃跑 -->
     <div class="action-row">
       <button class="action-btn attack" @click="$emit('action', { type: 'attack', actorUid: actorUid, targetUid: selectedTargetUid ?? undefined })" :disabled="!selectedTargetUid">
-        ⚔ 攻击
+        <Sword :size="16" :stroke-width="1.8" />
+        攻击
       </button>
       <button class="action-btn defend" @click="$emit('action', { type: 'defend', actorUid })">
-        🛡 防御
+        <Shield :size="16" :stroke-width="1.8" />
+        防御
       </button>
       <button class="action-btn flee" @click="$emit('action', { type: 'flee', actorUid })">
-        🏃 逃跑
+        <Flag :size="16" :stroke-width="1.8" />
+        逃跑
       </button>
     </div>
 
@@ -60,6 +63,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { Flag, Shield, Sword } from 'lucide-vue-next'
 import { BattlePhase } from '../../types/battle'
 import type { BattleAction, BattleSkill, Combatant } from '../../types/battle'
 
@@ -157,6 +161,19 @@ watch(() => props.targets, (targets) => {
   backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: var(--glass-border-gradient);
+  pointer-events: none;
 }
 
 /* ── 头部 ── */
@@ -164,13 +181,18 @@ watch(() => props.targets, (targets) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
 .actor-name {
+  min-width: 0;
   font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .phase-tag {
@@ -191,6 +213,7 @@ watch(() => props.targets, (targets) => {
 
 .action-btn {
   flex: 1;
+  min-height: 42px;
   padding: 10px 12px;
   font-size: var(--font-size-small);
   font-weight: 500;
@@ -204,6 +227,10 @@ watch(() => props.targets, (targets) => {
   gap: 4px;
   background: var(--bg-panel-light);
   color: var(--text-primary);
+}
+
+.action-btn svg {
+  flex-shrink: 0;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -243,6 +270,29 @@ watch(() => props.targets, (targets) => {
   padding-top: 8px;
   border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .skill-section {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .target-section {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .skill-btn:hover:not(.disabled) {
+  background: rgba(0, 113, 227, 0.12);
+}
+
+[data-theme='dark'] .target-btn:hover {
+  background: rgba(255, 59, 48, 0.12);
+}
+
+[data-theme='dark'] .target-btn.selected {
+  background: rgba(255, 59, 48, 0.18);
+}
+
+/* ── 响应式 ── */
 
 .skill-grid {
   display: grid;

@@ -791,4 +791,9 @@ async function handleCancel(requestId: string): Promise<void> {
 @media (max-width: 720px) {
   .friend-card { padding: 8px 10px; }
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .friend-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
 </style>

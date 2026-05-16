@@ -192,4 +192,13 @@ function handleRevive(targetUid: string) {
 .modal-leave-to {
   opacity: 0;
 }
+
+/* ── 深色模式 ── */
+[data-theme='dark'] .revive-modal__item {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .revive-modal__cancel {
+  background: rgba(142, 142, 147, 0.15);
+}
 </style>
