@@ -447,6 +447,52 @@
   to { opacity: 0; }
 }
 
+/* ═══ Dark Mode Overrides ═══ */
+[data-theme='dark'] .levelup-effect {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme='dark'] .levelup-effect__burst {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.7) 0%, rgba(255, 214, 10, 0.4) 40%, transparent 70%);
+}
+
+[data-theme='dark'] .levelup-effect__old {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme='dark'] .levelup-effect__new {
+  text-shadow: 0 0 20px rgba(255, 214, 10, 0.8), 0 0 40px rgba(255, 214, 10, 0.4);
+}
+
+@keyframes newLevelGlowDark {
+  from { text-shadow: 0 0 20px rgba(255, 214, 10, 0.8), 0 0 40px rgba(255, 214, 10, 0.4); }
+  to { text-shadow: 0 0 30px rgba(255, 214, 10, 1), 0 0 60px rgba(255, 214, 10, 0.6); }
+}
+
+[data-theme='dark'] .levelup-effect__new {
+  animation: newLevelGlowDark 0.8s ease infinite alternate;
+}
+
+[data-theme='dark'] .levelup-modal {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme='dark'] .levelup-modal__rewards {
+  background: rgba(245, 158, 11, 0.08);
+}
+
+[data-theme='dark'] .levelup-modal__derived {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .levelup-modal__skills {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .levelup-modal__reward-icon--points {
+  background: rgba(52, 199, 89, 0.2);
+}
+
 @media (prefers-color-scheme: dark) {
   .levelup-modal__derived {
     border-top-color: rgba(255, 255, 255, 0.08);

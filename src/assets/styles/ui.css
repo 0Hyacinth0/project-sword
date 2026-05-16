@@ -591,6 +591,39 @@
   to { transform: translateX(100%); }
 }
 
+/* ── Dark Mode Overrides ── */
+[data-theme='dark'] .ui-panel::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+[data-theme='dark'] .ui-modal {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme='dark'] .ui-modal__dialog--danger .ui-modal__icon {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .ui-badge--primary {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+[data-theme='dark'] .ui-badge--success {
+  background: rgba(50, 215, 75, 0.15);
+}
+
+[data-theme='dark'] .ui-badge--warning {
+  background: rgba(255, 214, 10, 0.15);
+}
+
+[data-theme='dark'] .ui-badge--danger {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .ui-stat-bar__flash {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
 @media (max-width: 720px) {
   .ui-modal__footer {
     flex-direction: column-reverse;

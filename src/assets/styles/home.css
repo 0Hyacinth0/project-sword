@@ -187,6 +187,17 @@
   gap: 16px;
 }
 
+.game-main--battle {
+  align-items: stretch;
+  justify-content: flex-start;
+  text-align: left;
+  overflow: hidden;
+}
+
+.game-main--battle > .battle-console {
+  flex: 1;
+}
+
 .game-main__welcome {
   font-size: var(--font-size-subheading);
   font-weight: 600;
@@ -470,6 +481,23 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* ── Dark Mode Overrides ── */
+[data-theme='dark'] .game-main__welcome {
+  color: var(--text-primary);
+}
+
+[data-theme='dark'] .game-main__desc {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .game-loading {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .backpack-loading__spinner {
+  color: var(--text-muted);
 }
 
 /* ═══ HomeView 补充样式 ═══ */

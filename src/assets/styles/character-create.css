@@ -312,6 +312,22 @@
   transform: translateY(-2px);
 }
 
+/* ── Dark Mode Overrides ── */
+[data-theme='dark'] .skill-item:hover {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-subtle);
+}
+
+[data-theme='dark'] .job-switcher__btn--active {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-subtle);
+}
+
+[data-theme='dark'] .stat-row:hover {
+  background: var(--bg-panel-light);
+}
+
 /* ── 响应式 ── */
 @media (max-width: 720px) {
   .char-create__nav {

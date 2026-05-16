@@ -219,6 +219,87 @@
   filter: brightness(1.05);
 }
 
+/* ── Dark Mode Overrides ── */
+[data-theme='dark'] .current-phase {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+[data-theme='dark'] .current-phase.ROUND_START {
+  background: rgba(50, 215, 75, 0.15);
+}
+
+[data-theme='dark'] .current-phase.BUFF_SETTLEMENT {
+  background: rgba(175, 82, 222, 0.15);
+}
+
+[data-theme='dark'] .current-phase.ACTION_SELECT {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+[data-theme='dark'] .current-phase.SETTLEMENT {
+  background: rgba(255, 149, 0, 0.15);
+}
+
+[data-theme='dark'] .current-phase.BATTLE_END {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .action-btn.flee {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .skill-btn:hover:not(.disabled) {
+  background: rgba(10, 132, 255, 0.12);
+}
+
+[data-theme='dark'] .target-btn.selected {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .battle-result-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+[data-theme='dark'] .stat-item {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .combatant-icon {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .combatant-icon.player {
+  background: rgba(10, 132, 255, 0.2);
+}
+
+[data-theme='dark'] .combatant-icon.pet {
+  background: rgba(50, 215, 75, 0.2);
+}
+
+[data-theme='dark'] .combatant-icon.enemy {
+  background: rgba(255, 69, 58, 0.2);
+}
+
+[data-theme='dark'] .buff-badge {
+  background: rgba(50, 215, 75, 0.2);
+}
+
+[data-theme='dark'] .buff-badge.debuff {
+  background: rgba(255, 69, 58, 0.2);
+}
+
+[data-theme='dark'] .bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .round-badge {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+[data-theme='dark'] .phase-tag {
+  background: rgba(10, 132, 255, 0.15);
+}
+
 /* ── 响应式 ── */
 @media (max-width: 960px) {
   .battle-view { padding: 24px 12px 36px; }

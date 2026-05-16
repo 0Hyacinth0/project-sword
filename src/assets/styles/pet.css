@@ -1142,6 +1142,161 @@
   line-height: 1.5;
 }
 
+/* ── Dark Mode Overrides ── */
+[data-theme='dark'] .pet-list__tab-btn {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-slot {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-slot:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-slot--active {
+  box-shadow: 0 0 8px rgba(10, 132, 255, 0.3);
+}
+
+[data-theme='dark'] .pet-slot--selected {
+  box-shadow: 0 0 8px rgba(255, 214, 10, 0.3);
+}
+
+[data-theme='dark'] .pet-slot--empty:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='dark'] .pet-slot__exp-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-selected__btn--active {
+  background: var(--accent-blue);
+}
+
+[data-theme='dark'] .pet-detail-panel {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-detail-tab {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-detail-tab:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-detail-bonus {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-detail-equip {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-equip-slot {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-equip-slot__btn--off {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .pet-detail-rename {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-detail-rename-input {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-detail-learned {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-skill-slot {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-skill-slot__index {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-skill-slot__type {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+[data-theme='dark'] .pet-skill-slot__btn--unequip {
+  background: rgba(255, 69, 58, 0.15);
+}
+
+[data-theme='dark'] .pet-skill-picker {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+[data-theme='dark'] .pet-skill-picker__item {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-skill-picker__item:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='dark'] .pet-skill-picker__item-type {
+  background: rgba(10, 132, 255, 0.25);
+}
+
+[data-theme='dark'] .pet-detail-feed-select {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-detail-feed-qty-btn {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-detail-feed-qty-input {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-collection__filter {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme='dark'] .pet-collection__card {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .pet-collection__card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .pet-collection__card--owned {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme='dark'] .pet-collection__card-avatar--unknown {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme='dark'] .pet-collection__modal {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+[data-theme='dark'] .pet-collection__radar-track {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 /* 弹窗过渡 */
 .modal-fade-enter-active,
 .modal-fade-leave-active {
