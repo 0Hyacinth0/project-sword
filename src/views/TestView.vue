@@ -69,6 +69,8 @@ const logs = ref<LogEntry[]>([])
 const summary = ref({ total: 0, passed: 0, failed: 0, skipped: 0 })
 /** 是否正在执行测试 */
 const isRunning = ref(false)
+/** 当前测试运行结束后是否需要清理认证状态。 */
+const clearAuthAfterRun = ref(false)
 /** 后端基础 URL */
 const baseURL = ref('http://192.168.0.228:8080')
 
@@ -120,6 +122,19 @@ function selectModule(module: string): void {
 }
 
 /**
+ * 结束当前测试运行并清理运行期副作用
+ * @param clearAuth - 是否在结束运行后清理认证状态
+ * @returns 无返回值
+ */
+function finishRun(clearAuth: boolean): void {
+  isRunning.value = false
+  removeLogInterceptor()
+  if (clearAuth) {
+    clearAuthState()
+  }
+}
+
+/**
  * 执行全部测试
  * 安装日志拦截器，重置日志和统计，标记运行状态，调用引擎执行
  */
@@ -134,13 +149,21 @@ async function runAll(): Promise<void> {
     logs.value = [...logs.value, entry]
   })
 
+  clearAuthAfterRun.value = true
   isRunning.value = true
   testRunner.reset()
-  await testRunner.run()
+  try {
+    await testRunner.run()
+  } finally {
+    if (isRunning.value) {
+      finishRun(true)
+    }
+  }
 }
 
 /**
  * 执行当前选中模块的测试
+ * @returns 无返回值
  */
 async function runModule(): Promise<void> {
   if (!activeModule.value) return
@@ -151,17 +174,24 @@ async function runModule(): Promise<void> {
     logs.value = [...logs.value, entry]
   })
 
+  clearAuthAfterRun.value = false
   isRunning.value = true
-  await testRunner.run(activeModule.value)
+  try {
+    await testRunner.run(activeModule.value)
+  } finally {
+    if (isRunning.value) {
+      finishRun(false)
+    }
+  }
 }
 
 /**
  * 停止当前正在执行的测试
+ * @returns 无返回值
  */
 function stop(): void {
   testRunner.abort()
-  isRunning.value = false
-  removeLogInterceptor()
+  finishRun(false)
 }
 
 /**
@@ -236,11 +266,8 @@ function handleEvent(event: TestEvent): void {
       break
     }
     case 'all-done': {
-      isRunning.value = false
       summary.value = event.summary
-      // 全部测试结束后清理拦截器和认证状态
-      removeLogInterceptor()
-      clearAuthState()
+      finishRun(clearAuthAfterRun.value)
       break
     }
     case 'log': {
@@ -274,6 +301,7 @@ onUnmounted(() => {
     offListener()
     offListener = null
   }
+  removeLogInterceptor()
 })
 </script>
 

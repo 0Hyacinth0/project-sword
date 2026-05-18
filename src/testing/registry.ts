@@ -20,11 +20,17 @@ import { createLeaderboardTestSuite } from './suites/leaderboardTests'
 import { createArenaTestSuite } from './suites/arenaTests'
 import { createPvpTestSuite } from './suites/pvpTests'
 
+/** 是否已经注册过全部测试套件，避免重复进入 /test 时重复追加。 */
+let registered = false
+
 /**
  * 注册所有测试套件到 TestRunner
  * 按依赖顺序注册：认证 → 角色 → 背包 → 装备 → 战宠 → 战斗 → 地图 → 副本 → 社交 → 组队 → 聊天 → 排行榜 → 竞技场 → PVP
  */
 export function registerAllSuites(): void {
+  if (registered) return
+  registered = true
+
   testRunner.register(createAuthTestSuite())
   testRunner.register(createCharacterTestSuite())
   testRunner.register(createInventoryTestSuite())
