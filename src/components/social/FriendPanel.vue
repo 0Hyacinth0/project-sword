@@ -233,6 +233,8 @@
         </div>
       </Transition>
     </Teleport>
+
+    <UiToastHost :toasts="toasts" @dismiss="hideToast" />
   </div>
 </template>
 
@@ -242,6 +244,8 @@
  * 包含搜索、好友列表、好友请求、已发送请求
  */
 import { ref, onMounted } from 'vue'
+import { UiToastHost } from '../ui'
+import { useUiToasts } from '../../composables/useUiToasts'
 import { useSocialStore } from '../../stores/social'
 import { FRIEND_STATUS_CONFIG } from '../../types/social'
 import type { FriendInfo } from '../../types/social'
@@ -253,6 +257,9 @@ const JOB_NAMES: Record<string, string> = {
 }
 
 const socialStore = useSocialStore()
+
+/** 好友面板局部 Toast 反馈。 */
+const { toasts, showToast, hideToast } = useUiToasts()
 
 const emit = defineEmits<{
   'battle-started': [friend: { characterId: string; characterName: string; profession: string; level: number }]
@@ -320,28 +327,31 @@ function clearSearch(): void {
 /**
  * 发送好友请求
  * @param toCharacterId - 目标角色 ID
+ * @returns 无返回值
  */
 async function handleSendRequest(toCharacterId: string): Promise<void> {
   const result = await socialStore.sendRequest(toCharacterId)
-  if (!result.success) {
-    alert(result.message)
-  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 接受好友请求
  * @param requestId - 请求 ID
+ * @returns 无返回值
  */
 async function handleAccept(requestId: string): Promise<void> {
-  await socialStore.acceptRequest(requestId)
+  const result = await socialStore.acceptRequest(requestId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 拒绝好友请求
  * @param requestId - 请求 ID
+ * @returns 无返回值
  */
 async function handleReject(requestId: string): Promise<void> {
-  await socialStore.rejectRequest(requestId)
+  const result = await socialStore.rejectRequest(requestId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
@@ -354,11 +364,15 @@ function confirmDelete(friend: FriendInfo): void {
 
 /**
  * 执行删除好友
+ * @returns 无返回值
  */
 async function handleDelete(): Promise<void> {
   if (!deleteTarget.value) return
-  await socialStore.removeFriend(deleteTarget.value.characterId)
-  deleteTarget.value = null
+  const result = await socialStore.removeFriend(deleteTarget.value.characterId)
+  showToast(result.message, result.success ? 'success' : 'error')
+  if (result.success) {
+    deleteTarget.value = null
+  }
 }
 
 /**
@@ -382,9 +396,11 @@ async function handleChallenge(): Promise<void> {
 /**
  * 取消已发送的请求
  * @param requestId - 请求 ID
+ * @returns 无返回值
  */
 async function handleCancel(requestId: string): Promise<void> {
-  await socialStore.cancelSentRequest(requestId)
+  const result = await socialStore.cancelSentRequest(requestId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 </script>
 
