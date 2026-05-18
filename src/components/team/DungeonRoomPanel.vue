@@ -148,6 +148,8 @@
         </template>
       </div>
     </template>
+
+    <UiToastHost :toasts="toasts" @dismiss="hideToast" />
   </div>
 </template>
 
@@ -162,6 +164,8 @@ import { useDungeonStore } from '../../stores/dungeon'
 import { useTeamStore } from '../../stores/team'
 import { useCharacterStore } from '../../stores/character'
 import { getDungeonConfigsForRoomApi } from '../../api/dungeonRoom'
+import { useUiToasts } from '../../composables/useUiToasts'
+import { UiToastHost } from '../ui'
 import type { DungeonConfig } from '../../types/dungeon'
 
 const emit = defineEmits<{
@@ -180,6 +184,9 @@ const roomStore = useDungeonRoomStore()
 const dungeonStore = useDungeonStore()
 const teamStore = useTeamStore()
 const characterStore = useCharacterStore()
+
+/** 副本房间局部 Toast 反馈。 */
+const { toasts, showToast, hideToast } = useUiToasts()
 
 /** 所有副本配置 */
 const dungeonConfigs = getDungeonConfigsForRoomApi()
@@ -213,6 +220,7 @@ function isUnlocked(dungeon: DungeonConfig): boolean {
 /**
  * 选择副本并创建房间
  * @param dungeonId - 副本 ID
+ * @returns Promise，无业务返回值
  */
 async function handleSelectDungeon(dungeonId: string): Promise<void> {
   if (!teamStore.myTeam) return
@@ -222,18 +230,19 @@ async function handleSelectDungeon(dungeonId: string): Promise<void> {
     teamStore.myTeam.members,
     teamStore.myTeam.leaderId
   )
+  showToast(result.message, result.success ? 'success' : 'error')
   if (result.success) {
     teamStore.setDungeonRoom(roomStore.currentRoom!.roomId)
-  } else {
-    alert(result.message)
   }
 }
 
 /**
  * 切换准备状态
+ * @returns Promise，无业务返回值
  */
 async function handleToggleReady(): Promise<void> {
-  await roomStore.toggleReady()
+  const result = await roomStore.toggleReady()
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
@@ -246,41 +255,53 @@ async function handleStartChallenge(): Promise<void> {
   if (!room) return
 
   const result = await roomStore.startChallenge()
-  if (result.success) {
-    // 进入副本
-    const enterResult = dungeonStore.enterDungeon(room.dungeonId)
-    if (!enterResult.success) {
-      alert(enterResult.message)
-      return
-    }
-    // 获取房间成员作为 RoomMember
-    const roomMembers = room.members
-    // 发起多人副本战斗
-    const battleResult = await dungeonStore.startMultiPlayerFloorBattle(roomMembers)
-    if (battleResult.success) {
-      emit('battle-started')
-    } else {
-      alert(battleResult.message)
-    }
-  } else {
-    alert(result.message)
+  if (!result.success) {
+    showToast(result.message, 'error')
+    return
   }
+
+  // 进入副本
+  const enterResult = dungeonStore.enterDungeon(room.dungeonId)
+  if (!enterResult.success) {
+    showToast(enterResult.message, 'error')
+    return
+  }
+
+  // 获取房间成员作为 RoomMember
+  const roomMembers = room.members
+  // 发起多人副本战斗
+  const battleResult = await dungeonStore.startMultiPlayerFloorBattle(roomMembers)
+  if (battleResult.success) {
+    showToast('多人副本战斗开始', 'success')
+    emit('battle-started')
+    return
+  }
+
+  showToast(battleResult.message, 'error')
 }
 
 /**
  * 取消房间
+ * @returns Promise，无业务返回值
  */
 async function handleCancelRoom(): Promise<void> {
-  await roomStore.cancelRoom()
-  teamStore.setDungeonRoom(null)
+  const result = await roomStore.cancelRoom()
+  showToast(result.message, result.success ? 'success' : 'error')
+  if (result.success) {
+    teamStore.setDungeonRoom(null)
+  }
 }
 
 /**
  * 离开房间
+ * @returns Promise，无业务返回值
  */
 async function handleLeaveRoom(): Promise<void> {
-  await roomStore.leaveRoom()
-  teamStore.setDungeonRoom(null)
+  const result = await roomStore.leaveRoom()
+  showToast(result.message, result.success ? 'success' : 'error')
+  if (result.success) {
+    teamStore.setDungeonRoom(null)
+  }
 }
 
 /**
