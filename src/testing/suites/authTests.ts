@@ -13,7 +13,6 @@ import {
 import {
   testContext,
   resetTestContext,
-  clearAuthState,
   setAuthState,
   disableMock,
   generateTestUsername,
@@ -42,10 +41,12 @@ export function createAuthTestSuite(): TestSuite {
     },
 
     /**
-     * 套件后置钩子：清除认证状态，避免影响后续测试
+     * 套件后置钩子：不在此处清除认证状态
+     * token 需要保留给后续模块（角色、背包等）使用
+     * 最终清理由 TestView 的 all-done 事件处理
      */
     async afterAll() {
-      clearAuthState()
+      // 保留 token 给后续模块
     },
 
     cases: [

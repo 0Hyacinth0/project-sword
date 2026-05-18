@@ -4,6 +4,8 @@
  */
 
 import request from '../../api/request'
+import { disableMock as disableMockReal } from '../../utils/mockConfig'
+import type { LogEntry } from '../core/types'
 
 /** 测试用固定密码 */
 export const TEST_PASSWORD = 'Test123456!'
@@ -178,10 +180,10 @@ export function setSelectedCharacter(characterId: string): void {
 
 /**
  * 禁用 Mock 模式，确保请求走真实后端
- * 设置 localStorage 中 mock_enabled 为 'false'
+ * 调用 mockConfig 的 disableMock 以正确更新响应式 ref
  */
 export function disableMock(): void {
-  localStorage.setItem('mock_enabled', 'false')
+  disableMockReal()
 }
 
 /**
@@ -192,4 +194,89 @@ export function disableMock(): void {
 export function updateBaseURL(url: string): void {
   request.defaults.baseURL = url + '/jeecg-boot/webgame'
   testContext.baseURL = url + '/jeecg-boot/webgame'
+}
+
+/** 日志回调函数类型 */
+type LogCallback = (entry: LogEntry) => void
+
+/** 当前注册的日志回调 */
+let logCallback: LogCallback | null = null
+
+/** axios 请求拦截器 ID */
+let reqInterceptorId: number | null = null
+/** axios 响应拦截器 ID */
+let resInterceptorId: number | null = null
+
+/**
+ * 安装日志拦截器
+ * 拦截 axios 请求/响应/错误，通过回调推送日志条目
+ * @param cb - 日志回调函数
+ */
+export function installLogInterceptor(cb: LogCallback): void {
+  logCallback = cb
+
+  // 移除旧拦截器
+  removeLogInterceptor()
+
+  // 请求拦截器
+  reqInterceptorId = request.interceptors.request.use((config) => {
+    if (logCallback) {
+      const method = (config.method || 'get').toUpperCase()
+      const url = config.url || ''
+      const body = config.data ? ` ${JSON.stringify(config.data).substring(0, 200)}` : ''
+      logCallback({
+        timestamp: Date.now(),
+        direction: 'request',
+        content: `${method} ${url}${body}`
+      })
+    }
+    return config
+  })
+
+  // 响应拦截器（在业务拦截器之后）
+  resInterceptorId = request.interceptors.response.use(
+    (response) => {
+      if (logCallback) {
+        const url = response.config?.url || ''
+        const status = response.status
+        const data = response.data
+          ? ` ${JSON.stringify(response.data).substring(0, 300)}`
+          : ''
+        logCallback({
+          timestamp: Date.now(),
+          direction: 'response',
+          content: `← ${status} ${url}${data}`
+        })
+      }
+      return response
+    },
+    (error) => {
+      if (logCallback) {
+        const url = error.config?.url || ''
+        const status = error.response?.status || '网络错误'
+        const msg = error.response?.data?.message || error.message || ''
+        logCallback({
+          timestamp: Date.now(),
+          direction: 'error',
+          content: `✗ ${status} ${url} ${msg}`
+        })
+      }
+      return Promise.reject(error)
+    }
+  )
+}
+
+/**
+ * 移除日志拦截器
+ */
+export function removeLogInterceptor(): void {
+  if (reqInterceptorId !== null) {
+    request.interceptors.request.eject(reqInterceptorId)
+    reqInterceptorId = null
+  }
+  if (resInterceptorId !== null) {
+    request.interceptors.response.eject(resInterceptorId)
+    resInterceptorId = null
+  }
+  logCallback = null
 }

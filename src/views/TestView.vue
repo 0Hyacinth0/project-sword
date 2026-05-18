@@ -51,7 +51,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { TestSuite, SuiteResult, TestEvent, LogEntry } from '../testing/core/types'
 import { testRunner, registerAllSuites } from '../testing/registry'
-import { updateBaseURL, resetTestContext } from '../testing/utils/testHelper'
+import { updateBaseURL, resetTestContext, clearAuthState, installLogInterceptor, removeLogInterceptor } from '../testing/utils/testHelper'
 import TestSidebar from '../components/test/TestSidebar.vue'
 import TestPanel from '../components/test/TestPanel.vue'
 import TestLog from '../components/test/TestLog.vue'
@@ -121,12 +121,19 @@ function selectModule(module: string): void {
 
 /**
  * 执行全部测试
- * 重置日志和统计，标记运行状态，调用引擎执行
+ * 安装日志拦截器，重置日志和统计，标记运行状态，调用引擎执行
  */
 async function runAll(): Promise<void> {
   logs.value = []
   summary.value = { total: 0, passed: 0, failed: 0, skipped: 0 }
   resetTestContext()
+  clearAuthState()
+
+  // 安装日志拦截器：捕获 axios 请求/响应，通过事件推送到日志面板
+  installLogInterceptor((entry) => {
+    logs.value = [...logs.value, entry]
+  })
+
   isRunning.value = true
   testRunner.reset()
   await testRunner.run()
@@ -139,6 +146,11 @@ async function runModule(): Promise<void> {
   if (!activeModule.value) return
   logs.value = []
   summary.value = { total: 0, passed: 0, failed: 0, skipped: 0 }
+
+  installLogInterceptor((entry) => {
+    logs.value = [...logs.value, entry]
+  })
+
   isRunning.value = true
   await testRunner.run(activeModule.value)
 }
@@ -149,6 +161,7 @@ async function runModule(): Promise<void> {
 function stop(): void {
   testRunner.abort()
   isRunning.value = false
+  removeLogInterceptor()
 }
 
 /**
@@ -225,6 +238,9 @@ function handleEvent(event: TestEvent): void {
     case 'all-done': {
       isRunning.value = false
       summary.value = event.summary
+      // 全部测试结束后清理拦截器和认证状态
+      removeLogInterceptor()
+      clearAuthState()
       break
     }
     case 'log': {
