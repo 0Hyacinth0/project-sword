@@ -285,6 +285,8 @@
         </div>
       </Transition>
     </Teleport>
+
+    <UiToastHost :toasts="toasts" @dismiss="hideToast" />
   </div>
 </template>
 
@@ -296,6 +298,8 @@
 import { ref, onMounted } from 'vue'
 import { useTeamStore } from '../../stores/team'
 import { useSocialStore } from '../../stores/social'
+import { useUiToasts } from '../../composables/useUiToasts'
+import { UiToastHost } from '../ui'
 import DungeonRoomPanel from './DungeonRoomPanel.vue'
 import type { TeamMember } from '../../types/team'
 
@@ -319,6 +323,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 const teamStore = useTeamStore()
 const socialStore = useSocialStore()
+/** 组队面板局部 Toast 反馈。 */
+const { toasts, showToast, hideToast } = useUiToasts()
 const showLeaveConfirm = ref(false)
 const showDisbandConfirm = ref(false)
 const kickTarget = ref<TeamMember | null>(null)
@@ -367,52 +373,54 @@ function isAlreadyInTeam(characterId: string): boolean {
 
 /**
  * 创建队伍
+ * @returns 无返回值
  */
 async function handleCreateTeam(): Promise<void> {
   const result = await teamStore.createTeam()
   if (result.success) {
     await teamStore.fetchTeamList()
-  } else {
-    alert(result.message)
   }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 申请加入队伍
  * @param teamId - 队伍 ID
+ * @returns 无返回值
  */
 async function handleApply(teamId: string): Promise<void> {
   const result = await teamStore.applyToTeam(teamId)
-  if (!result.success) {
-    alert(result.message)
-  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 邀请好友
  * @param characterId - 好友角色 ID
+ * @returns 无返回值
  */
 async function handleInvite(characterId: string): Promise<void> {
   const result = await teamStore.inviteFriend(characterId)
-  if (!result.success) {
-    alert(result.message)
-  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 接受入队申请
  * @param applicationId - 申请 ID
+ * @returns 无返回值
  */
 async function handleAcceptApp(applicationId: string): Promise<void> {
-  await teamStore.acceptApp(applicationId)
+  const result = await teamStore.acceptApp(applicationId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 拒绝入队申请
  * @param applicationId - 申请 ID
+ * @returns 无返回值
  */
 async function handleRejectApp(applicationId: string): Promise<void> {
-  await teamStore.rejectApp(applicationId)
+  const result = await teamStore.rejectApp(applicationId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
@@ -425,45 +433,61 @@ function confirmKick(member: TeamMember): void {
 
 /**
  * 执行踢出成员
+ * @returns 无返回值
  */
 async function handleKick(): Promise<void> {
   if (!kickTarget.value) return
-  await teamStore.kickMember(kickTarget.value.characterId)
-  kickTarget.value = null
+  const result = await teamStore.kickMember(kickTarget.value.characterId)
+  if (result.success) {
+    kickTarget.value = null
+  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 转让队长
  * @param characterId - 新队长角色 ID
+ * @returns 无返回值
  */
 async function handleChangeLeader(characterId: string): Promise<void> {
-  await teamStore.changeLeader(characterId)
+  const result = await teamStore.changeLeader(characterId)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 切换队伍状态
  * @param status - 目标状态
+ * @returns 无返回值
  */
 async function handleToggleStatus(status: 'open' | 'closed'): Promise<void> {
-  await teamStore.toggleStatus(status)
+  const result = await teamStore.toggleStatus(status)
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 离开队伍
+ * @returns 无返回值
  */
 async function handleLeave(): Promise<void> {
-  await teamStore.leaveTeam()
-  showLeaveConfirm.value = false
-  await teamStore.fetchTeamList()
+  const result = await teamStore.leaveTeam()
+  if (result.success) {
+    showLeaveConfirm.value = false
+    await teamStore.fetchTeamList()
+  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 
 /**
  * 解散队伍
+ * @returns 无返回值
  */
 async function handleDisband(): Promise<void> {
-  await teamStore.disbandTeam()
-  showDisbandConfirm.value = false
-  await teamStore.fetchTeamList()
+  const result = await teamStore.disbandTeam()
+  if (result.success) {
+    showDisbandConfirm.value = false
+    await teamStore.fetchTeamList()
+  }
+  showToast(result.message, result.success ? 'success' : 'error')
 }
 </script>
 
