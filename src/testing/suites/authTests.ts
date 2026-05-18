@@ -13,6 +13,7 @@ import {
 import {
   testContext,
   resetTestContext,
+  clearAuthState,
   setAuthState,
   disableMock,
   generateTestUsername,
