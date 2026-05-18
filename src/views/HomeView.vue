@@ -146,7 +146,7 @@
             <template #icon><component :is="item.icon" :size="16" /></template>
             {{ item.label }}
           </UiButton>
-          <UiButton class="game-bottom-nav__item" variant="secondary" size="sm" @click="showToast('商店功能即将开放')">
+          <UiButton class="game-bottom-nav__item" variant="secondary" size="sm" @click="showToast('商店功能即将开放', 'info')">
             <template #icon><Store :size="16" /></template>
             商店
           </UiButton>
@@ -228,7 +228,7 @@
     />
 
     <!-- Toast 提示 -->
-    <UiToastHost :toasts="homeToasts" @dismiss="toastMessage = ''" />
+    <UiToastHost :toasts="homeToasts" @dismiss="hideToast" />
 
     <!-- UID 显示 - 屏幕左下角 -->
     <div v-if="auth.user?.id" class="game-uid">
@@ -246,6 +246,7 @@ import { useInventoryStore } from '../stores/inventory'
 import { usePvpStore } from '../stores/pvp'
 import { useBattleStore } from '../stores/battle'
 import { useSocialStore } from '../stores/social'
+import { useUiToasts } from '../composables/useUiToasts'
 import { getPetListApi, setActivePetApi, feedPetApi, evolvePetApi, renamePetApi, equipSkillApi, unequipSkillApi, equipPetItemApi, unequipPetItemApi } from '../api/pet'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import CharacterPanel from '../components/character/CharacterPanel.vue'
@@ -259,7 +260,7 @@ import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
 import ArenaPanel from '../components/arena/ArenaPanel.vue'
 import BattleConsole from '../components/battle/BattleConsole.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
-import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem, type UiToastItem } from '../components/ui'
+import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem } from '../components/ui'
 import { BACKPACK_TABS, RARITY_LABELS } from '../config/item_config'
 import { calculateSetBonuses } from '../config/set_config'
 import type { BackpackTab, InventoryItem, ItemRarity, SortField } from '../types/item'
@@ -361,27 +362,8 @@ const currentEquipForSlot = computed(() => {
   return charDetail.value?.equipment?.[slotType as keyof typeof charDetail.value.equipment] || null
 })
 
-/** Toast 提示消息 */
-const toastMessage = ref('')
-let toastTimer: ReturnType<typeof setTimeout> | null = null
-
-/** 当前主页 Toast 列表，供通用 Toast 容器渲染。 */
-const homeToasts = computed<UiToastItem[]>(() =>
-  toastMessage.value
-    ? [{ id: 'home-toast', message: toastMessage.value, type: 'info' }]
-    : []
-)
-
-/**
- * 显示 Toast 提示
- */
-function showToast(message: string) {
-  if (toastTimer) clearTimeout(toastTimer)
-  toastMessage.value = message
-  toastTimer = setTimeout(() => {
-    toastMessage.value = ''
-  }, 3000)
-}
+/** 主页级 Toast 反馈，覆盖背包、装备、战宠、战斗入口等操作。 */
+const { toasts: homeToasts, showToast, hideToast } = useUiToasts()
 
 /**
  * 切换背包分类标签。
@@ -460,10 +442,10 @@ async function handleUseItem(inventoryId: string, quantity: number) {
 
   const result = await inventory.useItem(characterId, inventoryId, quantity)
   if (result) {
-    showToast(result.message)
+    showToast(result.message, 'success')
     selectedItem.value = null
   } else if (inventory.actionErrorMsg) {
-    showToast(inventory.actionErrorMsg)
+    showToast(inventory.actionErrorMsg, 'error')
   }
 }
 
@@ -476,10 +458,10 @@ async function handleDiscardItem(inventoryId: string, quantity: number) {
 
   const success = await inventory.discardItem(characterId, inventoryId, quantity)
   if (success) {
-    showToast('丢弃成功')
+    showToast('丢弃成功', 'success')
     selectedItem.value = null
   } else if (inventory.actionErrorMsg) {
-    showToast(inventory.actionErrorMsg)
+    showToast(inventory.actionErrorMsg, 'error')
   }
 }
 
@@ -492,12 +474,12 @@ async function handleEquipItem(inventoryId: string, slotType?: string) {
 
   const result = await charStore.equipItem(characterId, inventoryId, slotType)
   if (result.success) {
-    showToast('装备成功')
+    showToast('装备成功', 'success')
     selectedItem.value = null
     // 刷新背包（装备从背包移除）
     await inventory.fetchInventory(characterId)
   } else {
-    showToast(result.message)
+    showToast(result.message, 'error')
   }
 }
 
@@ -510,11 +492,11 @@ async function handleUnequip(slotType: EquipmentSlotType) {
 
   const result = await charStore.unequipItem(characterId, slotType)
   if (result.success) {
-    showToast('卸下成功')
+    showToast('卸下成功', 'success')
     // 刷新背包（装备回到背包）
     await inventory.fetchInventory(characterId)
   } else {
-    showToast(result.message)
+    showToast(result.message, 'error')
   }
 }
 
@@ -527,10 +509,10 @@ async function handleEnhance(slotType: EquipmentSlotType) {
 
   const result = await charStore.enhanceItem(characterId, slotType)
   if (result.success) {
-    showToast(result.message)
+    showToast(result.message, 'success')
     await inventory.fetchInventory(characterId)
   } else {
-    showToast(result.message)
+    showToast(result.message, 'error')
   }
 }
 
@@ -666,9 +648,9 @@ async function handleSetActivePet(petId: string) {
     if (res.code === 200) {
       await fetchPetList(characterId)
       await refreshCharacter()
-      showToast(res.message || '设置成功')
+      showToast(res.message || '设置成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -688,9 +670,9 @@ async function handleFeedPet(petId: string, inventoryId: string, quantity: numbe
     if (res.code === 200) {
       await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message || '喂食成功')
+      showToast(res.message || '喂食成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -710,9 +692,9 @@ async function handleEvolvePet(petId: string) {
     if (res.code === 200) {
       await fetchPetList(characterId)
       await refreshCharacter()
-      showToast(res.message || '进化成功')
+      showToast(res.message || '进化成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -731,9 +713,9 @@ async function handleRenamePet(petId: string, nickname: string) {
     const res = await renamePetApi(characterId, petId, nickname)
     if (res.code === 200) {
       await fetchPetList(characterId)
-      showToast(res.message || '重命名成功')
+      showToast(res.message || '重命名成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -752,9 +734,9 @@ async function handleEquipSkill(petId: string, skillId: number, slotIndex: numbe
     const res = await equipSkillApi(characterId, petId, skillId, slotIndex)
     if (res.code === 200) {
       await fetchPetList(characterId)
-      showToast(res.message || '装备技能成功')
+      showToast(res.message || '装备技能成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -773,9 +755,9 @@ async function handleUnequipSkill(petId: string, slotIndex: number) {
     const res = await unequipSkillApi(characterId, petId, slotIndex)
     if (res.code === 200) {
       await fetchPetList(characterId)
-      showToast(res.message || '卸下技能成功')
+      showToast(res.message || '卸下技能成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -795,9 +777,9 @@ async function handleEquipPetItem(petId: string, inventoryId: string, slotType: 
     if (res.code === 200) {
       await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message || '装备成功')
+      showToast(res.message || '装备成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
@@ -817,9 +799,9 @@ async function handleUnequipPetItem(petId: string, slotType: 'armor' | 'accessor
     if (res.code === 200) {
       await fetchPetList(characterId)
       await inventory.fetchInventory(characterId)
-      showToast(res.message || '卸下成功')
+      showToast(res.message || '卸下成功', 'success')
     } else {
-      showToast(res.message)
+      showToast(res.message, 'error')
     }
   } finally {
     petLoading.value = false
