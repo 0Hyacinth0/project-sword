@@ -186,12 +186,11 @@ async function runModule(): Promise<void> {
 }
 
 /**
- * 停止当前正在执行的测试
+ * 请求中止当前正在执行的测试，实际清理由运行结束流程完成
  * @returns 无返回值
  */
 function stop(): void {
   testRunner.abort()
-  finishRun(false)
 }
 
 /**
