@@ -82,7 +82,12 @@ let offListener: (() => void) | null = null
  * 从 resultsMap 中获取对应模块的 SuiteResult
  */
 const activeResult = computed<SuiteResult | null>(() => {
-  return resultsMap.value.get(activeModule.value) ?? null
+  if (!activeModule.value) return null
+  return resultsMap.value.get(activeModule.value) ?? {
+    module: activeModule.value,
+    status: 'idle',
+    results: []
+  }
 })
 
 /**
