@@ -272,7 +272,6 @@ async function handleStartChallenge(): Promise<void> {
   // 发起多人副本战斗
   const battleResult = await dungeonStore.startMultiPlayerFloorBattle(roomMembers)
   if (battleResult.success) {
-    showToast('多人副本战斗开始', 'success')
     emit('battle-started')
     return
   }

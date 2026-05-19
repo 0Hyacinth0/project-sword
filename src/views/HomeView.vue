@@ -99,7 +99,7 @@
 
         <!-- 组队视图 -->
         <UiPanel v-else-if="centerView === 'team'" class="game-main" stretch>
-          <TeamPanel @battle-started="enterBattleView('team')" />
+          <TeamPanel @battle-started="handleTeamBattleStarted" />
         </UiPanel>
 
         <!-- 排行榜视图 -->
@@ -382,6 +382,16 @@ function handleBackpackTabChange(value: string | number): void {
 function enterBattleView(returnView: BattleReturnView): void {
   battleReturnView.value = returnView
   centerView.value = 'battle'
+}
+
+/**
+ * 处理队伍副本战斗启动。
+ * 在主页级 Toast 中提示，避免组队面板卸载导致反馈消失。
+ * @returns 无返回值
+ */
+function handleTeamBattleStarted(): void {
+  showToast('多人副本战斗开始', 'success')
+  enterBattleView('team')
 }
 
 /**
