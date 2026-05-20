@@ -3,21 +3,11 @@
  * 角色列表、创建、删除、名称检测、属性加点
  */
 import request from './request'
-import {
-  mockInventoryItems,
-  mockItemTemplates,
-  parseExtraStats,
-  seedMockStarterInventory,
-  setMockConsumableEffectApplier,
-  type MockConsumableEffectPayload
-} from './inventory'
-import { registerMockCharacterProfile, type MockProfileProfession } from './mockSession'
+import { parseExtraStats } from './inventory'
 import type { ApiResponse } from './request'
 import type { EquipmentSlots, EquipmentSlotType, Equipment, ExtraStat } from '../types/equipment'
 import type { PetInfo } from '../types/pet'
-import { calculateBaseStats } from '../utils/attributeCalculator'
-import { calculateNextLevelExp, type LevelUpResult, calculateLevelUp } from '../utils/levelConfig'
-import { isMockEnabled } from '../utils/mockConfig'
+import type { LevelUpResult } from '../utils/levelConfig'
 
 /**
  * 角色信息（与后端 characters 表字段对应）
@@ -195,237 +185,11 @@ export interface AddExperienceResult {
 }
 
 // ──────────────────────────────────────────
-// Mock 数据
-// ──────────────────────────────────────────
-
-/** Mock 角色库 */
-const mockCharacters: CharacterInfo[] = [
-  {
-    id: 'mock-char-1',
-    userId: 'mock-user',
-    characterName: '剑圣无名',
-    profession: 1,
-    professionName: '战士',
-    portraitUrl: null,
-    level: 15,
-    experience: 2340,
-    nextLevelExp: 3000,
-    availablePoints: 3,
-    strength: 10,
-    intelligence: 3,
-    agility: 5,
-    hp: 500,
-    maxHp: 500,
-    mp: 50,
-    maxMp: 50,
-    physicalAttack: 20,
-    magicAttack: 6,
-    defense: 15,
-    dodgeRate: 0.05,
-    criticalRate: 0.03,
-    bonusHp: 18,
-    bonusPhysicalAttack: 3,
-    bonusMagicAttack: 1,
-    bonusDefense: 1,
-    createTime: '2026-04-20T08:00:00Z',
-    updateTime: '2026-04-28T10:00:00Z',
-    equipment: {
-      weapon: {
-        id: 'eq-001',
-        name: '精钢长剑',
-        rarity: 'Rare',
-        slotType: 'weapon',
-        stats: { physicalAttack: 15, strength: 3 },
-        extraStats: [
-          { key: 'criticalRate', value: 0.02 },
-          { key: 'agility', value: 2 }
-        ],
-        enhanceLevel: 3,
-        setId: 'set-001',
-        setName: '勇者之证'
-      },
-      helmet: { id: 'eq-005', name: '铁盔', rarity: 'Normal', slotType: 'helmet', stats: { defense: 3, hp: 20 }, enhanceLevel: 1 },
-      chest: { id: 'eq-002', name: '铁甲胸铠', rarity: 'Normal', slotType: 'chest', stats: { defense: 8, hp: 50 } },
-      legs: { id: 'eq-006', name: '战靴', rarity: 'Normal', slotType: 'legs', stats: { defense: 4, agility: 2 } },
-      accessory1: {
-        id: 'eq-007',
-        name: '力量戒指',
-        rarity: 'Rare',
-        slotType: 'accessory1',
-        stats: { strength: 5, physicalAttack: 5 },
-        extraStats: [
-          { key: 'hp', value: 15 }
-        ]
-      },
-      accessory2: null
-    },
-    activePet: {
-      id: 'pet-001',
-      petTypeId: 1001,
-      nickname: '小火焰',
-      level: 15,
-      exp: 2000,
-      maxExp: 12000,
-      rarity: 3,
-      isActive: true,
-      stats: { hp: 230, maxHp: 230, attack: 35, defense: 18, speed: 22 },
-      bonusToOwner: { hp: 23, attack: 4, defense: 2 }
-    }
-  },
-  {
-    id: 'mock-char-2',
-    userId: 'mock-user',
-    characterName: '冰霜女王',
-    profession: 2,
-    professionName: '法师',
-    portraitUrl: null,
-    level: 8,
-    experience: 860,
-    nextLevelExp: 1500,
-    availablePoints: 0,
-    strength: 2,
-    intelligence: 12,
-    agility: 4,
-    hp: 200,
-    maxHp: 200,
-    mp: 300,
-    maxMp: 300,
-    physicalAttack: 4,
-    magicAttack: 24,
-    defense: 5,
-    dodgeRate: 0.03,
-    criticalRate: 0.05,
-    bonusHp: 0,
-    bonusPhysicalAttack: 0,
-    bonusMagicAttack: 0,
-    bonusDefense: 0,
-    createTime: '2026-04-25T12:30:00Z',
-    updateTime: '2026-04-29T08:00:00Z',
-    equipment: {
-      weapon: {
-        id: 'eq-003',
-        name: '冰晶法杖',
-        rarity: 'Epic',
-        slotType: 'weapon',
-        stats: { magicAttack: 25, intelligence: 8, mp: 50 },
-        extraStats: [
-          { key: 'physicalAttack', value: 6 },
-          { key: 'criticalRate', value: 0.03 },
-          { key: 'hp', value: 35 }
-        ],
-        enhanceLevel: 5,
-        setId: 'set-002',
-        setName: '冰霜之心'
-      },
-      helmet: {
-        id: 'eq-008',
-        name: '魔力冠',
-        rarity: 'Rare',
-        slotType: 'helmet',
-        stats: { intelligence: 5, mp: 30 },
-        extraStats: [
-          { key: 'dodgeRate', value: 0.02 },
-          { key: 'defense', value: 2 }
-        ],
-        setId: 'set-002',
-        setName: '冰霜之心'
-      },
-      chest: {
-        id: 'eq-009',
-        name: '法师长袍',
-        rarity: 'Epic',
-        slotType: 'chest',
-        stats: { defense: 5, mp: 80, magicAttack: 10 },
-        extraStats: [
-          { key: 'hp', value: 45 },
-          { key: 'agility', value: 3 },
-          { key: 'dodgeRate', value: 0.02 },
-          { key: 'intelligence', value: 4 }
-        ],
-        setId: 'set-002',
-        setName: '冰霜之心'
-      },
-      legs: null,
-      accessory1: {
-        id: 'eq-004',
-        name: '魔力指环',
-        rarity: 'Rare',
-        slotType: 'accessory1',
-        stats: { mp: 30, intelligence: 3 },
-        extraStats: [
-          { key: 'magicAttack', value: 4 }
-        ]
-      },
-      accessory2: { id: 'eq-010', name: '智慧耳环', rarity: 'Normal', slotType: 'accessory2', stats: { intelligence: 2 } }
-    },
-    activePet: null
-  }
-]
-
-const mockNamesTaken = new Set(['剑圣无名', '冰霜女王', '暗影刺客'])
-
-/** Mock 延迟 */
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-/**
- * 将职业编号转换成 Mock 横向模块使用的职业英文枚举。
- * @param profession - 职业编号：1 战士、2 法师、3 猎人
- * @returns Mock 职业枚举
- */
-function professionToMockProfileProfession(profession: number): MockProfileProfession {
-  if (profession === 2) return 'Mage'
-  if (profession === 3) return 'Hunter'
-  return 'Warrior'
-}
-
-/**
- * 应用 Mock 消耗品效果到角色状态。
- * @param payload - 消耗品产生的生命、魔法、经验和复活效果
- * @returns 无返回值
- */
-function applyMockConsumableEffect(payload: MockConsumableEffectPayload): void {
-  const char = mockCharacters.find(item => item.id === payload.characterId)
-  if (!char) return
-
-  if (payload.revivePercent > 0) {
-    char.hp = Math.max(char.hp, Math.floor(char.maxHp * (payload.revivePercent / 100)))
-  }
-  if (payload.healHp > 0) {
-    char.hp = Math.min(char.maxHp, char.hp + payload.healHp)
-  }
-  if (payload.healMp > 0) {
-    char.mp = Math.min(char.maxMp, char.mp + payload.healMp)
-  }
-  if (payload.exp > 0) {
-    const levelUpResult = calculateLevelUp(char.level, char.experience, payload.exp)
-    char.level = levelUpResult.newLevel
-    char.experience = levelUpResult.overflowExp
-    char.nextLevelExp = calculateNextLevelExp(char.level)
-    char.availablePoints += levelUpResult.pointsGained
-    registerMockCharacterProfile({
-      characterId: char.id,
-      characterName: char.characterName,
-      profession: professionToMockProfileProfession(char.profession),
-      level: char.level
-    })
-  }
-  char.updateTime = new Date().toISOString()
-}
-
-setMockConsumableEffectApplier(applyMockConsumableEffect)
-
-// ──────────────────────────────────────────
 // API 函数
 // ──────────────────────────────────────────
 
 /** 获取当前账号的角色列表 */
 export async function getCharacterListApi(): Promise<ApiResponse<CharacterInfo[]>> {
-  if (isMockEnabled()) {
-    await delay(800)
-    return { code: 200, message: '获取成功', data: mockCharacters.map(c => normalizeCharacter({ ...c })) }
-  }
   const res = await request.get<ApiResponse<CharacterInfo[]>>('/character/list')
   res.data.data = res.data.data.map(c => normalizeCharacter(c))
   return res.data
@@ -433,152 +197,31 @@ export async function getCharacterListApi(): Promise<ApiResponse<CharacterInfo[]
 
 /** 创建角色 */
 export async function createCharacterApi(params: CreateCharacterParams): Promise<ApiResponse<CharacterInfo>> {
-  if (isMockEnabled()) {
-    return mockCreateCharacter(params)
-  }
   const res = await request.post<ApiResponse<CharacterInfo>>('/character/create', params)
   return res.data
 }
 
 /** 检测角色名是否可用 */
 export async function checkCharacterNameApi(name: string): Promise<ApiResponse<CheckNameResult>> {
-  if (isMockEnabled()) {
-    await delay(500)
-    const available = !mockNamesTaken.has(name)
-    return {
-      code: 200,
-      message: available ? '角色名可用' : '该角色名已被使用',
-      data: { available }
-    }
-  }
-  const res = await request.get<ApiResponse<CheckNameResult>>('/character/check-name', {
-    params: { name }
-  })
+  const res = await request.post<ApiResponse<CheckNameResult>>('/character/check-name', { name })
   return res.data
 }
 
 /** 删除角色 */
 export async function deleteCharacterApi(characterId: string): Promise<ApiResponse<null>> {
-  if (isMockEnabled()) {
-    return mockDeleteCharacter(characterId)
-  }
   const res = await request.delete<ApiResponse<null>>(`/character/delete/${characterId}`)
   return res.data
 }
 
 /** 获取角色详情 */
 export async function getCharacterInfoApi(characterId: string): Promise<ApiResponse<CharacterInfo>> {
-  if (isMockEnabled()) {
-    await delay(600)
-    const char = mockCharacters.find(c => c.id === characterId)
-    if (!char) {
-      return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
-    }
-    return { code: 200, message: '获取成功', data: normalizeCharacter({ ...char }) }
-  }
   const res = await request.get<ApiResponse<CharacterInfo>>(`/character/info/${characterId}`)
   res.data.data = normalizeCharacter(res.data.data)
   return res.data
 }
 
-// ──────────────────────────────────────────
-// Mock 实现
-// ──────────────────────────────────────────
-
-async function mockCreateCharacter(params: CreateCharacterParams): Promise<ApiResponse<CharacterInfo>> {
-  await delay(1200)
-
-  if (mockCharacters.length >= 3) {
-    return { code: 403, message: '每个账号最多创建 3 个角色', data: null as unknown as CharacterInfo }
-  }
-
-  if (mockNamesTaken.has(params.characterName)) {
-    return { code: 409, message: '该角色名已被使用', data: null as unknown as CharacterInfo }
-  }
-
-  const baseStats: Record<number, { str: number; int: number; agi: number; professionName: string }> = {
-    1: { str: 10, int: 3, agi: 5, professionName: '战士' },
-    2: { str: 2, int: 12, agi: 4, professionName: '法师' },
-    3: { str: 5, int: 4, agi: 11, professionName: '猎人' }
-  }
-
-  const stats = baseStats[params.profession]
-  const derived = calculateBaseStats(
-    { strength: stats.str, intelligence: stats.int, agility: stats.agi },
-    params.profession
-  )
-  const newChar: CharacterInfo = {
-    id: crypto.randomUUID(),
-    userId: 'mock-user',
-    characterName: params.characterName,
-    profession: params.profession,
-    professionName: stats.professionName,
-    portraitUrl: null,
-    level: 1,
-    experience: 0,
-    nextLevelExp: 100,
-    availablePoints: 0,
-    strength: stats.str,
-    intelligence: stats.int,
-    agility: stats.agi,
-    hp: derived.maxHp,
-    maxHp: derived.maxHp,
-    mp: derived.maxMp,
-    maxMp: derived.maxMp,
-    physicalAttack: derived.physicalAttack,
-    magicAttack: derived.magicAttack,
-    defense: derived.defense,
-    dodgeRate: derived.dodgeRate,
-    criticalRate: derived.criticalRate,
-    bonusHp: 0,
-    bonusPhysicalAttack: 0,
-    bonusMagicAttack: 0,
-    bonusDefense: 0,
-    createTime: new Date().toISOString(),
-    updateTime: new Date().toISOString(),
-    equipment: {
-      weapon: null,
-      helmet: null,
-      chest: null,
-      legs: null,
-      accessory1: null,
-      accessory2: null
-    },
-    activePet: null
-  }
-
-  mockCharacters.push(newChar)
-  mockNamesTaken.add(params.characterName)
-  seedMockStarterInventory(newChar.id, params.profession)
-  registerMockCharacterProfile({
-    characterId: newChar.id,
-    characterName: newChar.characterName,
-    profession: professionToMockProfileProfession(newChar.profession),
-    level: newChar.level
-  })
-
-  return { code: 200, message: '角色创建成功', data: newChar }
-}
-
-async function mockDeleteCharacter(characterId: string): Promise<ApiResponse<null>> {
-  await delay(800)
-
-  const index = mockCharacters.findIndex(c => c.id === characterId)
-  if (index === -1) {
-    return { code: 404, message: '角色不存在', data: null }
-  }
-
-  const removed = mockCharacters.splice(index, 1)[0]
-  mockNamesTaken.delete(removed.characterName)
-
-  return { code: 200, message: '角色已删除', data: null }
-}
-
 /** 属性加点 */
 export async function updateAttributesApi(params: UpdateAttributesParams): Promise<ApiResponse<CharacterInfo>> {
-  if (isMockEnabled()) {
-    return mockUpdateAttributes(params)
-  }
   const res = await request.post<ApiResponse<CharacterInfo>>('/character/update-attributes', {
     characterId: params.characterId,
     str: params.str,
@@ -586,35 +229,6 @@ export async function updateAttributesApi(params: UpdateAttributesParams): Promi
     agi: params.agi
   })
   return res.data
-}
-
-async function mockUpdateAttributes(params: UpdateAttributesParams): Promise<ApiResponse<CharacterInfo>> {
-  await delay(600)
-  const char = mockCharacters.find(c => c.id === params.characterId)
-  if (!char) {
-    return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
-  }
-  const total = params.str + params.int + params.agi
-  if (total > char.availablePoints) {
-    return { code: 400, message: '可用属性点不足', data: null as unknown as CharacterInfo }
-  }
-  char.strength += params.str
-  char.intelligence += params.int
-  char.agility += params.agi
-  char.availablePoints -= total
-  // 使用统一计算模块重新计算衍生属性
-  const derived = calculateBaseStats(
-    { strength: char.strength, intelligence: char.intelligence, agility: char.agility },
-    char.profession
-  )
-  char.maxHp = derived.maxHp
-  char.maxMp = derived.maxMp
-  char.physicalAttack = derived.physicalAttack
-  char.magicAttack = derived.magicAttack
-  char.defense = derived.defense
-  char.dodgeRate = derived.dodgeRate
-  char.criticalRate = derived.criticalRate
-  return { code: 200, message: '属性加点成功', data: { ...char } }
 }
 
 // ──────────────────────────────────────────
@@ -627,52 +241,8 @@ async function mockUpdateAttributes(params: UpdateAttributesParams): Promise<Api
  * @returns 更新后的角色信息，以及升级结果（如有升级）
  */
 export async function addExperienceApi(params: AddExperienceParams): Promise<ApiResponse<AddExperienceResult>> {
-  if (isMockEnabled()) {
-    return mockAddExperience(params)
-  }
   const res = await request.post<ApiResponse<AddExperienceResult>>('/character/add-experience', params)
   return res.data
-}
-
-/**
- * Mock 实现：增加经验并处理升级
- */
-async function mockAddExperience(params: AddExperienceParams): Promise<ApiResponse<AddExperienceResult>> {
-  await delay(800)
-
-  const char = mockCharacters.find(c => c.id === params.characterId)
-  if (!char) {
-    return { code: 404, message: '角色不存在', data: null as unknown as AddExperienceResult }
-  }
-
-  // 计算升级结果
-  const levelUpResult = calculateLevelUp(char.level, char.experience, params.expToAdd)
-
-  // 更新角色数据
-  char.level = levelUpResult.newLevel
-  char.experience = levelUpResult.overflowExp
-  char.nextLevelExp = calculateNextLevelExp(char.level)
-  char.availablePoints += levelUpResult.pointsGained
-  registerMockCharacterProfile({
-    characterId: char.id,
-    characterName: char.characterName,
-    profession: professionToMockProfileProfession(char.profession),
-    level: char.level
-  })
-
-  // 如果升级，重新计算衍生属性（基础属性不变，需玩家手动加点）
-  // 但 HP/MP 上限会随属性点分配后增长，这里暂不自动调整
-
-  return {
-    code: 200,
-    message: levelUpResult.levelsGained > 0
-      ? `恭喜升级！获得 ${levelUpResult.pointsGained} 点属性点`
-      : `获得 ${params.expToAdd} 经验值`,
-    data: {
-      character: { ...char },
-      levelUp: levelUpResult.levelsGained > 0 ? levelUpResult : null
-    }
-  }
 }
 
 // ──────────────────────────────────────────
@@ -693,55 +263,11 @@ export interface EnhanceResult {
  * @param slotType - 要强化的装备槽位
  */
 export async function enhanceEquipmentApi(characterId: string, slotType: string): Promise<ApiResponse<EnhanceResult>> {
-  if (isMockEnabled()) {
-    return mockEnhanceEquipment(characterId, slotType)
-  }
   const res = await request.post<ApiResponse<EnhanceResult>>('/equipment/enhance', {
     characterId,
     slotType
   })
   return res.data
-}
-
-/**
- * Mock：强化装备
- */
-async function mockEnhanceEquipment(characterId: string, slotType: string): Promise<ApiResponse<EnhanceResult>> {
-  await delay(600)
-
-  const char = mockCharacters.find(c => c.id === characterId)
-  if (!char) {
-    return { code: 404, message: '角色不存在', data: null as unknown as EnhanceResult }
-  }
-  if (!char.equipment) {
-    return { code: 400, message: '角色装备数据不存在', data: null as unknown as EnhanceResult }
-  }
-
-  const slot = slotType as keyof EquipmentSlots
-  const equip = char.equipment[slot]
-  if (!equip) {
-    return { code: 400, message: '该槽位没有装备', data: null as unknown as EnhanceResult }
-  }
-
-  const currentLevel = equip.enhanceLevel || 0
-  if (currentLevel >= 10) {
-    return { code: 400, message: '已达最大强化等级', data: null as unknown as EnhanceResult }
-  }
-
-  // Mock 简化：直接强化成功
-  const newLevel = currentLevel + 1
-  equip.enhanceLevel = newLevel
-
-  return {
-    code: 200,
-    message: `强化成功！当前等级 +${newLevel}`,
-    data: {
-      success: true,
-      newLevel,
-      message: `强化成功！${equip.name} 强化至 +${newLevel}`,
-      character: { ...char }
-    }
-  }
 }
 
 // ──────────────────────────────────────────
@@ -755,9 +281,6 @@ async function mockEnhanceEquipment(characterId: string, slotType: string): Prom
  * @param slotType - 装备槽位类型
  */
 export async function equipItemApi(characterId: string, inventoryId: string, slotType?: string): Promise<ApiResponse<CharacterInfo>> {
-  if (isMockEnabled()) {
-    return mockEquipItem(characterId, inventoryId)
-  }
   const res = await request.post<ApiResponse<CharacterInfo>>('/equipment/equip', {
     characterId,
     inventoryId,
@@ -772,134 +295,9 @@ export async function equipItemApi(characterId: string, inventoryId: string, slo
  * @param slotType - 要卸下的槽位类型
  */
 export async function unequipItemApi(characterId: string, slotType: EquipmentSlotType): Promise<ApiResponse<CharacterInfo>> {
-  if (isMockEnabled()) {
-    return mockUnequipItem(characterId, slotType)
-  }
   const res = await request.post<ApiResponse<CharacterInfo>>('/equipment/unequip', {
     characterId,
     slotType
   })
   return res.data
-}
-
-/**
- * Mock：穿戴装备
- */
-async function mockEquipItem(characterId: string, inventoryId: string): Promise<ApiResponse<CharacterInfo>> {
-  await delay(400)
-
-  const char = mockCharacters.find(c => c.id === characterId)
-  if (!char) {
-    return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
-  }
-  if (!char.equipment) {
-    return { code: 400, message: '角色装备数据不存在', data: null as unknown as CharacterInfo }
-  }
-
-  // 从背包中查找物品
-  const invIndex = mockInventoryItems.findIndex(i => i.id === inventoryId && i.characterId === characterId)
-  if (invIndex === -1) {
-    return { code: 404, message: '物品不存在', data: null as unknown as CharacterInfo }
-  }
-
-  const invItem = mockInventoryItems[invIndex]
-  if (invItem.item.category !== 'equipment' || !invItem.item.slotType) {
-    return { code: 400, message: '该物品不是装备', data: null as unknown as CharacterInfo }
-  }
-
-  const slot = invItem.item.slotType as keyof EquipmentSlots
-
-  // 构建装备数据
-  const newEquip: Equipment = {
-    id: invItem.item.itemId.toString(),
-    name: invItem.item.name,
-    rarity: invItem.item.rarity as Equipment['rarity'],
-    slotType: invItem.item.slotType,
-    stats: invItem.item.stats || {},
-    extraStats: invItem.extraStats,
-    description: invItem.item.description
-  }
-
-  // 若槽位已有装备，放回背包
-  const oldEquip = char.equipment[slot]
-  if (oldEquip) {
-    const oldTemplate = mockItemTemplates.find(t => t.name === oldEquip.name)
-    mockInventoryItems.push({
-      id: `inv-${Date.now()}`,
-      characterId,
-      itemId: oldTemplate?.itemId || 0,
-      item: oldTemplate || {
-        itemId: 0,
-        name: oldEquip.name,
-        category: 'equipment',
-        rarity: oldEquip.rarity,
-        description: oldEquip.description || '',
-        iconUrl: null,
-        maxStack: 1,
-        sellPrice: 0,
-        slotType: oldEquip.slotType,
-        stats: oldEquip.stats
-      },
-      quantity: 1,
-      obtainedAt: new Date().toISOString(),
-      extraStats: oldEquip.extraStats
-    })
-  }
-
-  // 更新角色装备
-  ;(char.equipment as unknown as Record<string, Equipment | null>)[slot] = newEquip
-
-  // 从背包移除
-  mockInventoryItems.splice(invIndex, 1)
-
-  return { code: 200, message: '装备成功', data: { ...char } }
-}
-
-/**
- * Mock：卸下装备
- */
-async function mockUnequipItem(characterId: string, slotType: EquipmentSlotType): Promise<ApiResponse<CharacterInfo>> {
-  await delay(400)
-
-  const char = mockCharacters.find(c => c.id === characterId)
-  if (!char) {
-    return { code: 404, message: '角色不存在', data: null as unknown as CharacterInfo }
-  }
-  if (!char.equipment) {
-    return { code: 400, message: '角色装备数据不存在', data: null as unknown as CharacterInfo }
-  }
-
-  const slot = slotType as keyof EquipmentSlots
-  const currentEquip = char.equipment[slot]
-  if (!currentEquip) {
-    return { code: 400, message: '该槽位没有装备', data: null as unknown as CharacterInfo }
-  }
-
-  // 将装备放回背包
-  const template = mockItemTemplates.find(t => t.name === currentEquip.name)
-  mockInventoryItems.push({
-    id: `inv-${Date.now()}`,
-    characterId,
-    itemId: template?.itemId || 0,
-    item: template || {
-      itemId: 0,
-      name: currentEquip.name,
-      category: 'equipment',
-      rarity: currentEquip.rarity,
-      description: currentEquip.description || '',
-      iconUrl: null,
-      maxStack: 1,
-      sellPrice: 0,
-      slotType: currentEquip.slotType,
-      stats: currentEquip.stats
-    },
-    quantity: 1,
-    obtainedAt: new Date().toISOString(),
-    extraStats: currentEquip.extraStats
-  })
-
-  // 清空槽位
-  ;(char.equipment as unknown as Record<string, Equipment | null>)[slot] = null
-
-  return { code: 200, message: '卸下成功', data: { ...char } }
 }

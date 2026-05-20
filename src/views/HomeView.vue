@@ -38,6 +38,7 @@
             v-if="charDetail"
             :character="charDetail"
             :set-bonuses="activeSetBonuses"
+            :skins="shop.ownedSkins"
             :pet-list="petList"
             :pet-capacity="petCapacity"
             :pet-loading="petLoading"
@@ -47,6 +48,7 @@
             @refresh="refreshCharacter"
             @unequip-slot="handleUnequip"
             @enhance-slot="handleEnhance"
+            @equip-skin="handleEquipShopSkin"
             @set-active-pet="handleSetActivePet"
             @feed-pet="handleFeedPet"
             @evolve-pet="handleEvolvePet"
@@ -112,6 +114,23 @@
           <ArenaPanel @battle-started="enterBattleView('arena')" />
         </UiPanel>
 
+        <!-- 商店视图 -->
+        <UiPanel v-else-if="centerView === 'shop'" class="game-main" stretch>
+          <ShopPanel
+            :character-id="charStore.selectedCharacterId"
+            :profession="charDetail?.profession ?? 1"
+            :balances="shop.balances"
+            :items="shop.items"
+            :skins="shop.skins"
+            :loading="shop.loading"
+            :action-loading="shop.actionLoading"
+            @refresh="handleRefreshShop"
+            @purchase="handlePurchaseShopItem"
+            @redeem-skin="handleRedeemShopSkin"
+            @equip-skin="handleEquipShopSkin"
+          />
+        </UiPanel>
+
         <!-- 主页欢迎视图 -->
         <UiPanel v-else-if="centerView === 'home'" class="game-main" stretch>
           <div class="game-main__welcome">
@@ -139,16 +158,9 @@
             :key="item.value"
             class="game-bottom-nav__item"
             :class="{ 'game-bottom-nav__item--active': centerView === item.value }"
-            variant="secondary"
-            size="sm"
             @click="centerView = item.value"
           >
-            <template #icon><component :is="item.icon" :size="16" /></template>
             {{ item.label }}
-          </UiButton>
-          <UiButton class="game-bottom-nav__item" variant="secondary" size="sm" @click="showToast('商店功能即将开放', 'info')">
-            <template #icon><Store :size="16" /></template>
-            商店
           </UiButton>
         </div>
       </div>
@@ -243,6 +255,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCharacterStore } from '../stores/character'
 import { useInventoryStore } from '../stores/inventory'
+import { useShopStore } from '../stores/shop'
 import { usePvpStore } from '../stores/pvp'
 import { useBattleStore } from '../stores/battle'
 import { useSocialStore } from '../stores/social'
@@ -258,6 +271,7 @@ import ChatPanel from '../components/social/ChatPanel.vue'
 import TeamPanel from '../components/team/TeamPanel.vue'
 import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
 import ArenaPanel from '../components/arena/ArenaPanel.vue'
+import ShopPanel from '../components/shop/ShopPanel.vue'
 import BattleConsole from '../components/battle/BattleConsole.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem } from '../components/ui'
@@ -266,6 +280,7 @@ import { calculateSetBonuses } from '../config/set_config'
 import type { BackpackTab, InventoryItem, ItemRarity, SortField } from '../types/item'
 import type { EquipmentSlotType } from '../types/equipment'
 import type { PetInfo, PetCapacity } from '../types/pet'
+import type { CharacterSkin, ShopItem } from '../types/shop'
 import {
   Map, Swords, Users, Store, Package, UserPlus, MessageCircle,
   LogOut, Loader2, Sparkles,
@@ -276,8 +291,8 @@ import {
 
 const RARITIES: ItemRarity[] = ['Normal', 'Rare', 'Epic', 'Legendary']
 
-type CenterView = 'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard' | 'arena' | 'battle'
-type BattleReturnView = Exclude<CenterView, 'home' | 'battle'>
+type CenterView = 'home' | 'map' | 'dungeon' | 'friend' | 'chat' | 'team' | 'leaderboard' | 'arena' | 'shop' | 'battle'
+type BattleReturnView = Exclude<CenterView, 'home' | 'shop' | 'battle'>
 
 /** 排序选项配置 */
 const sortOptions: { field: SortField; label: string; icon: Component }[] = [
@@ -302,6 +317,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const charStore = useCharacterStore()
 const inventory = useInventoryStore()
+const shop = useShopStore()
 
 const loading = ref(false)
 
@@ -318,7 +334,8 @@ const bottomNavItems: { value: Exclude<CenterView, 'home' | 'dungeon' | 'battle'
   { value: 'friend', label: '好友', icon: markRaw(UserPlus) },
   { value: 'team', label: '组队', icon: markRaw(Users) },
   { value: 'leaderboard', label: '排行', icon: markRaw(Trophy) },
-  { value: 'arena', label: '竞技', icon: markRaw(Swords) }
+  { value: 'arena', label: '竞技', icon: markRaw(Swords) },
+  { value: 'shop', label: '商店', icon: markRaw(Store) }
 ]
 
 /** 背包标签配置，适配通用 UiTabs 的 value 字段。 */
@@ -526,6 +543,76 @@ async function handleEnhance(slotType: EquipmentSlotType) {
   }
 }
 
+/**
+ * 刷新当前角色的商店概览。
+ * @returns 无返回值
+ */
+async function handleRefreshShop(): Promise<void> {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const ok = await shop.fetchOverview(characterId)
+  if (!ok && shop.errorMsg) {
+    showToast(shop.errorMsg, 'error')
+  }
+}
+
+/**
+ * 处理商店金币商品购买。
+ * @param item - 被购买商品
+ * @param quantity - 购买数量
+ * @returns 无返回值
+ */
+async function handlePurchaseShopItem(item: ShopItem, quantity: number): Promise<void> {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await shop.purchaseItem(characterId, item.id, quantity)
+  if (result) {
+    showToast(result.message, 'success')
+    if (result.inventoryChanged) {
+      await inventory.fetchInventory(characterId)
+    }
+  } else if (shop.actionErrorMsg) {
+    showToast(shop.actionErrorMsg, 'error')
+  }
+}
+
+/**
+ * 处理竞技币皮肤兑换。
+ * @param item - 被兑换皮肤商品
+ * @returns 无返回值
+ */
+async function handleRedeemShopSkin(item: ShopItem): Promise<void> {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await shop.redeemSkin(characterId, item.id)
+  if (result) {
+    showToast(result.message, 'success')
+  } else if (shop.actionErrorMsg) {
+    showToast(shop.actionErrorMsg, 'error')
+  }
+}
+
+/**
+ * 处理商店或装备页皮肤启用。
+ * @param skin - 被启用皮肤
+ * @returns 无返回值
+ */
+async function handleEquipShopSkin(skin: CharacterSkin): Promise<void> {
+  const characterId = charStore.selectedCharacterId
+  if (!characterId) return
+
+  const result = await shop.equipSkin(characterId, skin.skinId)
+  if (result) {
+    await charStore.fetchCharacterDetail(characterId)
+    showToast(result.message, 'success')
+  } else if (shop.actionErrorMsg) {
+    showToast(shop.actionErrorMsg, 'error')
+  }
+}
+
 /* ── 公告轮播 ── */
 interface Announcement {
   id: number
@@ -604,6 +691,7 @@ async function handleLogout(): Promise<void> {
   await auth.logout()
   charStore.clear()
   inventory.clear()
+  shop.clear()
   router.push({ name: 'login' })
 }
 
@@ -622,7 +710,8 @@ async function loadCharacterDetail() {
     await Promise.all([
       charStore.fetchCharacterDetail(characterId),
       inventory.fetchInventory(characterId),
-      fetchPetList(characterId)
+      fetchPetList(characterId),
+      shop.fetchOverview(characterId)
     ])
   } finally {
     loading.value = false
@@ -840,10 +929,7 @@ onUnmounted(() => {
 <style scoped>
 /* ── Dark Mode Overrides ── */
 
-/* 底部导航激活态光晕 — 暗色加深 */
-[data-theme='dark'] .game-bottom-nav__item--active {
-  box-shadow: 0 4px 14px var(--accent-blue-glow);
-}
+/* 底部导航激活态 — 图片底图按钮无需额外暗色覆盖 */
 
 /* 背包格子悬浮 — 暗色适配 */
 [data-theme='dark'] .backpack-cell:hover {

@@ -5,14 +5,11 @@ import { useCharacterStore } from './character'
 import { getDungeonConfig } from '../config/dungeon_config'
 import { createWildMonsterCombatant, ELITE_MONSTER_SKILLS, applyMultiPlayerScaling } from '../api/map'
 import { createPlayerCombatant, createAllyCombatantFromRoomMember } from '../api/battle'
-import { addExperienceApi } from '../api/character'
-import { grantMockRewardsToInventory } from '../api/inventory'
 import { getActiveBattleSkills } from '../config/skill_config'
 import { calculateFullStats } from '../utils/attributeCalculator'
 import { professionToJobType } from '../config/job_config'
 import { calculateRewards } from '../utils/battleEngine'
 import { calculateDungeonDrops } from '../utils/dungeonDrops'
-import { isMockEnabled } from '../utils/mockConfig'
 import type { DungeonRunState, DungeonFloorResult, DungeonConfig, MemberDropDistribution } from '../types/dungeon'
 import type { Combatant, BattleRewards } from '../types/battle'
 import type { RoomMember } from '../types/team'
@@ -227,9 +224,13 @@ export const useDungeonStore = defineStore('dungeon', () => {
     const statsBreakdown = calculateFullStats(attrs, charDetail.profession, charDetail.equipment, null)
     const playerCombatant = createPlayerCombatant(characterId, charDetail.characterName, statsBreakdown.total, skills)
 
-    // 创建 AI 队友战斗单位（排除自己）
+    // 创建 AI 队友战斗单位（排除自己，根据职业生成技能）
     const otherMembers = roomMembers.filter(m => m.characterId !== characterId)
-    const allyCombatants = otherMembers.map(m => createAllyCombatantFromRoomMember(m))
+    const allyCombatants = otherMembers.map(m => {
+      const memberJobType = professionToJobType(m.profession)
+      const memberSkills = getActiveBattleSkills(memberJobType, m.level)
+      return createAllyCombatantFromRoomMember(m, memberSkills)
+    })
 
     // 发起多人战斗
     const result = await battleStore.startWildBattleWithAllies(playerCombatant, allyCombatants, enemies)
@@ -305,7 +306,7 @@ export const useDungeonStore = defineStore('dungeon', () => {
     runState.value.floorHistory.push(floorResult)
 
     // 清理战斗状态
-    battleStore.finishBattle({ persistRewards: false })
+    battleStore.finishBattle()
 
     // 推进楼层或完成副本
     if (runState.value.currentFloor >= runState.value.totalFloors) {
@@ -333,7 +334,7 @@ export const useDungeonStore = defineStore('dungeon', () => {
     runState.value.floorHistory.push(floorResult)
 
     // 清理战斗状态
-    battleStore.finishBattle({ persistRewards: false })
+    battleStore.finishBattle()
 
     runState.value.status = 'floor_defeat'
   }
@@ -375,28 +376,6 @@ export const useDungeonStore = defineStore('dungeon', () => {
             quality: item.rarity.toLowerCase() as 'common' | 'rare' | 'epic' | 'legendary'
           }))
         )
-      }
-    }
-
-    if (isMockEnabled()) {
-      const characterStore = useCharacterStore()
-      const characterId = characterStore.selectedCharacterId
-      if (characterId) {
-        const currentMemberDrops = runState.value.floorHistory.flatMap(history =>
-          history.memberDrops?.find(member => member.characterId === characterId)?.drops ?? []
-        )
-        grantMockRewardsToInventory(characterId, {
-          ...rewards,
-          items: [...rewards.items, ...currentMemberDrops]
-        })
-        if (rewards.exp > 0) {
-          const expRes = await addExperienceApi({ characterId, expToAdd: rewards.exp })
-          if (expRes.code === 200) {
-            characterStore.characterDetail = expRes.data.character
-            const charIndex = characterStore.characters.findIndex(char => char.id === characterId)
-            if (charIndex !== -1) characterStore.characters[charIndex] = expRes.data.character
-          }
-        }
       }
     }
 

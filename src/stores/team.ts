@@ -19,7 +19,6 @@ import {
   changeLeaderApi,
   toggleTeamStatusApi
 } from '../api/team'
-import { getMockCurrentCharacterId } from '../api/mockSession'
 import type { TeamInfo, TeamApplication } from '../types/team'
 
 export const useTeamStore = defineStore('team', () => {
@@ -37,7 +36,7 @@ export const useTeamStore = defineStore('team', () => {
   /** 是否为队长 */
   const isLeader = computed(() => {
     if (!myTeam.value) return false
-    return myTeam.value.leaderId === getMockCurrentCharacterId()
+    return myTeam.value.leaderId === (sessionStorage.getItem('selected_character_id') || '')
   })
 
   /** 当前队伍人数 */

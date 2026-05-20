@@ -49,10 +49,12 @@
         :portrait-url="character.portraitUrl"
         :profession="character.profession"
         :set-bonuses="setBonuses"
+        :skins="skins"
         :inventory-items="inventoryItems"
         @click-slot="handleClickSlot"
         @unequip="handleUnequip"
         @enhance="handleEnhance"
+        @equip-skin="handleEquipSkin"
       />
 
       <!-- 战宠列表 -->
@@ -87,6 +89,7 @@ import type { CharacterInfo } from '../../api/character'
 import type { EquipmentSlotType, SetBonus } from '../../types/equipment'
 import type { PetInfo, PetCapacity } from '../../types/pet'
 import type { InventoryItem } from '../../types/item'
+import type { CharacterSkin } from '../../types/shop'
 import type { LevelUpResult } from '../../utils/levelConfig'
 import { getJobConfigByProfession } from '../../config/job_config'
 
@@ -109,6 +112,7 @@ interface Props {
   expItems?: InventoryItem[]
   equipItems?: InventoryItem[]
   inventoryItems?: InventoryItem[]
+  skins?: CharacterSkin[]
   levelUpResult?: LevelUpResult | null
 }
 
@@ -125,6 +129,7 @@ interface Emits {
   (e: 'unequip-skill', petId: string, slotIndex: number): void
   (e: 'equip-item', petId: string, inventoryId: string, slotType: 'armor' | 'accessory'): void
   (e: 'unequip-item', petId: string, slotType: 'armor' | 'accessory'): void
+  (e: 'equip-skin', skin: CharacterSkin): void
   (e: 'levelUpHandled'): void
 }
 
@@ -136,6 +141,7 @@ const props = withDefaults(defineProps<Props>(), {
   expItems: () => [],
   equipItems: () => [],
   inventoryItems: () => [],
+  skins: () => [],
   levelUpResult: null
 })
 const emit = defineEmits<Emits>()
@@ -195,6 +201,15 @@ function handleUnequip(slotType: EquipmentSlotType) {
  */
 function handleEnhance(slotType: EquipmentSlotType) {
   emit('enhance-slot', slotType)
+}
+
+/**
+ * 请求启用角色皮肤。
+ * @param skin - 被启用皮肤
+ * @returns 无返回值
+ */
+function handleEquipSkin(skin: CharacterSkin): void {
+  emit('equip-skin', skin)
 }
 
 /**

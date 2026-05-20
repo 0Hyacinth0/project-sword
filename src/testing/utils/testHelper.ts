@@ -4,7 +4,6 @@
  */
 
 import request from '../../api/request'
-import { disableMock as disableMockReal } from '../../utils/mockConfig'
 import type { LogEntry } from '../core/types'
 
 /** 测试用固定密码 */
@@ -105,6 +104,10 @@ export interface TestContext {
   secondCharacterName: string
   /** 战斗 ID */
   battleId: string
+  /** 玩家战斗单位 UID */
+  playerUid: string
+  /** 敌方战斗单位 UID */
+  enemyUid: string
   /** 背包物品 ID */
   inventoryItemId: string
   /** 装备槽位信息 */
@@ -125,6 +128,8 @@ export const testContext: TestContext = {
   secondCharacterId: '',
   secondCharacterName: '',
   battleId: '',
+  playerUid: '',
+  enemyUid: '',
   inventoryItemId: '',
   equipmentSlotInfo: {}
 }
@@ -145,6 +150,8 @@ export function resetTestContext(): void {
   testContext.secondCharacterId = ''
   testContext.secondCharacterName = ''
   testContext.battleId = ''
+  testContext.playerUid = ''
+  testContext.enemyUid = ''
   testContext.inventoryItemId = ''
   testContext.equipmentSlotInfo = {}
 }
@@ -179,14 +186,6 @@ export function setSelectedCharacter(characterId: string): void {
 }
 
 /**
- * 禁用 Mock 模式，确保请求走真实后端
- * 调用 mockConfig 的 disableMock 以正确更新响应式 ref
- */
-export function disableMock(): void {
-  disableMockReal()
-}
-
-/**
  * 动态更新 Axios 实例的 baseURL
  * 将 baseURL 设置为传入 URL + '/jeecg-boot/webgame'
  * @param url - 后端服务的基础 URL（不含路径部分）
@@ -213,17 +212,36 @@ let resInterceptorId: number | null = null
  * @param cb - 日志回调函数
  */
 export function installLogInterceptor(cb: LogCallback): void {
+  // 先移除旧拦截器（会清空 logCallback），再设置新的回调
+  removeLogInterceptor()
   logCallback = cb
 
-  // 移除旧拦截器
-  removeLogInterceptor()
-
-  // 请求拦截器
+  // 请求拦截器（用 unshift 插入到链头，确保在 auth 拦截器之后执行）
   reqInterceptorId = request.interceptors.request.use((config) => {
     if (logCallback) {
       const method = (config.method || 'get').toUpperCase()
       const url = config.url || ''
-      const body = config.data ? ` ${JSON.stringify(config.data).substring(0, 200)}` : ''
+
+      // 构建完整请求体：合并原始数据和自动注入字段
+      let bodyObj: Record<string, unknown> | null = null
+      if (config.data && typeof config.data === 'object') {
+        bodyObj = { ...config.data as Record<string, unknown> }
+      }
+      // 补充 auth 拦截器即将注入的字段
+      if (config.method !== 'get' && bodyObj) {
+        if (!bodyObj.userId) {
+          try {
+            const authUser = JSON.parse(localStorage.getItem('auth_user') || '{}')
+            if (authUser.id) bodyObj.userId = authUser.id
+          } catch { /* 忽略 */ }
+        }
+        if (!bodyObj.characterId) {
+          const charId = sessionStorage.getItem('selected_character_id')
+          if (charId) bodyObj.characterId = charId
+        }
+      }
+      const body = bodyObj ? ` ${JSON.stringify(bodyObj).substring(0, 300)}` : ''
+
       logCallback({
         timestamp: Date.now(),
         direction: 'request',

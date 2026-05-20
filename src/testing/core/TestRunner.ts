@@ -6,9 +6,13 @@
 
 import type { TestSuite, TestCase, TestResult, SuiteResult, TestEvent, TestEventListener } from './types'
 import { AssertionError } from './Assertions'
+import { testContext } from '../utils/testHelper'
 
 /** 默认用例超时时间（毫秒） */
 const DEFAULT_TIMEOUT = 10_000
+
+/** 套件间延迟时间（毫秒），用于 UI 视觉反馈 */
+const SUITE_DELAY = 50
 
 /**
  * 测试运行引擎类
@@ -106,6 +110,9 @@ class TestRunner {
     for (const suite of targetSuites) {
       if (this.aborted) break
 
+      // 套件间短暂延迟，让 UI 有时间渲染中间状态
+      await new Promise(resolve => setTimeout(resolve, SUITE_DELAY))
+
       const suiteResult = await this.runSuite(suite)
       this.results.set(suite.module, suiteResult)
 
@@ -144,6 +151,27 @@ class TestRunner {
 
     // 派发套件开始事件
     this.emit({ type: 'suite-start', module: suite.module })
+
+    // 依赖检查：非认证模块需要 token，若无则跳过整个模块
+    if (suite.module !== '认证系统' && !testContext.token) {
+      for (const testCase of suite.cases) {
+        const skippedResult: TestResult = {
+          caseName: testCase.name,
+          status: 'skipped',
+          duration: 0,
+          error: { message: '⚠ 依赖失败：认证模块未成功登录，跳过此模块' },
+          logs: []
+        }
+        suiteResult.results.push(skippedResult)
+        // 派发用例开始和结果事件，让 UI 能正确显示
+        this.emit({ type: 'case-start', module: suite.module, caseName: testCase.name })
+        this.emit({ type: 'case-result', module: suite.module, result: skippedResult })
+      }
+      suiteResult.status = 'done'
+      suiteResult.endTime = Date.now()
+      this.emit({ type: 'suite-result', module: suite.module, result: suiteResult })
+      return suiteResult
+    }
 
     // 标记跳过（显式跳过）的用例
     for (const testCase of suite.cases) {

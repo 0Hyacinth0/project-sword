@@ -9,6 +9,7 @@ import {
   getArenaSeasonApi,
   getArenaPlayerDataApi,
 } from '../../api/arena'
+import { testContext } from '../utils/testHelper'
 
 /**
  * 创建竞技场测试套件
@@ -48,7 +49,7 @@ export function createArenaTestSuite(): TestSuite {
       {
         name: '获取玩家竞技数据',
         fn: async () => {
-          const res = await getArenaPlayerDataApi()
+          const res = await getArenaPlayerDataApi(testContext.characterId)
           expect(res.code).toBe(200)
           expect(res.data.tier).toBeDefined()
           expect(res.data.subTier).toBeDefined()
@@ -69,7 +70,7 @@ export function createArenaTestSuite(): TestSuite {
         name: '数据完整性验证',
         fn: async () => {
           const seasonRes = await getArenaSeasonApi()
-          const playerRes = await getArenaPlayerDataApi()
+          const playerRes = await getArenaPlayerDataApi(testContext.characterId)
           expect(seasonRes.code).toBe(200)
           expect(playerRes.code).toBe(200)
 

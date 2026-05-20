@@ -12,8 +12,12 @@ import {
   leaveDungeonRoomApi,
   cancelDungeonRoomApi
 } from '../api/dungeonRoom'
-import { getMockCurrentCharacterId } from '../api/mockSession'
 import type { DungeonRoom } from '../types/team'
+
+/** 获取当前选中角色 ID */
+function getCurrentCharacterId(): string {
+  return sessionStorage.getItem('selected_character_id') || ''
+}
 
 export const useDungeonRoomStore = defineStore('dungeonRoom', () => {
   // ── 状态 ──
@@ -33,14 +37,14 @@ export const useDungeonRoomStore = defineStore('dungeonRoom', () => {
   /** 当前玩家是否已准备 */
   const amReady = computed(() => {
     if (!currentRoom.value) return false
-    const me = currentRoom.value.members.find(m => m.characterId === getMockCurrentCharacterId())
+    const me = currentRoom.value.members.find(m => m.characterId === getCurrentCharacterId())
     return me?.readyStatus === 'ready'
   })
 
   /** 是否为房间队长 */
   const isRoomLeader = computed(() => {
     if (!currentRoom.value) return false
-    return currentRoom.value.leaderId === getMockCurrentCharacterId()
+    return currentRoom.value.leaderId === getCurrentCharacterId()
   })
 
   /** 是否在房间中 */

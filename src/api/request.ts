@@ -56,6 +56,12 @@ request.interceptors.request.use(
       config.headers['X-Access-Token'] = token
     }
 
+    // 部分后端接口要求 X-Character-Id 请求头
+    const characterId = sessionStorage.getItem('selected_character_id')
+    if (characterId) {
+      config.headers['X-Character-Id'] = characterId
+    }
+
     // 所有非 GET 请求自动注入 userId 和 characterId
     if (config.method !== 'get') {
       try {
@@ -117,9 +123,13 @@ request.interceptors.response.use(
         localStorage.removeItem('auth_user')
         localStorage.removeItem('access_token')
         if (window.location.pathname !== '/login') {
-          // 使用 router 进行 SPA 导航，避免丢失 Pinia 状态
-          import('../router').then((mod) => {
-            mod.default.push('/login')
+          // 先清除 Pinia 状态再跳转，保持路由守卫判断一致
+          Promise.all([
+            import('../stores/auth'),
+            import('../router')
+          ]).then(([{ useAuthStore }, routerMod]) => {
+            useAuthStore().clearAuth()
+            routerMod.default.push('/login')
           }).catch(() => {
             window.location.href = '/login'
           })

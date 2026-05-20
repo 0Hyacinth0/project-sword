@@ -79,6 +79,11 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('access_token')
   }
 
+  /** 清除认证状态（仅用于 401 拦截器，不调用登出 API） */
+  function clearAuth() {
+    user.value = null
+  }
+
   // 初始化
   init()
 
@@ -88,6 +93,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     login,
     register,
-    logout
+    logout,
+    clearAuth
   }
 })
