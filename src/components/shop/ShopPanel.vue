@@ -13,6 +13,18 @@
         <strong class="shop-balance__value">{{ formatNumber(balances.accountPvpCoin) }}</strong>
       </div>
 
+      <div class="shop-balance shop-balance--profile">
+        <UserRound class="shop-balance__icon" :size="18" :stroke-width="1.8" aria-hidden="true" />
+        <span class="shop-balance__label">职业</span>
+        <strong class="shop-balance__value">{{ currentProfessionName }}</strong>
+      </div>
+
+      <div class="shop-balance shop-balance--skin">
+        <Shirt class="shop-balance__icon" :size="18" :stroke-width="1.8" aria-hidden="true" />
+        <span class="shop-balance__label">当前皮肤</span>
+        <strong class="shop-balance__value">{{ activeSkinName }}</strong>
+      </div>
+
       <UiButton
         class="shop-panel__refresh"
         variant="secondary"
@@ -226,7 +238,7 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { Check, Coins, Loader2, Minus, Plus, Shirt, ShoppingBag, Trophy } from 'lucide-vue-next'
+import { Check, Coins, Loader2, Minus, Plus, Shirt, ShoppingBag, Trophy, UserRound } from 'lucide-vue-next'
 import { UiBadge, UiButton, UiTabs, type BadgeTone, type UiTabItem } from '../ui'
 import type { CharacterSkin, ShopBalances, ShopItem } from '../../types/shop'
 
@@ -274,6 +286,12 @@ const arenaItems = computed(getArenaItems)
 /** 已拥有皮肤列表。 */
 const ownedSkins = computed(getOwnedSkins)
 
+/** 当前职业展示名称。 */
+const currentProfessionName = computed(() => professionLabel(props.profession))
+
+/** 当前启用皮肤名称。 */
+const activeSkinName = computed(getActiveSkinName)
+
 /**
  * 处理商店标签切换。
  * @param value - UiTabs 派发的标签值
@@ -313,6 +331,15 @@ function getArenaItems(): ShopItem[] {
  */
 function getOwnedSkins(): CharacterSkin[] {
   return props.skins.filter(isOwnedSkin)
+}
+
+/**
+ * 获取当前启用的皮肤名称。
+ * @returns 当前启用皮肤名称，未返回时使用职业默认皮肤名
+ */
+function getActiveSkinName(): string {
+  const activeSkin = props.skins.find(skin => skin.enabled)
+  return activeSkin?.name ?? `${professionLabel(props.profession)}默认`
 }
 
 /**
@@ -552,7 +579,7 @@ function formatNumber(value: number): string {
 
 .shop-panel__header {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
   gap: 10px;
   align-items: center;
 }
@@ -581,6 +608,14 @@ function formatNumber(value: number): string {
 
 .shop-balance--arena .shop-balance__icon,
 .shop-price--arena {
+  color: var(--accent-blue);
+}
+
+.shop-balance--profile .shop-balance__icon {
+  color: var(--accent-green);
+}
+
+.shop-balance--skin .shop-balance__icon {
   color: var(--accent-blue);
 }
 
@@ -814,6 +849,17 @@ function formatNumber(value: number): string {
 
   .shop-price {
     justify-content: flex-start;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 960px) {
+  .shop-panel__header {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shop-panel__refresh {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 }
 </style>

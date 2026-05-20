@@ -125,6 +125,7 @@ export const useShopStore = defineStore('shop', () => {
    * @returns 操作结果，失败时返回 null
    */
   async function purchaseItem(characterId: string, shopItemId: string, quantity: number): Promise<ShopActionResult | null> {
+    if (actionLoading.value) return null
     actionLoading.value = true
     actionErrorMsg.value = ''
     try {
@@ -150,6 +151,7 @@ export const useShopStore = defineStore('shop', () => {
    * @returns 操作结果，失败时返回 null
    */
   async function redeemSkin(characterId: string, shopItemId: string): Promise<ShopActionResult | null> {
+    if (actionLoading.value) return null
     actionLoading.value = true
     actionErrorMsg.value = ''
     try {
@@ -175,6 +177,7 @@ export const useShopStore = defineStore('shop', () => {
    * @returns 操作结果，失败时返回 null
    */
   async function equipSkin(characterId: string, skinId: string): Promise<ShopActionResult | null> {
+    if (actionLoading.value) return null
     actionLoading.value = true
     actionErrorMsg.value = ''
     try {
