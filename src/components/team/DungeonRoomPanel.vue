@@ -226,9 +226,7 @@ async function handleSelectDungeon(dungeonId: string): Promise<void> {
   if (!teamStore.myTeam) return
   const result = await roomStore.createRoom(
     teamStore.myTeam.id,
-    dungeonId,
-    teamStore.myTeam.members,
-    teamStore.myTeam.leaderId
+    dungeonId
   )
   showToast(result.message, result.success ? 'success' : 'error')
   if (result.success) {

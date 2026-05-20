@@ -5,23 +5,8 @@
  */
 import request from './request'
 import type { ApiResponse } from './request'
-import type { DungeonRoom, RoomMember } from '../types/team'
+import type { DungeonRoom } from '../types/team'
 import { DUNGEON_CONFIGS } from '../config/dungeon_config'
-
-/**
- * 将队伍成员转换为房间成员
- * @param teamMembers - 队伍成员列表
- * @param leaderId - 队长 ID
- */
-function toRoomMembers(teamMembers: { characterId: string; characterName: string; profession: string; level: number; role: string }[], leaderId: string): RoomMember[] {
-  return teamMembers.map(m => ({
-    characterId: m.characterId,
-    characterName: m.characterName,
-    profession: m.profession,
-    level: m.level,
-    readyStatus: m.characterId === leaderId ? 'ready' : 'not_ready'
-  }))
-}
 
 /**
  * 获取所有可挑战的副本配置
@@ -35,14 +20,10 @@ export function getDungeonConfigsForRoomApi() {
  * 创建副本房间
  * @param teamId - 队伍 ID
  * @param dungeonId - 副本 ID
- * @param teamMembers - 队伍成员列表
- * @param leaderId - 队长 ID
  */
 export async function createDungeonRoomApi(
   teamId: string,
-  dungeonId: string,
-  teamMembers: { characterId: string; characterName: string; profession: string; level: number; role: string }[],
-  leaderId: string
+  dungeonId: string
 ): Promise<ApiResponse<DungeonRoom>> {
   const res = await request.post<ApiResponse<DungeonRoom>>('/dungeon-room/create', { teamId, dungeonId })
   return res.data

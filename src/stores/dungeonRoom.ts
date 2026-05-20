@@ -56,19 +56,15 @@ export const useDungeonRoomStore = defineStore('dungeonRoom', () => {
    * 创建副本房间
    * @param teamId - 队伍 ID
    * @param dungeonId - 副本 ID
-   * @param teamMembers - 队伍成员列表
-   * @param leaderId - 队长 ID
    */
   async function createRoom(
     teamId: string,
-    dungeonId: string,
-    teamMembers: { characterId: string; characterName: string; profession: string; level: number; role: string }[],
-    leaderId: string
+    dungeonId: string
   ): Promise<{ success: boolean; message: string }> {
     loading.value = true
     errorMsg.value = ''
     try {
-      const res = await createDungeonRoomApi(teamId, dungeonId, teamMembers, leaderId)
+      const res = await createDungeonRoomApi(teamId, dungeonId)
       if (res.code === 200 && res.data) {
         currentRoom.value = res.data
         return { success: true, message: '房间创建成功' }

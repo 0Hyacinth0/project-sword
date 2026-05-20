@@ -4,7 +4,7 @@
  */
 import request from './request'
 import type { ApiResponse } from './request'
-import type { PetInfo, PetDetailInfo, PetListResult } from '../types/pet'
+import type { PetDetailInfo, PetListResult } from '../types/pet'
 
 // ──────────────────────────────────────────
 // API 函数
@@ -20,8 +20,9 @@ export async function getPetListApi(characterId: string): Promise<ApiResponse<Pe
 
 /**
  * 获取战宠详情
+ * @param petId - 战宠实例 ID
  */
-export async function getPetDetailApi(characterId: string, petId: string): Promise<ApiResponse<PetDetailInfo>> {
+export async function getPetDetailApi(_characterId: string, petId: string): Promise<ApiResponse<PetDetailInfo>> {
   const res = await request.get<ApiResponse<PetDetailInfo>>(`/pet/detail/${petId}`)
   return res.data
 }

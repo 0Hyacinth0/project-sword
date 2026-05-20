@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { startBattleApi, submitActionApi, endBattleApi, createPlayerCombatant, createPetCombatant } from '../api/battle'
-import { addExperienceApi } from '../api/character'
-import { useCharacterStore } from './character'
 import {
   BattlePhase,
   type BattleState,

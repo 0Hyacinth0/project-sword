@@ -137,6 +137,9 @@ import { BattlePhase } from '../../types/battle'
 import type { BattleAction } from '../../types/battle'
 import { useBattleStore } from '../../stores/battle'
 import { useDungeonStore } from '../../stores/dungeon'
+import { useCharacterStore } from '../../stores/character'
+import { useInventoryStore } from '../../stores/inventory'
+import { claimBattleRewardsApi } from '../../api/battle'
 import { triggerDamageAnimations, triggerBuffAnimation, triggerDeathAnimation, screenShake } from '../../utils/battleAnimation'
 import ActionOrderBar from './ActionOrderBar.vue'
 import BattleActionPanel from './BattleActionPanel.vue'
@@ -157,6 +160,8 @@ const emit = defineEmits<{
 
 const store = useBattleStore()
 const dungeonStore = useDungeonStore()
+const characterStore = useCharacterStore()
+const inventoryStore = useInventoryStore()
 const selectedTargetUid = ref<string | null>(null)
 const isResolvingDungeonResult = ref(false)
 
@@ -277,11 +282,42 @@ async function handleRevive(targetUid: string): Promise<void> {
 }
 
 /**
- * 结束普通战斗并通知首页返回来源视图。
+ * 结束普通战斗，领取奖励并刷新角色状态。
+ * 1. 调用 finishBattle 获取奖励数据
+ * 2. 胜利时调用后端 claimBattleRewardsApi 持久化奖励
+ * 3. 刷新角色和背包数据
+ * 4. 通知首页返回来源视图
  * @returns Promise，无业务返回值
  */
 async function handleBattleEnd(): Promise<void> {
-  await store.finishBattle()
+  const result = await store.finishBattle()
+
+  if (result.success && store.battleOutcome === 'victory' && result.rewards) {
+    const characterId = characterStore.selectedCharacterId
+    if (characterId) {
+      try {
+        const rewards = result.rewards
+        await claimBattleRewardsApi({
+          characterId,
+          exp: rewards.exp,
+          gold: rewards.gold,
+          items: rewards.items.map(item => ({
+            itemId: item.itemId,
+            quantity: item.quantity
+          }))
+        })
+      } catch {
+        // 奖励领取失败不影响退出战斗，但需要提示用户
+        console.error('奖励领取失败，请检查网络连接')
+      }
+      // 刷新角色和背包数据
+      await Promise.all([
+        characterStore.loadCharacter(),
+        inventoryStore.fetchInventory(characterId)
+      ])
+    }
+  }
+
   emit('return-view')
 }
 
@@ -304,6 +340,7 @@ async function handleDungeonContinue(): Promise<void> {
 
 /**
  * 副本撤退或通关后领取奖励并返回来源视图。
+ * 调用后端持久化累积奖励，刷新角色和背包数据。
  * @returns Promise，无业务返回值
  */
 async function handleDungeonRetreat(): Promise<void> {
@@ -316,7 +353,31 @@ async function handleDungeonRetreat(): Promise<void> {
     } else {
       dungeonStore.handleFloorDefeat()
     }
-    await dungeonStore.claimRewardsAndExit()
+
+    const rewards = await dungeonStore.claimRewardsAndExit()
+
+    // 持久化奖励到后端
+    const characterId = characterStore.selectedCharacterId
+    if (characterId && rewards && (rewards.exp > 0 || rewards.gold > 0 || rewards.items.length > 0)) {
+      try {
+        await claimBattleRewardsApi({
+          characterId,
+          exp: rewards.exp,
+          gold: rewards.gold,
+          items: rewards.items.map(item => ({
+            itemId: item.itemId,
+            quantity: item.quantity
+          }))
+        })
+      } catch {
+        console.error('副本奖励领取失败，请检查网络连接')
+      }
+      await Promise.all([
+        characterStore.loadCharacter(),
+        inventoryStore.fetchInventory(characterId)
+      ])
+    }
+
     emit('return-view')
   } finally {
     isResolvingDungeonResult.value = false

@@ -227,7 +227,7 @@ export const useDungeonStore = defineStore('dungeon', () => {
     // 创建 AI 队友战斗单位（排除自己，根据职业生成技能）
     const otherMembers = roomMembers.filter(m => m.characterId !== characterId)
     const allyCombatants = otherMembers.map(m => {
-      const memberJobType = professionToJobType(m.profession)
+      const memberJobType = professionToJobType(Number(m.profession))
       const memberSkills = getActiveBattleSkills(memberJobType, m.level)
       return createAllyCombatantFromRoomMember(m, memberSkills)
     })

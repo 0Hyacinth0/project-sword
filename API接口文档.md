@@ -1463,4 +1463,34 @@
 
 ---
 
+POST /battle/claim-rewards
+
+请求体:
+{
+  "characterId": "uuid",          // 角色 ID
+  "exp": 150,                     // 获得的经验值
+  "gold": 80,                     // 获得的金币
+  "items": [                      // 获得的物品列表
+    { "itemId": 1001, "quantity": 1 },
+    { "itemId": 2003, "quantity": 2 }
+  ]
+}
+
+响应:
+{
+  "code": 200,
+  "message": "奖励领取成功",
+  "data": {
+    "character": { ... },          // 更新后的完整角色数据（新等级/经验/金币）
+    "levelUp": {                   // 升级信息（未升级则为 null）
+      "oldLevel": 5,
+      "newLevel": 6,
+      "gainedPoints": 3
+    },
+    "addedItems": [ ... ]          // 新增的背包物品列表
+  }
+}
+
+在这个接口中原子性地处理：增加经验值（含升级判定）、增加金币、将物品加入背包
+
 *文档版本: 2026-05-20*
