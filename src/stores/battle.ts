@@ -2,7 +2,6 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { startBattleApi, submitActionApi, endBattleApi, createPlayerCombatant, createPetCombatant } from '../api/battle'
 import { addExperienceApi } from '../api/character'
-import { grantMockRewardsToInventory } from '../api/inventory'
 import { useCharacterStore } from './character'
 import {
   BattlePhase,
@@ -25,7 +24,6 @@ import {
 } from '../utils/battleEngine'
 import { isBossBattle } from '../utils/bossMechanics'
 import type { StatsBreakdown } from '../utils/attributeCalculator'
-import { isMockEnabled } from '../utils/mockConfig'
 
 /**
  * 战斗状态管理
@@ -108,11 +106,13 @@ export const useBattleStore = defineStore('battle', () => {
       }
 
       // 使用敌人数据创建战斗状态
-      const enemies = res.data.enemies.map(e => ({
-        ...e,
-        buffs: [...(e.buffs ?? [])],
-        cooldowns: { ...(e.cooldowns ?? {}) }
-      }))
+      const enemies = res.data.combatants
+        .filter(c => c.side === 'enemy')
+        .map(e => ({
+          ...e,
+          buffs: [...(e.buffs ?? [])],
+          cooldowns: { ...(e.cooldowns ?? {}) }
+        }))
 
       battleState.value = createBattleState(allyCombatants, enemies)
 
@@ -179,10 +179,8 @@ export const useBattleStore = defineStore('battle', () => {
    * 结束战斗并领取奖励
    * 战宠 HP/MP 自动恢复满血
    * 纯前端战斗（无 battleId）直接清理状态
-   * @param options - 结算选项，persistRewards 控制是否写入 Mock 背包和经验
    */
-  async function finishBattle(options: { persistRewards?: boolean } = {}): Promise<{ success: boolean; message: string; rewards?: BattleRewards }> {
-    const shouldPersistRewards = options.persistRewards ?? true
+  async function finishBattle(): Promise<{ success: boolean; message: string; rewards?: BattleRewards }> {
     // 纯前端战斗：没有 battleId 但战斗已结束，直接清理状态
     if (!battleId.value) {
       if (battleState.value && battleState.value.phase === BattlePhase.BATTLE_END) {
@@ -191,12 +189,9 @@ export const useBattleStore = defineStore('battle', () => {
           ...battleState.value,
           combatants: restorePetHpAfterBattle(battleState.value.combatants)
         }
-        // 计算奖励（Mock）
+        // 计算奖励
         const deadEnemies = battleState.value.combatants.filter(c => c.side === 'enemy' && !c.isAlive)
         const rewards = calculateRewards(deadEnemies)
-        if (shouldPersistRewards) {
-          await persistMockBattleRewards(rewards)
-        }
         clearBattle()
         return { success: true, message: '战斗结束', rewards }
       }
@@ -216,9 +211,6 @@ export const useBattleStore = defineStore('battle', () => {
       const res = await endBattleApi(battleId.value)
       if (res.code === 200) {
         const rewards = res.data.rewards
-        if (shouldPersistRewards) {
-          await persistMockBattleRewards(rewards)
-        }
         clearBattle()
         return { success: true, message: res.message, rewards }
       }
@@ -229,28 +221,6 @@ export const useBattleStore = defineStore('battle', () => {
     } finally {
       loading.value = false
     }
-  }
-
-  /**
-   * 将 Mock 战斗奖励写入当前角色状态与背包。
-   * @param rewards - 战斗结算奖励
-   * @returns 无返回值
-   */
-  async function persistMockBattleRewards(rewards: BattleRewards): Promise<void> {
-    if (!isMockEnabled()) return
-    const characterStore = useCharacterStore()
-    const characterId = characterStore.selectedCharacterId
-    if (!characterId) return
-
-    grantMockRewardsToInventory(characterId, rewards)
-    if (rewards.exp <= 0) return
-
-    const expRes = await addExperienceApi({ characterId, expToAdd: rewards.exp })
-    if (expRes.code !== 200) return
-
-    characterStore.characterDetail = expRes.data.character
-    const charIndex = characterStore.characters.findIndex(char => char.id === characterId)
-    if (charIndex !== -1) characterStore.characters[charIndex] = expRes.data.character
   }
 
   /**

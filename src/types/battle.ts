@@ -369,7 +369,9 @@ export interface StartBattleRequest {
 /** 发起战斗响应 */
 export interface StartBattleResponse {
   battleId: string
-  enemies: Combatant[]
+  phase: string
+  round: number
+  combatants: Combatant[]
 }
 
 /** 玩家行动请求 */

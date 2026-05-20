@@ -144,6 +144,22 @@
       </div>
     </div>
 
+    <div v-if="availableSkins.length > 1" class="equip-skins" aria-label="角色皮肤">
+      <button
+        v-for="skin in availableSkins"
+        :key="skin.skinId"
+        class="equip-skin"
+        :class="{ 'equip-skin--active': skin.enabled }"
+        type="button"
+        :disabled="skin.enabled"
+        :aria-pressed="skin.enabled"
+        @click="handleSkinClick(skin)"
+      >
+        <img v-if="skin.portraitUrl" :src="skin.portraitUrl" :alt="skin.name" class="equip-skin__thumb" />
+        <span class="equip-skin__name">{{ skin.name }}</span>
+      </button>
+    </div>
+
     <!-- 选中装备详情卡片 -->
     <Transition name="detail-fade">
       <div v-if="selectedEquipment" class="equip-detail">
@@ -250,6 +266,7 @@ import { ref, computed, type Component } from 'vue'
 import { Sword, Sparkles, Target } from 'lucide-vue-next'
 import type { EquipmentSlots, EquipmentSlotType, EquipmentRarity, SetBonus } from '../../types/equipment'
 import type { InventoryItem } from '../../types/item'
+import type { CharacterSkin } from '../../types/shop'
 import { getSlotConfig, RARITY_COLORS, RARITY_LABELS, RARITY_CSS_VAR, RARITY_LEVEL } from '../../config/equipment_config'
 import { formatAffixValue } from '../../config/affix_config'
 import { getEnhancedValue, getEnhanceCost, ENHANCE_MATERIAL_NAMES, MAX_ENHANCE_LEVEL } from '../../config/enhance_config'
@@ -272,19 +289,22 @@ interface Props {
   profession: number
   setBonuses?: SetBonus[]
   inventoryItems?: InventoryItem[]
+  skins?: CharacterSkin[]
 }
 
 interface Emits {
   (e: 'clickSlot', slot: EquipmentSlotType): void
   (e: 'unequip', slotType: EquipmentSlotType): void
   (e: 'enhance', slotType: EquipmentSlotType): void
+  (e: 'equip-skin', skin: CharacterSkin): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   equipment: () => ({ weapon: null, helmet: null, chest: null, legs: null, accessory1: null, accessory2: null }),
   portraitUrl: null,
   setBonuses: () => [],
-  inventoryItems: () => []
+  inventoryItems: () => [],
+  skins: () => []
 })
 
 const emit = defineEmits<Emits>()
@@ -307,6 +327,14 @@ const jobConfig = computed(() => {
 const resolvedPortraitUrl = computed(() => {
   return props.portraitUrl || jobConfig.value.portrait
 })
+
+/**
+ * 当前职业可展示的皮肤列表。
+ * @returns 当前职业已拥有的皮肤
+ */
+const availableSkins = computed(() =>
+  props.skins.filter(skin => skin.profession === props.profession && skin.owned)
+)
 
 /** 职业图标 */
 const jobIcon = computed<Component>(() => {
@@ -408,6 +436,16 @@ function handleEnhance() {
 }
 
 /**
+ * 点击皮肤选项并派发启用请求。
+ * @param skin - 被点击皮肤
+ * @returns 无返回值
+ */
+function handleSkinClick(skin: CharacterSkin): void {
+  if (!skin.owned || skin.enabled) return
+  emit('equip-skin', skin)
+}
+
+/**
  * 获取当前装备的强化消耗预览（含材料充足校验）
  */
 const enhanceCostPreview = computed(() => {
@@ -429,3 +467,69 @@ const enhanceCostPreview = computed(() => {
   return { ...cost, materialsAvailable, canAfford }
 })
 </script>
+
+<style scoped>
+.equip-skins {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.equip-skin {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-panel-light);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), transform 0.1s ease;
+}
+
+.equip-skin:hover:not(:disabled) {
+  border-color: var(--accent-blue);
+  box-shadow: var(--shadow-subtle);
+}
+
+.equip-skin:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.equip-skin:disabled {
+  cursor: default;
+}
+
+.equip-skin--active {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px var(--accent-blue-glow);
+}
+
+.equip-skin__thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.equip-skin__name {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .equip-skins {
+    grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  }
+}
+</style>

@@ -15,7 +15,6 @@ import {
   resetTestContext,
   clearAuthState,
   setAuthState,
-  disableMock,
   generateTestUsername,
   safeCall,
   TEST_PASSWORD,
@@ -32,10 +31,9 @@ export function createAuthTestSuite(): TestSuite {
     icon: '🔐',
 
     /**
-     * 套件前置钩子：禁用 Mock、重置上下文、清除认证状态、生成测试用户名
+     * 套件前置钩子：重置上下文、清除认证状态、生成测试用户名
      */
     async beforeAll() {
-      disableMock()
       resetTestContext()
       clearAuthState()
       testContext.username = generateTestUsername()

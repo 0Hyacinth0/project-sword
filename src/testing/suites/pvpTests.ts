@@ -9,6 +9,7 @@ import {
   startMatchmakingApi,
   settlePvpBattleApi,
 } from '../../api/pvp'
+import { testContext } from '../utils/testHelper'
 
 /**
  * 保存匹配到的对手角色 ID
@@ -42,7 +43,7 @@ export function createPvpTestSuite(): TestSuite {
         name: '发起匹配',
         timeout: 15000,
         fn: async () => {
-          const res = await startMatchmakingApi(currentScore)
+          const res = await startMatchmakingApi(currentScore, testContext.characterId)
           expect(res.code).toBe(200)
           expect(res.data.characterId).toBeDefined()
           expect(res.data.characterName).toBeDefined()

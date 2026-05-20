@@ -8,6 +8,7 @@ import { testRunner } from './core/TestRunner'
 import { createAuthTestSuite } from './suites/authTests'
 import { createCharacterTestSuite } from './suites/characterTests'
 import { createInventoryTestSuite } from './suites/inventoryTests'
+import { createShopTestSuite } from './suites/shopTests'
 import { createEquipmentTestSuite } from './suites/equipmentTests'
 import { createPetTestSuite } from './suites/petTests'
 import { createBattleTestSuite } from './suites/battleTests'
@@ -34,6 +35,7 @@ export function registerAllSuites(): void {
   testRunner.register(createAuthTestSuite())
   testRunner.register(createCharacterTestSuite())
   testRunner.register(createInventoryTestSuite())
+  testRunner.register(createShopTestSuite())
   testRunner.register(createEquipmentTestSuite())
   testRunner.register(createPetTestSuite())
   testRunner.register(createBattleTestSuite())

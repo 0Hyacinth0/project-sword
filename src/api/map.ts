@@ -6,13 +6,6 @@ import request from './request'
 import type { ApiResponse } from './request'
 import type { MapArea, AreaMonster } from '../types/map'
 import type { Combatant, BattleSkill } from '../types/battle'
-import { MAP_AREAS } from '../config/map_config'
-import { isMockEnabled } from '../utils/mockConfig'
-
-/** Mock 延迟 */
-function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
 
 /** 区域详情响应 */
 export interface AreaDetailResponse {
@@ -39,15 +32,12 @@ export interface EnterAreaResponse {
  * @returns 区域详情
  */
 export async function getAreaDetailApi(areaId: string): Promise<ApiResponse<AreaDetailResponse>> {
-  if (isMockEnabled()) {
-    await delay(300)
-    const area = MAP_AREAS.find(a => a.id === areaId)
-    if (!area) {
-      return { code: 404, message: '区域不存在', data: null as unknown as AreaDetailResponse }
-    }
-    return { code: 200, message: '操作成功', data: { area, exploreCount: 0 } }
-  }
   const res = await request.get<ApiResponse<AreaDetailResponse>>(`/map/area/${areaId}`)
+  // 后端可能直接返回区域数据，而非嵌套在 area 字段下
+  const raw = res.data.data as unknown as Record<string, unknown>
+  if (raw && !raw.area) {
+    res.data.data = { area: raw as unknown as MapArea, exploreCount: 0 }
+  }
   return res.data
 }
 
@@ -57,19 +47,16 @@ export async function getAreaDetailApi(areaId: string): Promise<ApiResponse<Area
  * @returns 进入结果
  */
 export async function enterAreaApi(data: EnterAreaRequest): Promise<ApiResponse<EnterAreaResponse>> {
-  if (isMockEnabled()) {
-    await delay(500)
-    const area = MAP_AREAS.find(a => a.id === data.areaId)
-    if (!area) {
-      return { code: 404, message: '区域不存在', data: null as unknown as EnterAreaResponse }
-    }
-    return {
-      code: 200,
-      message: '操作成功',
-      data: { areaId: data.areaId, message: `进入了${area.name}` }
+  const res = await request.post<ApiResponse<EnterAreaResponse>>('/map/enter', data)
+  // 后端可能返回不同字段名，标准化为 EnterAreaResponse
+  const raw = res.data.data as unknown as Record<string, unknown>
+  if (raw && raw.areaId === undefined) {
+    // 尝试从其他字段映射
+    res.data.data = {
+      areaId: (raw.areaId ?? raw.id ?? raw.currentAreaId ?? data.areaId) as string,
+      message: (raw.message ?? raw.msg ?? '已进入区域') as string,
     }
   }
-  const res = await request.post<ApiResponse<EnterAreaResponse>>('/map/enter', data)
   return res.data
 }
 
@@ -78,10 +65,6 @@ export async function enterAreaApi(data: EnterAreaRequest): Promise<ApiResponse<
  * @returns 区域数组
  */
 export async function getAreaListApi(): Promise<ApiResponse<MapArea[]>> {
-  if (isMockEnabled()) {
-    await delay(200)
-    return { code: 200, message: '操作成功', data: MAP_AREAS }
-  }
   const res = await request.get<ApiResponse<MapArea[]>>('/map/areas')
   return res.data
 }

@@ -18,6 +18,7 @@ export * from './character'
 export * from './inventory'
 export * from './pet'
 export * from './battle'
+export * from './shop'
 
 // 导出请求实例和通用类型，供需要直接使用的场景
 export { default as request } from './request'

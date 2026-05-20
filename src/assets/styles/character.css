@@ -325,13 +325,14 @@
 }
 
 .equip-doll__portrait {
-  width: 240px;
-  height: 320px;
+  flex: 1;
+  min-width: 0;
+  aspect-ratio: 3/4;
+  max-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: visible;
-  flex-shrink: 0;
 }
 
 .equip-doll__portrait-img {
@@ -356,6 +357,8 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(12px);
+  overflow-wrap: break-word;
+  word-break: break-all;
 }
 
 .equip-detail--empty {

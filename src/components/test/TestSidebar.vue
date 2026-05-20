@@ -64,7 +64,10 @@ function itemClass(suite: TestSuite): Record<string, boolean> {
 
 /**
  * 生成模块统计文本
- * 格式：✓ 3/7（通过数/总数）
+ * 格式根据状态不同而变化：
+ * - 全部通过：✓7/7
+ * - 有失败：✓3 ✗4 /7
+ * - 全部跳过：○7/7
  * @param suite - 测试套件
  * @returns 格式化的统计文本
  */
@@ -72,8 +75,17 @@ function statsText(suite: TestSuite): string {
   const result = props.results.get(suite.module)
   if (!result || result.results.length === 0) return ''
   const passed = result.results.filter(r => r.status === 'passed').length
+  const failed = result.results.filter(r => r.status === 'failed').length
+  const skipped = result.results.filter(r => r.status === 'skipped').length
   const total = result.results.length
-  return `✓ ${passed}/${total}`
+
+  if (failed === 0 && skipped === 0) return `✓${passed}/${total}`
+  if (passed === 0 && failed === 0) return `○${skipped}/${total}`
+  const parts: string[] = []
+  if (passed > 0) parts.push(`✓${passed}`)
+  if (failed > 0) parts.push(`✗${failed}`)
+  if (skipped > 0) parts.push(`○${skipped}`)
+  return `${parts.join(' ')} /${total}`
 }
 
 /**

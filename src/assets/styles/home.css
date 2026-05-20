@@ -142,24 +142,16 @@
   overflow-y: auto;
 }
 
-/* ── UID 显示（屏幕左下角固定定位）── */
+/* ── UID 显示（屏幕左下角纯文字）── */
 .game-uid {
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(12px, env(safe-area-inset-bottom));
-  padding: 4px 8px;
   font-size: var(--font-size-caption);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-  opacity: 0.72;
+  opacity: 0.6;
   z-index: 80;
-  background: var(--bg-panel-light);
-  border: 1px solid var(--border-light);
-  border-radius: 980px;
-  box-shadow: var(--shadow-subtle);
-  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
 }
 
 /* ══════════════════════════════════════════
@@ -228,16 +220,60 @@
   flex-shrink: 0;
 }
 
-.game-bottom-nav__item {
+/* 图片底图覆盖 UiButton 默认样式 */
+.game-bottom-nav__item.ui-button {
   flex: 1;
-  color: var(--text-muted);
+  background-color: transparent;
+  background-image: url('/assets/ui/button_primary_default.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  color: #f0e6d0;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 8px 16px 24px;
+  min-height: 52px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8), 0 0 2px rgba(0, 0, 0, 0.5);
+  filter: none;
+  -webkit-font-smoothing: antialiased;
 }
 
-.game-bottom-nav__item:hover {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  box-shadow: var(--shadow-elevated);
+.game-bottom-nav__item.ui-button:hover:not(:disabled) {
+  background-image: url('/assets/ui/button_primary_hover.png');
+  color: #fffbe6;
+  filter: none;
   transform: translateY(-2px);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.game-bottom-nav__item.ui-button:active:not(:disabled) {
+  background-image: url('/assets/ui/button_primary_pressed.png');
+  transform: translateY(0) scale(0.98);
+  color: #fffbe6;
+}
+
+.game-bottom-nav__item--active.ui-button {
+  background-image: url('/assets/ui/button_primary_pressed.png');
+  color: #fffbe6;
+  box-shadow: none;
+}
+
+.game-bottom-nav__item--active.ui-button:hover:not(:disabled) {
+  background-image: url('/assets/ui/button_primary_hover.png');
+  transform: translateY(-2px);
+}
+
+.game-bottom-nav__item.ui-button:disabled {
+  background-image: url('/assets/ui/button_primary_disabled.png');
+  color: #888;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+  filter: none;
+  transform: none;
 }
 
 /* ── 中间面板地图视图 ── */
@@ -245,12 +281,6 @@
   align-items: stretch;
   justify-content: flex-start;
   text-align: left;
-}
-
-.game-bottom-nav__item--active {
-  color: var(--accent-blue);
-  border-color: var(--accent-blue);
-  box-shadow: 0 4px 14px var(--accent-blue-glow);
 }
 
 /* ══════════════════════════════════════════

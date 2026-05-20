@@ -134,7 +134,7 @@
  */
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useChatStore } from '../../stores/chat'
-import { getMockCurrentCharacterId } from '../../api/mockSession'
+/** 当前角色 ID */
 
 const chatStore = useChatStore()
 const inputText = ref('')
@@ -142,7 +142,7 @@ const worldMsgRef = ref<HTMLElement | null>(null)
 const privateMsgRef = ref<HTMLElement | null>(null)
 
 /** 当前 Mock 选中角色 ID */
-const currentCharacterId = computed(() => getMockCurrentCharacterId())
+const currentCharacterId = computed(() => sessionStorage.getItem('selected_character_id') || '')
 
 onMounted(() => {
   chatStore.fetchWorldMessages()

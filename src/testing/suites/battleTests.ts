@@ -57,10 +57,16 @@ export function createBattleTestSuite(): TestSuite {
           const res = await startBattleApi({ characterId })
           expect(res.code).toBe(200)
           expect(res.data.battleId).toBeDefined()
-          expect(res.data.enemies.length).toBeGreaterThanOrEqual(1)
+          expect(res.data.combatants.length).toBeGreaterThanOrEqual(1)
 
           // 保存战斗 ID 到测试上下文
           testContext.battleId = res.data.battleId
+
+          // 保存真实的战斗单位 UID（后端生成，非 mock 固定值）
+          const allies = res.data.combatants.filter(c => c.side === 'ally')
+          const enemies = res.data.combatants.filter(c => c.side === 'enemy')
+          if (allies.length > 0) testContext.playerUid = allies[0].uid
+          if (enemies.length > 0) testContext.enemyUid = enemies[0].uid
         },
       },
 
@@ -79,8 +85,8 @@ export function createBattleTestSuite(): TestSuite {
             battleId,
             action: {
               type: 'attack',
-              actorUid: 'ally-player',
-              targetUid: 'enemy-001',
+              actorUid: testContext.playerUid,
+              targetUid: testContext.enemyUid,
             },
           })
           expect(res.code).toBe(200)
@@ -103,8 +109,8 @@ export function createBattleTestSuite(): TestSuite {
             battleId,
             action: {
               type: 'skill',
-              actorUid: 'ally-player',
-              targetUid: 'enemy-001',
+              actorUid: testContext.playerUid,
+              targetUid: testContext.enemyUid,
               skillId: 5001,
             },
           })
@@ -128,8 +134,8 @@ export function createBattleTestSuite(): TestSuite {
             battleId,
             action: {
               type: 'item',
-              actorUid: 'ally-player',
-              targetUid: 'ally-player',
+              actorUid: testContext.playerUid,
+              targetUid: testContext.playerUid,
               itemId: 'item-hp-potion',
             },
           })
