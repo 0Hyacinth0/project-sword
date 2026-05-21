@@ -4,8 +4,8 @@
     <!-- 顶部通栏 -->
     <header class="game-header">
       <div class="game-header__left">
-        <Swords :size="20" :stroke-width="1.5" class="game-header__logo" />
-        <span class="game-header__title">剑之传说</span>
+        <img src="/assets/ui/logo_pic.png" alt="云梦江湖" class="game-header__logo" />
+        <span class="game-header__title">云梦江湖</span>
       </div>
       <div class="game-header__center" @mouseenter="pauseAnnouncement" @mouseleave="resumeAnnouncement">
         <Transition name="announce" mode="out-in">
@@ -131,24 +131,12 @@
           />
         </UiPanel>
 
-        <!-- 主页欢迎视图 -->
+        <!-- 主页内容展示 -->
         <UiPanel v-else-if="centerView === 'home'" class="game-main" stretch>
-          <div class="game-main__welcome">
-            欢迎，{{ auth.user?.username }}
-          </div>
-          <p class="game-main__desc">
-            这里是您的冒险起点。选择角色后，您可以探索世界、挑战副本、与其他玩家对战。
-          </p>
-          <div class="game-main__actions">
-            <UiButton @click="centerView = 'map'">
-              <template #icon><Map :size="16" /></template>
-              开始探索
-            </UiButton>
-            <UiButton variant="secondary" @click="centerView = 'map'">
-              <template #icon><Swords :size="16" /></template>
-              进入副本
-            </UiButton>
-          </div>
+          <HomePanel
+            :character-level="charDetail?.level"
+            @navigate="handleHomeNavigate"
+          />
         </UiPanel>
 
         <!-- 底部快捷导航（始终显示） -->
@@ -272,6 +260,7 @@ import TeamPanel from '../components/team/TeamPanel.vue'
 import LeaderboardPanel from '../components/leaderboard/LeaderboardPanel.vue'
 import ArenaPanel from '../components/arena/ArenaPanel.vue'
 import ShopPanel from '../components/shop/ShopPanel.vue'
+import HomePanel from '../components/home/HomePanel.vue'
 import BattleConsole from '../components/battle/BattleConsole.vue'
 import ItemDetailModal from '../components/inventory/ItemDetailModal.vue'
 import { UiButton, UiIconButton, UiPanel, UiTabs, UiToastHost, type UiTabItem } from '../components/ui'
@@ -334,8 +323,8 @@ const bottomNavItems: { value: Exclude<CenterView, 'home' | 'dungeon' | 'battle'
   { value: 'friend', label: '好友', icon: markRaw(UserPlus) },
   { value: 'team', label: '组队', icon: markRaw(Users) },
   { value: 'leaderboard', label: '排行', icon: markRaw(Trophy) },
-  { value: 'arena', label: '竞技', icon: markRaw(Swords) },
-  { value: 'shop', label: '商店', icon: markRaw(Store) }
+  { value: 'arena', label: '比武', icon: markRaw(Swords) },
+  { value: 'shop', label: '集市', icon: markRaw(Store) }
 ]
 
 /** 背包标签配置，适配通用 UiTabs 的 value 字段。 */
@@ -436,6 +425,18 @@ async function returnFromBattle(): Promise<void> {
 function handleOpenDungeon(areaId: string) {
   selectedAreaId.value = areaId
   centerView.value = 'dungeon'
+}
+
+/**
+ * 处理首页面板的导航事件。
+ * @param view - 目标视图名称
+ * @param areaId - 可选的区域 ID（跳转副本时使用）
+ */
+function handleHomeNavigate(view: string, areaId?: string): void {
+  if (view === 'dungeon' && areaId) {
+    selectedAreaId.value = areaId
+  }
+  centerView.value = view as CenterView
 }
 
 /**
@@ -624,8 +625,8 @@ interface Announcement {
 const announcements: Announcement[] = [
   { id: 1, text: '服务器将于 5 月 2 日 02:00-06:00 进行维护，请提前下线', icon: markRaw(Wrench), color: 'var(--accent-gold)' },
   { id: 2, text: '五一限时活动「勇者试炼」已开启，通关副本可获传说装备', icon: markRaw(Trophy), color: 'var(--accent-red)' },
-  { id: 3, text: '当前在线冒险者：1,284 人', icon: markRaw(Users), color: 'var(--accent-green)' },
-  { id: 4, text: '欢迎来到剑之传说！选择角色即可开始你的冒险之旅', icon: markRaw(Sparkles), color: 'var(--accent-blue)' },
+  { id: 3, text: '当前在线侠士：1,284 人', icon: markRaw(Users), color: 'var(--accent-green)' },
+  { id: 4, text: '欢迎来到云梦江湖！选择角色即可开始你的江湖之旅', icon: markRaw(Sparkles), color: 'var(--accent-blue)' },
   { id: 5, text: '小贴士：闪避率影响被攻击时的回避概率，敏捷属性可提升闪避', icon: markRaw(Lightbulb), color: 'var(--accent-gold)' },
   { id: 6, text: '公告：新赛季排位赛将于 5 月 5 日开放，敬请期待', icon: markRaw(Bell), color: 'var(--accent-blue)' },
 ]
@@ -1012,15 +1013,6 @@ onUnmounted(() => {
     gap: 8px;
   }
 
-  .game-main__welcome {
-    font-size: var(--font-size-base);
-  }
-
-  .game-main__desc {
-    font-size: var(--font-size-xs);
-  }
-
-  .game-main__actions,
   .game-bottom-nav {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1061,7 +1053,6 @@ onUnmounted(() => {
     gap: 8px;
   }
 
-  .game-main__actions,
   .game-bottom-nav {
     gap: 6px;
   }
