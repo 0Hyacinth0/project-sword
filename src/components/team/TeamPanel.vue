@@ -310,8 +310,8 @@ const emit = defineEmits<{
 
 /** 职业名称映射 */
 const JOB_NAMES: Record<string, string> = {
-  Warrior: '战士', Mage: '法师', Hunter: '猎人',
-  WARRIOR: '战士', MAGE: '法师', HUNTER: '猎人'
+  Warrior: '剑客', Mage: '术士', Hunter: '刺客',
+  WARRIOR: '剑客', MAGE: '术士', HUNTER: '刺客'
 }
 
 /** 队伍状态标签映射 */

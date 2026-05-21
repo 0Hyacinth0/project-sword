@@ -61,7 +61,7 @@
 
       <!-- ═══ 返回按钮 ═══ -->
       <button class="settlement-overlay__btn-back" @click="$emit('close')">
-        返回竞技场
+        返回比武擂台
       </button>
     </div>
   </Transition>

@@ -3,6 +3,23 @@
    基于 DESIGN.md Liquid Glass 设计语言
    ============================================ */
 
+/* ── 自定义字体声明 ── */
+@font-face {
+  font-family: 'Source Han Serif CN';
+  src: url('/assets/fonts/SourceHanSerifCN-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Han Serif CN';
+  src: url('/assets/fonts/SourceHanSerifCN-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* ── 背景色 ── */
   --bg-body: #f5f5f7;
@@ -40,10 +57,10 @@
   --border-dark: transparent;
 
   /* ── 字体 ── */
-  --font-display: 'SF Pro Display', -apple-system, BlinkMacSystemFont,
-    'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-text: 'SF Pro Text', -apple-system, BlinkMacSystemFont,
-    'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Source Han Serif CN', 'SF Pro Display', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-text: 'Source Han Serif CN', 'SF Pro Text', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
   /* ── 字号 ── */
   --font-size-base: 17px;

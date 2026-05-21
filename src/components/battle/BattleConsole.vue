@@ -139,7 +139,8 @@ import { useBattleStore } from '../../stores/battle'
 import { useDungeonStore } from '../../stores/dungeon'
 import { useCharacterStore } from '../../stores/character'
 import { useInventoryStore } from '../../stores/inventory'
-import { claimBattleRewardsApi } from '../../api/battle'
+import { addExperienceApi } from '../../api/character'
+import { addGoldApi, addItemsApi } from '../../api/battle'
 import { triggerDamageAnimations, triggerBuffAnimation, triggerDeathAnimation, screenShake } from '../../utils/battleAnimation'
 import ActionOrderBar from './ActionOrderBar.vue'
 import BattleActionPanel from './BattleActionPanel.vue'
@@ -283,35 +284,43 @@ async function handleRevive(targetUid: string): Promise<void> {
 
 /**
  * 结束普通战斗，领取奖励并刷新角色状态。
- * 1. 调用 finishBattle 获取奖励数据
- * 2. 胜利时调用后端 claimBattleRewardsApi 持久化奖励
- * 3. 刷新角色和背包数据
- * 4. 通知首页返回来源视图
+ * 注意：finishBattle 内部会 clearBattle 清空战斗状态，
+ * 所以必须用 result.rewards 判断是否有奖励，不能用 store.battleOutcome。
  * @returns Promise，无业务返回值
  */
 async function handleBattleEnd(): Promise<void> {
   const result = await store.finishBattle()
+  const rewards = result.rewards
 
-  if (result.success && store.battleOutcome === 'victory' && result.rewards) {
+  if (result.success && rewards && (rewards.exp > 0 || rewards.gold > 0 || rewards.items.length > 0)) {
     const characterId = characterStore.selectedCharacterId
     if (characterId) {
       try {
-        const rewards = result.rewards
-        await claimBattleRewardsApi({
-          characterId,
-          exp: rewards.exp,
-          gold: rewards.gold,
-          items: rewards.items.map(item => ({
-            itemId: item.itemId,
-            quantity: item.quantity
-          }))
-        })
+        // 经验值（已有接口）
+        if (rewards.exp > 0) {
+          await addExperienceApi({ characterId, expToAdd: rewards.exp })
+        }
+        // 金币（待后端实现 /character/add-gold）
+        if (rewards.gold > 0) {
+          await addGoldApi({ characterId, gold: rewards.gold }).catch(() => {
+            console.warn('金币接口未实现，跳过金币奖励')
+          })
+        }
+        // 物品（待后端实现 /inventory/add）
+        if (rewards.items.length > 0) {
+          await addItemsApi({
+            characterId,
+            items: rewards.items.map(item => ({ itemId: item.itemId, quantity: item.quantity }))
+          }).catch(() => {
+            console.warn('物品接口未实现，跳过物品奖励')
+          })
+        }
       } catch {
-        // 奖励领取失败不影响退出战斗，但需要提示用户
         console.error('奖励领取失败，请检查网络连接')
       }
-      // 刷新角色和背包数据
+      // 刷新角色列表（含经验/金币）和背包数据
       await Promise.all([
+        characterStore.fetchCharacters(),
         characterStore.loadCharacter(),
         inventoryStore.fetchInventory(characterId)
       ])
@@ -360,19 +369,27 @@ async function handleDungeonRetreat(): Promise<void> {
     const characterId = characterStore.selectedCharacterId
     if (characterId && rewards && (rewards.exp > 0 || rewards.gold > 0 || rewards.items.length > 0)) {
       try {
-        await claimBattleRewardsApi({
-          characterId,
-          exp: rewards.exp,
-          gold: rewards.gold,
-          items: rewards.items.map(item => ({
-            itemId: item.itemId,
-            quantity: item.quantity
-          }))
-        })
+        if (rewards.exp > 0) {
+          await addExperienceApi({ characterId, expToAdd: rewards.exp })
+        }
+        if (rewards.gold > 0) {
+          await addGoldApi({ characterId, gold: rewards.gold }).catch(() => {
+            console.warn('金币接口未实现，跳过金币奖励')
+          })
+        }
+        if (rewards.items.length > 0) {
+          await addItemsApi({
+            characterId,
+            items: rewards.items.map(item => ({ itemId: item.itemId, quantity: item.quantity }))
+          }).catch(() => {
+            console.warn('物品接口未实现，跳过物品奖励')
+          })
+        }
       } catch {
         console.error('副本奖励领取失败，请检查网络连接')
       }
       await Promise.all([
+        characterStore.fetchCharacters(),
         characterStore.loadCharacter(),
         inventoryStore.fetchInventory(characterId)
       ])

@@ -205,7 +205,7 @@
               {{ ENHANCE_MATERIAL_NAMES[Number(materialId)] || '材料' }} ×{{ mat.required }}
               <span class="equip-detail__enhance-cost-owned">(拥有 {{ mat.owned }})</span>
             </div>
-            <div class="equip-detail__enhance-cost-item">{{ enhanceCostPreview.gold }} 金币</div>
+            <div class="equip-detail__enhance-cost-item">{{ enhanceCostPreview.gold }} 银两</div>
             <div class="equip-detail__enhance-cost-item equip-detail__enhance-rate">
               成功率 {{ (enhanceCostPreview.successRate * 100).toFixed(0) }}%
             </div>
@@ -387,16 +387,16 @@ function rarityLabel(rarity: EquipmentRarity): string {
 
 /** 属性名称映射 */
 const STAT_LABELS: Record<string, string> = {
-  physicalAttack: '物攻',
-  magicAttack: '魔攻',
+  physicalAttack: '外功',
+  magicAttack: '内功',
   defense: '防御',
-  hp: '生命',
-  mp: '魔力',
+  hp: '气血',
+  mp: '内力',
   criticalRate: '暴击',
   dodgeRate: '闪避',
-  strength: '力量',
-  intelligence: '智力',
-  agility: '敏捷'
+  strength: '臂力',
+  intelligence: '根骨',
+  agility: '身法'
 }
 
 /**

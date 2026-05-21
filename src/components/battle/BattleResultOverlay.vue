@@ -17,14 +17,14 @@
           <div class="reward-item exp-reward">
             <span class="reward-icon">EXP</span>
             <div class="reward-info">
-              <span class="reward-label">经验值</span>
+              <span class="reward-label">修为</span>
               <span class="reward-value anim-count">{{ animatedExp }}</span>
             </div>
           </div>
           <div class="reward-item gold-reward">
             <span class="reward-icon">G</span>
             <div class="reward-info">
-              <span class="reward-label">金币</span>
+              <span class="reward-label">银两</span>
               <span class="reward-value anim-count">{{ animatedGold }}</span>
             </div>
           </div>

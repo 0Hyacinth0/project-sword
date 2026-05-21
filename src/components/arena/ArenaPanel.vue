@@ -9,7 +9,7 @@
     <!-- 无数据空态 -->
     <div v-else-if="!store.playerData" class="arena-panel__empty">
       <span class="arena-panel__empty-icon">⚔️</span>
-      <span class="arena-panel__empty-text">暂无竞技场数据</span>
+      <span class="arena-panel__empty-text">暂无比武擂台数据</span>
     </div>
 
     <!-- 主内容 -->

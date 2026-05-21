@@ -42,9 +42,9 @@ export interface JobConfig {
 export const JOB_CONFIGS: Record<JobType, JobConfig> = {
   WARRIOR: {
     type: 'WARRIOR',
-    name: '战士',
+    name: '剑客',
     nameEn: 'Warrior',
-    description: '身经百战的钢铁斗士，以强大的力量和坚韧的体魄著称。在战场上冲锋陷阵，是队伍中最可靠的前排壁垒。',
+    description: '江湖侠士，以剑为魂，刚柔并济。冲锋陷阵，是队伍中最可靠的前排壁垒。',
     color: '#ff6b35',
     colorLight: 'rgba(255, 107, 53, 0.15)',
     icon: 'Sword',
@@ -55,14 +55,14 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     radar: { survival: 5, attack: 3, speed: 2 },
     skills: [
       {
-        name: '旋风斩',
-        description: '挥舞武器形成风暴，对周围所有敌人造成 150% 物理伤害。',
+        name: '狂风剑诀',
+        description: '剑气纵横成风，对周围所有敌人造成 150% 外功伤害。',
         icon: 'Swords',
         level: 1
       },
       {
-        name: '钢铁壁垒',
-        description: '进入防御姿态，减少 50% 受到的伤害并嘲讽所有敌人，持续 2 回合。',
+        name: '金钟罩',
+        description: '护体罡气，减免 50% 伤害并震慑所有敌人，持续 2 回合。',
         icon: 'Shield',
         level: 10
       }
@@ -70,9 +70,9 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
   },
   MAGE: {
     type: 'MAGE',
-    name: '法师',
+    name: '术士',
     nameEn: 'Mage',
-    description: '掌握奥术奥义的智慧贤者，以强大的魔法力量毁灭一切。虽然身躯脆弱，但拥有无与伦比的AOE爆发伤害。',
+    description: '修习玄术之辈，以阴阳五行之力驱使天地异象。虽身躯薄弱，但内功爆发无人能敌。',
     color: '#7c5cfc',
     colorLight: 'rgba(124, 92, 252, 0.15)',
     icon: 'Sparkles',
@@ -83,14 +83,14 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     radar: { survival: 1, attack: 5, speed: 3 },
     skills: [
       {
-        name: '陨石术',
-        description: '召唤灼热陨石从天而降，对目标区域造成 200% 魔法伤害并附带灼烧效果。',
+        name: '天火焚城',
+        description: '召唤九天玄火，对目标区域造成 200% 内功伤害并附带灼烧效果。',
         icon: 'Flame',
         level: 1
       },
       {
-        name: '时间静止',
-        description: '冻结时间 1 回合，期间所有敌人无法行动，自身可进行一次额外施法。',
+        name: '定身咒',
+        description: '封印时空 1 回合，期间所有敌人无法行动，自身可进行一次额外施法。',
         icon: 'Clock',
         level: 10
       }
@@ -98,9 +98,9 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
   },
   HUNTER: {
     type: 'HUNTER',
-    name: '猎人',
+    name: '刺客',
     nameEn: 'Hunter',
-    description: '来自荒野的敏捷射手，以惊人的速度和致命的暴击闻名。擅长在战斗中闪转腾挪，逐一击破敌人。',
+    description: '潜行暗影之徒，来去无踪，致命一击瞬杀千机。擅长在战斗中闪转腾挪，逐一击破敌人。',
     color: '#22c55e',
     colorLight: 'rgba(34, 197, 94, 0.15)',
     icon: 'Target',
@@ -111,14 +111,14 @@ export const JOB_CONFIGS: Record<JobType, JobConfig> = {
     radar: { survival: 2, attack: 4, speed: 5 },
     skills: [
       {
-        name: '穿心箭',
-        description: '蓄力射出一箭，造成 180% 物理伤害，30% 概率触发暴击翻倍。',
+        name: '惊雷一击',
+        description: '蓄势雷霆一击，造成 180% 外功伤害，三成几率暴击倍增。',
         icon: 'Crosshair',
         level: 1
       },
       {
-        name: '影遁',
-        description: '隐入暗影，闪避下一次攻击并获得 2 回合 50% 暴击率提升。',
+        name: '潜影术',
+        description: '化入暗影，规避下一次攻击并获得 2 回合 50% 暴击率加持。',
         icon: 'Eye',
         level: 10
       }
@@ -131,17 +131,17 @@ export const JOB_LIST: JobType[] = ['WARRIOR', 'MAGE', 'HUNTER']
 
 /** 随机取名词库 */
 const NAME_PREFIXES = [
-  '暗影', '烈焰', '冰霜', '雷鸣', '苍穹',
-  '幽冥', '圣光', '破晓', '星辰', '龙魂',
-  '风暴', '血色', '寒冰', '紫电', '赤焰',
+  '断魂', '碎星', '寒江', '孤雁', '苍穹',
+  '幽冥', '灵霄', '破晓', '星辰', '龙魂',
+  '飞雪', '血影', '凝霜', '紫电', '赤焰',
   '银月', '鬼魅', '天罡', '玄武', '朱雀'
 ]
 
 const NAME_SUFFIXES = [
-  '剑客', '行者', '猎手', '骑士', '贤者',
-  '游侠', '刺客', '守望者', '战神', '使者',
-  '领主', '先知', '浪人', '隐者', '执事',
-  '裁决者', '拓荒者', '漫游者', '掌控者', '吟游诗人'
+  '侠', '客', '隐士', '行者', '散人',
+  '游侠', '刺客', '居士', '真人', '散人',
+  '掌门', '道人', '浪子', '书生', '剑手',
+  '义士', '武者', '隐者', '剑灵', '云客'
 ]
 
 /** 生成随机角色名 */
@@ -153,7 +153,7 @@ export function generateRandomName(): string {
 
 // ──────────────────────────────────────────
 // 职业编号映射（与后端 profession 字段对应）
-// 1-战士, 2-法师, 3-猎人
+// 1-剑客, 2-术士, 3-刺客
 // ──────────────────────────────────────────
 
 /** 后端职业编号 → 前端 JobType */

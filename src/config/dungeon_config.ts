@@ -6,163 +6,163 @@ import type { DungeonConfig } from '../types/dungeon'
 
 /** 副本配置列表 */
 export const DUNGEON_CONFIGS: DungeonConfig[] = [
-  // ── 迷雾森林 ──
+  // ── 迷雾林海 ──
   {
     id: 'mist_forest_normal',
-    name: '迷雾密林',
+    name: '幽林深处',
     areaId: 'mist_forest',
     difficulty: 'normal',
     staminaCost: 10,
     levelRequirement: 1,
     totalFloors: 3,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'slime', name: '史莱姆', level: 3, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'fairy', name: '小精灵', level: 5, type: 'normal' }, { id: 'slime', name: '史莱姆', level: 3, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'treant', name: '古树守卫', level: 10, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'slime', name: '幽灵菇', level: 3, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'fairy', name: '灵狐', level: 5, type: 'normal' }, { id: 'slime', name: '幽灵菇', level: 3, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'treant', name: '千年古木', level: 10, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 2007, name: '木盾碎片', rarity: 'Rare', quantity: 2 }],
+      guaranteedItems: [{ itemId: 2007, name: '古木盾片', rarity: 'Rare', quantity: 2 }],
       bonusExp: 50,
       bonusGold: 30
     }
   },
   {
     id: 'mist_forest_elite',
-    name: '暗影树海',
+    name: '幽冥树海',
     areaId: 'mist_forest',
     difficulty: 'elite',
     staminaCost: 20,
     levelRequirement: 8,
     totalFloors: 4,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'forest_spider', name: '森林蜘蛛', level: 8, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'forest_spider', name: '森林蜘蛛', level: 8, type: 'elite' }, { id: 'fairy', name: '小精灵', level: 5, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'slime', name: '史莱姆', level: 3, type: 'normal' }, { id: 'forest_spider', name: '森林蜘蛛', level: 8, type: 'elite' }, { id: 'fairy', name: '小精灵', level: 5, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 4, enemies: [{ id: 'treant', name: '古树守卫', level: 10, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'forest_spider', name: '剧毒蛛', level: 8, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'forest_spider', name: '剧毒蛛', level: 8, type: 'elite' }, { id: 'fairy', name: '灵狐', level: 5, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'slime', name: '幽灵菇', level: 3, type: 'normal' }, { id: 'forest_spider', name: '剧毒蛛', level: 8, type: 'elite' }, { id: 'fairy', name: '灵狐', level: 5, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 4, enemies: [{ id: 'treant', name: '千年古木', level: 10, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3008, name: '树心法杖', rarity: 'Epic', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3008, name: '万木心杖', rarity: 'Epic', quantity: 1 }],
       bonusExp: 120,
       bonusGold: 80
     }
   },
-  // ── 白骨荒野 ──
+  // ── 枯骨荒原 ──
   {
     id: 'bone_wasteland_normal',
-    name: '亡者墓地',
+    name: '乱葬岗',
     areaId: 'bone_wasteland',
     difficulty: 'normal',
     staminaCost: 15,
     levelRequirement: 11,
     totalFloors: 3,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'skeleton', name: '骷髅', level: 12, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'zombie', name: '僵尸', level: 15, type: 'normal' }, { id: 'skeleton', name: '骷髅', level: 12, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'skeleton_general', name: '骷髅将军', level: 20, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'skeleton', name: '白骨兵', level: 12, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'zombie', name: '行尸', level: 15, type: 'normal' }, { id: 'skeleton', name: '白骨兵', level: 12, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'skeleton_general', name: '鬼将', level: 20, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3009, name: '骨剑', rarity: 'Rare', quantity: 2 }],
+      guaranteedItems: [{ itemId: 3009, name: '白骨剑', rarity: 'Rare', quantity: 2 }],
       bonusExp: 100,
       bonusGold: 60
     }
   },
   {
     id: 'bone_wasteland_elite',
-    name: '骨龙王座',
+    name: '白骨王座',
     areaId: 'bone_wasteland',
     difficulty: 'elite',
     staminaCost: 25,
     levelRequirement: 17,
     totalFloors: 4,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'bone_mage', name: '骨法师', level: 17, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'zombie', name: '僵尸', level: 15, type: 'normal' }, { id: 'bone_mage', name: '骨法师', level: 17, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'skeleton', name: '骷髅', level: 12, type: 'normal' }, { id: 'bone_mage', name: '骨法师', level: 17, type: 'elite' }, { id: 'zombie', name: '僵尸', level: 15, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 4, enemies: [{ id: 'skeleton_general', name: '骷髅将军', level: 20, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'bone_mage', name: '尸巫', level: 17, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'zombie', name: '行尸', level: 15, type: 'normal' }, { id: 'bone_mage', name: '尸巫', level: 17, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'skeleton', name: '白骨兵', level: 12, type: 'normal' }, { id: 'bone_mage', name: '尸巫', level: 17, type: 'elite' }, { id: 'zombie', name: '行尸', level: 15, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 4, enemies: [{ id: 'skeleton_general', name: '鬼将', level: 20, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3010, name: '将军战盔', rarity: 'Legendary', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3010, name: '鬼将战盔', rarity: 'Legendary', quantity: 1 }],
       bonusExp: 200,
       bonusGold: 150
     }
   },
-  // ── 火焰山谷 ──
+  // ── 赤焰山 ──
   {
     id: 'fire_valley_normal',
-    name: '熔岩裂隙',
+    name: '烈焰地宫',
     areaId: 'fire_valley',
     difficulty: 'normal',
     staminaCost: 20,
     levelRequirement: 21,
     totalFloors: 3,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'fire_elemental', name: '火元素', level: 22, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'flame_imp', name: '炎魔', level: 25, type: 'normal' }, { id: 'fire_elemental', name: '火元素', level: 22, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'inferno_lord', name: '炼狱领主', level: 30, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'fire_elemental', name: '火灵', level: 22, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'flame_imp', name: '赤炎鬼', level: 25, type: 'normal' }, { id: 'fire_elemental', name: '火灵', level: 22, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'inferno_lord', name: '炼狱魔王', level: 30, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3011, name: '烈焰之刃', rarity: 'Epic', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3011, name: '烈焰刀', rarity: 'Epic', quantity: 1 }],
       bonusExp: 180,
       bonusGold: 120
     }
   },
   {
     id: 'fire_valley_elite',
-    name: '炼狱深渊',
+    name: '九幽地府',
     areaId: 'fire_valley',
     difficulty: 'elite',
     staminaCost: 30,
     levelRequirement: 27,
     totalFloors: 4,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'magma_golem', name: '熔岩石魔', level: 27, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'flame_imp', name: '炎魔', level: 25, type: 'normal' }, { id: 'magma_golem', name: '熔岩石魔', level: 27, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'fire_elemental', name: '火元素', level: 22, type: 'normal' }, { id: 'magma_golem', name: '熔岩石魔', level: 27, type: 'elite' }, { id: 'flame_imp', name: '炎魔', level: 25, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 4, enemies: [{ id: 'inferno_lord', name: '炼狱领主', level: 30, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'magma_golem', name: '烈焰石魔', level: 27, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'flame_imp', name: '赤炎鬼', level: 25, type: 'normal' }, { id: 'magma_golem', name: '烈焰石魔', level: 27, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'fire_elemental', name: '火灵', level: 22, type: 'normal' }, { id: 'magma_golem', name: '烈焰石魔', level: 27, type: 'elite' }, { id: 'flame_imp', name: '赤炎鬼', level: 25, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 4, enemies: [{ id: 'inferno_lord', name: '炼狱魔王', level: 30, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3012, name: '炼狱权杖', rarity: 'Legendary', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3012, name: '炼狱法杖', rarity: 'Legendary', quantity: 1 }],
       bonusExp: 320,
       bonusGold: 240
     }
   },
-  // ── 冰霜雪原 ──
+  // ── 凛冬雪域 ──
   {
     id: 'frost_snowfield_normal',
-    name: '冰晶洞窟',
+    name: '冰魄寒洞',
     areaId: 'frost_snowfield',
     difficulty: 'normal',
     staminaCost: 25,
     levelRequirement: 31,
     totalFloors: 3,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'ice_giant', name: '冰巨人', level: 32, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'snow_wolf', name: '雪狼', level: 35, type: 'normal' }, { id: 'ice_giant', name: '冰巨人', level: 32, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'frost_dragon', name: '霜龙', level: 40, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'ice_giant', name: '冰魄巨人', level: 32, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'snow_wolf', name: '灵雪狼', level: 35, type: 'normal' }, { id: 'ice_giant', name: '冰魄巨人', level: 32, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'frost_dragon', name: '冰霜巨龙', level: 40, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3013, name: '霜之哀伤', rarity: 'Epic', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3013, name: '霜寒剑', rarity: 'Epic', quantity: 1 }],
       bonusExp: 280,
       bonusGold: 200
     }
   },
   {
     id: 'frost_snowfield_elite',
-    name: '龙眠冰殿',
+    name: '龙眠冰宫',
     areaId: 'frost_snowfield',
     difficulty: 'elite',
     staminaCost: 35,
     levelRequirement: 37,
     totalFloors: 5,
     floors: [
-      { floorNumber: 1, enemies: [{ id: 'frost_witch', name: '冰霜女巫', level: 37, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 2, enemies: [{ id: 'snow_wolf', name: '雪狼', level: 35, type: 'normal' }, { id: 'frost_witch', name: '冰霜女巫', level: 37, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 3, enemies: [{ id: 'ice_giant', name: '冰巨人', level: 32, type: 'normal' }, { id: 'frost_witch', name: '冰霜女巫', level: 37, type: 'elite' }, { id: 'snow_wolf', name: '雪狼', level: 35, type: 'normal' }], isBossFloor: false },
-      { floorNumber: 4, enemies: [{ id: 'frost_witch', name: '冰霜女巫', level: 37, type: 'elite' }, { id: 'frost_witch', name: '冰霜女巫', level: 37, type: 'elite' }], isBossFloor: false },
-      { floorNumber: 5, enemies: [{ id: 'frost_dragon', name: '霜龙', level: 40, type: 'boss' }], isBossFloor: true }
+      { floorNumber: 1, enemies: [{ id: 'frost_witch', name: '寒冰妖姬', level: 37, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 2, enemies: [{ id: 'snow_wolf', name: '灵雪狼', level: 35, type: 'normal' }, { id: 'frost_witch', name: '寒冰妖姬', level: 37, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 3, enemies: [{ id: 'ice_giant', name: '冰魄巨人', level: 32, type: 'normal' }, { id: 'frost_witch', name: '寒冰妖姬', level: 37, type: 'elite' }, { id: 'snow_wolf', name: '灵雪狼', level: 35, type: 'normal' }], isBossFloor: false },
+      { floorNumber: 4, enemies: [{ id: 'frost_witch', name: '寒冰妖姬', level: 37, type: 'elite' }, { id: 'frost_witch', name: '寒冰妖姬', level: 37, type: 'elite' }], isBossFloor: false },
+      { floorNumber: 5, enemies: [{ id: 'frost_dragon', name: '冰霜巨龙', level: 40, type: 'boss' }], isBossFloor: true }
     ],
     rewards: {
-      guaranteedItems: [{ itemId: 3014, name: '龙魂之心', rarity: 'Legendary', quantity: 1 }],
+      guaranteedItems: [{ itemId: 3014, name: '龙魄玄珠', rarity: 'Legendary', quantity: 1 }],
       bonusExp: 500,
       bonusGold: 380
     }
@@ -195,7 +195,7 @@ export function getDungeonConfig(dungeonId: string): DungeonConfig | undefined {
 export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
   {
     id: 'team-boss-shadow-dragon',
-    name: '暗影龙巢穴',
+    name: '幽冥龙窟',
     areaId: 'shadow-forest',
     difficulty: 'elite',
     staminaCost: 50,
@@ -208,7 +208,7 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
         enemies: [
           {
             id: 'boss-shadow-dragon',
-            name: '暗影龙',
+            name: '幽冥毒龙',
             level: 30,
             type: 'boss',
             drops: []
@@ -220,14 +220,14 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
       bonusExp: 500,
       bonusGold: 200,
       guaranteedItems: [
-        { itemId: 3010, name: '暗影龙鳞', quantity: 1, rarity: 'Epic' },
-        { itemId: 3011, name: '龙牙戒指', quantity: 1, rarity: 'Legendary' }
+        { itemId: 3010, name: '幽冥龙鳞', quantity: 1, rarity: 'Epic' },
+        { itemId: 3011, name: '龙牙扳指', quantity: 1, rarity: 'Legendary' }
       ]
     }
   },
   {
     id: 'team-boss-flame-lord',
-    name: '炎魔深渊',
+    name: '炼魔深渊',
     areaId: 'flame-mountain',
     difficulty: 'elite',
     staminaCost: 60,
@@ -240,7 +240,7 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
         enemies: [
           {
             id: 'boss-flame-lord',
-            name: '炎魔领主',
+            name: '炎魔尊',
             level: 35,
             type: 'boss',
             drops: []
@@ -252,14 +252,14 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
       bonusExp: 600,
       bonusGold: 250,
       guaranteedItems: [
-        { itemId: 3012, name: '炎魔之心', quantity: 1, rarity: 'Epic' },
-        { itemId: 3013, name: '烈焰战甲', quantity: 1, rarity: 'Legendary' }
+        { itemId: 3012, name: '炎魔内丹', quantity: 1, rarity: 'Epic' },
+        { itemId: 3013, name: '烈焰战袍', quantity: 1, rarity: 'Legendary' }
       ]
     }
   },
   {
     id: 'team-boss-ancient-guardian',
-    name: '远古遗迹',
+    name: '上古遗迹',
     areaId: 'mystery-ruins',
     difficulty: 'elite',
     staminaCost: 80,
@@ -272,7 +272,7 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
         enemies: [
           {
             id: 'boss-ancient-guardian',
-            name: '远古守护者',
+            name: '上古神将',
             level: 40,
             type: 'boss',
             drops: []
@@ -284,8 +284,8 @@ export const TEAM_BOSS_DUNGEONS: DungeonConfig[] = [
       bonusExp: 800,
       bonusGold: 350,
       guaranteedItems: [
-        { itemId: 3014, name: '远古符文', quantity: 1, rarity: 'Legendary' },
-        { itemId: 3015, name: '守护者之盾', quantity: 1, rarity: 'Legendary' }
+        { itemId: 3014, name: '上古玉简', quantity: 1, rarity: 'Legendary' },
+        { itemId: 3015, name: '神将玄盾', quantity: 1, rarity: 'Legendary' }
       ]
     }
   }

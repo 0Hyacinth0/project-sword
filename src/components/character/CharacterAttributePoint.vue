@@ -15,7 +15,7 @@
     <div class="char-allocate__attrs">
       <!-- 力量 -->
       <div class="char-allocate__attr">
-        <span class="char-allocate__label">力量</span>
+        <span class="char-allocate__label">臂力</span>
         <div class="char-allocate__control">
           <button
             class="char-allocate__btn"
@@ -40,7 +40,7 @@
 
       <!-- 智力 -->
       <div class="char-allocate__attr">
-        <span class="char-allocate__label">智力</span>
+        <span class="char-allocate__label">根骨</span>
         <div class="char-allocate__control">
           <button
             class="char-allocate__btn"
@@ -65,7 +65,7 @@
 
       <!-- 敏捷 -->
       <div class="char-allocate__attr">
-        <span class="char-allocate__label">敏捷</span>
+        <span class="char-allocate__label">身法</span>
         <div class="char-allocate__control">
           <button
             class="char-allocate__btn"
@@ -94,7 +94,7 @@
       <div class="char-allocate__preview-title">属性变化预览</div>
       <div class="char-allocate__preview-grid">
         <div v-if="statChanges.hp !== 0" class="char-allocate__preview-item">
-          <span class="char-allocate__preview-label">HP</span>
+          <span class="char-allocate__preview-label">气血</span>
           <span class="char-allocate__preview-value" :class="{ positive: statChanges.hp > 0 }">
             {{ statChanges.hp > 0 ? '+' : '' }}{{ statChanges.hp }}
           </span>

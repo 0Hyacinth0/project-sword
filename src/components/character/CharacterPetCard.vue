@@ -66,7 +66,7 @@
       <div v-if="hasBonus" class="pet-card__bonus">
         <div class="pet-card__bonus-title">主人加成</div>
         <div class="pet-card__bonus-list">
-          <span v-if="pet.bonusToOwner.hp">生命 +{{ pet.bonusToOwner.hp }}</span>
+          <span v-if="pet.bonusToOwner.hp">气血 +{{ pet.bonusToOwner.hp }}</span>
           <span v-if="pet.bonusToOwner.attack">攻击 +{{ pet.bonusToOwner.attack }}</span>
           <span v-if="pet.bonusToOwner.defense">防御 +{{ pet.bonusToOwner.defense }}</span>
           <span v-if="pet.bonusToOwner.criticalRate">暴击 +{{ (pet.bonusToOwner.criticalRate * 100).toFixed(1) }}%</span>

@@ -13,8 +13,8 @@ export const SHOP_GOLD_ITEMS: ShopItem[] = [
   {
     id: 'gold-small-hp-potion',
     kind: 'inventory_item',
-    name: '小型生命药水',
-    description: '恢复 50 点生命值，适合日常冒险补给。',
+    name: '回春丹（小）',
+    description: '恢复 50 点气血，适合江湖补给。',
     category: 'supply',
     rarity: 'Normal',
     price: { currency: 'gold', amount: 35 },
@@ -24,8 +24,8 @@ export const SHOP_GOLD_ITEMS: ShopItem[] = [
   {
     id: 'gold-mana-potion',
     kind: 'inventory_item',
-    name: '魔法药水',
-    description: '恢复 30 点魔法值，适合施法职业常备。',
+    name: '聚气丹',
+    description: '恢复 30 点内力，适合术士常备。',
     category: 'supply',
     rarity: 'Normal',
     price: { currency: 'gold', amount: 45 },
@@ -35,8 +35,8 @@ export const SHOP_GOLD_ITEMS: ShopItem[] = [
   {
     id: 'gold-small-exp-scroll',
     kind: 'inventory_item',
-    name: '经验卷轴（小）',
-    description: '使用后获得 100 点经验值。',
+    name: '修为秘籍（小）',
+    description: '研读后获得 100 点修为。',
     category: 'supply',
     rarity: 'Rare',
     price: { currency: 'gold', amount: 180 },
@@ -46,7 +46,7 @@ export const SHOP_GOLD_ITEMS: ShopItem[] = [
   {
     id: 'gold-iron-ore',
     kind: 'inventory_item',
-    name: '铁矿石',
+    name: '玄铁矿',
     description: '基础强化材料，可用于低阶装备强化。',
     category: 'material',
     rarity: 'Normal',
@@ -57,7 +57,7 @@ export const SHOP_GOLD_ITEMS: ShopItem[] = [
   {
     id: 'gold-steel-ore',
     kind: 'inventory_item',
-    name: '精钢矿石',
+    name: '寒铁精矿',
     description: '进阶强化材料，适合稀有装备强化。',
     category: 'material',
     rarity: 'Rare',
@@ -71,8 +71,8 @@ export const SHOP_SKIN_ITEMS: ShopItem[] = [
   {
     id: 'arena-warrior-invoke',
     kind: 'skin',
-    name: '战士·英灵召唤',
-    description: '竞技场兑换的战士职业 invoke 皮肤。',
+    name: '剑客·侠影',
+    description: '比武擂台兑换的剑客门派侠影皮肤。',
     category: 'skin',
     rarity: 'Epic',
     price: { currency: 'pvp_coin', amount: 800 },
@@ -84,8 +84,8 @@ export const SHOP_SKIN_ITEMS: ShopItem[] = [
   {
     id: 'arena-mage-invoke',
     kind: 'skin',
-    name: '法师·英灵召唤',
-    description: '竞技场兑换的法师职业 invoke 皮肤。',
+    name: '术士·玄影',
+    description: '比武擂台兑换的术士门派玄影皮肤。',
     category: 'skin',
     rarity: 'Epic',
     price: { currency: 'pvp_coin', amount: 800 },
@@ -97,8 +97,8 @@ export const SHOP_SKIN_ITEMS: ShopItem[] = [
   {
     id: 'arena-hunter-invoke',
     kind: 'skin',
-    name: '猎人·英灵召唤',
-    description: '竞技场兑换的猎人职业 invoke 皮肤。',
+    name: '刺客·冥影',
+    description: '比武擂台兑换的刺客门派冥影皮肤。',
     category: 'skin',
     rarity: 'Epic',
     price: { currency: 'pvp_coin', amount: 800 },

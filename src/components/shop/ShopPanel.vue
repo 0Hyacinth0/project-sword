@@ -3,13 +3,13 @@
     <header class="shop-panel__header">
       <div class="shop-balance shop-balance--gold">
         <Coins class="shop-balance__icon" :size="18" :stroke-width="1.8" aria-hidden="true" />
-        <span class="shop-balance__label">金币</span>
+        <span class="shop-balance__label">银两</span>
         <strong class="shop-balance__value">{{ formatNumber(balances.characterGold) }}</strong>
       </div>
 
       <div class="shop-balance shop-balance--arena">
         <Trophy class="shop-balance__icon" :size="18" :stroke-width="1.8" aria-hidden="true" />
-        <span class="shop-balance__label">竞技币</span>
+        <span class="shop-balance__label">论剑令</span>
         <strong class="shop-balance__value">{{ formatNumber(balances.accountPvpCoin) }}</strong>
       </div>
 
@@ -71,7 +71,7 @@
 
         <div class="shop-card__meta">
           <UiBadge :tone="rarityTone(item.rarity)" size="sm">{{ item.rarity }}</UiBadge>
-          <UiBadge v-if="!canAfford(item)" tone="warning" size="sm">金币不足</UiBadge>
+          <UiBadge v-if="!canAfford(item)" tone="warning" size="sm">银两不足</UiBadge>
         </div>
 
         <div class="shop-purchase">
@@ -110,13 +110,13 @@
           :disabled="!characterId || !canAfford(item) || actionLoading"
           @click="handlePurchase(item)"
         >
-          {{ canAfford(item) ? '购买' : '金币不足' }}
+          {{ canAfford(item) ? '购买' : '银两不足' }}
         </UiButton>
       </article>
 
       <div v-if="goldItems.length === 0" class="shop-empty">
         <ShoppingBag :size="24" :stroke-width="1.8" aria-hidden="true" />
-        <span>暂无金币商品</span>
+        <span>暂无银两商品</span>
       </div>
     </section>
 
@@ -146,7 +146,7 @@
           <UiBadge :tone="rarityTone(item.rarity)" size="sm">{{ item.rarity }}</UiBadge>
           <UiBadge v-if="isItemEnabled(item)" tone="success" size="sm">已启用</UiBadge>
           <UiBadge v-else-if="isItemOwned(item)" tone="success" size="sm">已拥有</UiBadge>
-          <UiBadge v-else-if="!canAfford(item)" tone="warning" size="sm">竞技币不足</UiBadge>
+          <UiBadge v-else-if="!canAfford(item)" tone="warning" size="sm">论剑令不足</UiBadge>
         </div>
 
         <div class="shop-price shop-price--arena">
@@ -162,7 +162,7 @@
           :disabled="!characterId || !canAfford(item) || actionLoading"
           @click="handleRedeem(item)"
         >
-          {{ canAfford(item) ? '兑换' : '竞技币不足' }}
+          {{ canAfford(item) ? '兑换' : '论剑令不足' }}
         </UiButton>
         <UiButton
           v-else
@@ -181,7 +181,7 @@
 
       <div v-if="arenaItems.length === 0" class="shop-empty">
         <Trophy :size="24" :stroke-width="1.8" aria-hidden="true" />
-        <span>暂无竞技商品</span>
+        <span>暂无论剑商品</span>
       </div>
     </section>
 
@@ -272,8 +272,8 @@ const activeTab = ref<ShopTab>('gold')
 const quantities = reactive<Record<string, number>>({})
 
 const tabs: UiTabItem[] = [
-  { value: 'gold', label: '金币商店', icon: Coins },
-  { value: 'arena', label: '竞技商店', icon: Trophy },
+  { value: 'gold', label: '银两集市', icon: Coins },
+  { value: 'arena', label: '论剑商铺', icon: Trophy },
   { value: 'owned', label: '已拥有', icon: Shirt }
 ]
 
@@ -534,9 +534,9 @@ function ownedActionLabel(skin: CharacterSkin): string {
  */
 function professionLabel(profession: number): string {
   const labels: Record<number, string> = {
-    1: '战士',
-    2: '法师',
-    3: '猎人'
+    1: '剑客',
+    2: '术士',
+    3: '刺客'
   }
   return labels[profession] ?? '未知'
 }

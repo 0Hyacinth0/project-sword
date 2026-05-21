@@ -89,9 +89,9 @@ export const EFFECT_TYPE_ICONS: Record<string, Component> = {
 
 /** 消耗品效果描述模板 */
 export const EFFECT_TYPE_DESCRIPTIONS: Record<string, string> = {
-  heal_hp: '恢复生命值',
-  heal_mp: '恢复魔法值',
-  add_exp: '增加经验值',
+  heal_hp: '恢复气血',
+  heal_mp: '恢复内力',
+  add_exp: '增加修为',
   revive: '复活角色'
 }
 

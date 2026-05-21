@@ -27,7 +27,7 @@ const mockRecommendations: RecommendedArea[] = [
     id: 'rec-2',
     name: '哥布林洞穴',
     levelRange: 'Lv.5-15',
-    reason: '推荐副本：掉落猎人初级套装材料',
+    reason: '推荐秘境：掉落刺客初级套装材料',
     type: 'dungeon',
     areaId: 'goblin_cave'
   }

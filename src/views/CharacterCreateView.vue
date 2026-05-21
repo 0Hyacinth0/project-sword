@@ -137,7 +137,7 @@
           @click="handleCreate"
         >
           <template #icon><Rocket :size="18" :stroke-width="1.5" /></template>
-          {{ charStore.loading ? '创建中...' : '开始冒险' }}
+          {{ charStore.loading ? '创建中...' : '踏入江湖' }}
         </UiButton>
       </UiPanel>
     </div>

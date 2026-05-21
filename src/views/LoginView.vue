@@ -6,10 +6,10 @@
     <!-- 品牌区域 -->
     <div class="login-brand">
       <div class="login-brand__icon">
-        <Swords :size="40" :stroke-width="1.5" />
+        <img src="/assets/ui/logo_pic.png" alt="云梦江湖" style="width: 100%; height: 100%; object-fit: contain;" />
       </div>
-      <h1 class="login-brand__title">剑之传说</h1>
-      <p class="login-brand__subtitle">史诗之旅即将开始</p>
+      <h1 class="login-brand__title">云梦江湖</h1>
+      <p class="login-brand__subtitle">江湖路远，侠义长存</p>
     </div>
 
     <!-- 登录卡片 -->
@@ -271,7 +271,6 @@ import { useAuthStore } from '../stores/auth'
 import { checkUsernameApi } from '../api'
 import ThemeToggle from '../components/ThemeToggle.vue'
 import {
-  Swords,
   User,
   Lock,
   Eye,

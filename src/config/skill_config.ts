@@ -44,35 +44,35 @@ export interface SkillConfig extends BattleSkill {
 // ──────────────────────────────────────────
 
 const BUFF_ATTACK_UP: BuffTemplate = {
-  name: '攻击提升', isDebuff: false, stat: 'physicalAttack', value: 15, duration: 3
+  name: '外功加持', isDebuff: false, stat: 'physicalAttack', value: 15, duration: 3
 }
 
 const BUFF_MAGIC_UP: BuffTemplate = {
-  name: '魔力涌动', isDebuff: false, stat: 'magicAttack', value: 20, duration: 3
+  name: '内功涌动', isDebuff: false, stat: 'magicAttack', value: 20, duration: 3
 }
 
 const BUFF_DEFENSE_UP: BuffTemplate = {
-  name: '防御提升', isDebuff: false, stat: 'defense', value: 15, duration: 2
+  name: '护体罡气', isDebuff: false, stat: 'defense', value: 15, duration: 2
 }
 
 const BUFF_SPEED_UP: BuffTemplate = {
-  name: '加速', isDebuff: false, stat: 'speed', value: 8, duration: 3
+  name: '身法灵动', isDebuff: false, stat: 'speed', value: 8, duration: 3
 }
 
 const BUFF_CRIT_UP: BuffTemplate = {
-  name: '暴击专注', isDebuff: false, stat: 'criticalRate', value: 0.15, duration: 3
+  name: '杀意凝聚', isDebuff: false, stat: 'criticalRate', value: 0.15, duration: 3
 }
 
 const BUFF_DODGE_UP: BuffTemplate = {
-  name: '闪避提升', isDebuff: false, stat: 'dodgeRate', value: 0.2, duration: 2
+  name: '遁影无形', isDebuff: false, stat: 'dodgeRate', value: 0.2, duration: 2
 }
 
 const DEBUFF_DEF_DOWN: BuffTemplate = {
-  name: '破甲', isDebuff: true, stat: 'defense', value: -10, duration: 3
+  name: '护甲破碎', isDebuff: true, stat: 'defense', value: -10, duration: 3
 }
 
 const DEBUFF_SPEED_DOWN: BuffTemplate = {
-  name: '减速', isDebuff: true, stat: 'speed', value: -5, duration: 2
+  name: '经脉阻滞', isDebuff: true, stat: 'speed', value: -5, duration: 2
 }
 
 const DEBUFF_DOT: BuffTemplate = {
@@ -80,13 +80,13 @@ const DEBUFF_DOT: BuffTemplate = {
 }
 
 // ──────────────────────────────────────────
-// 战士技能
+// 剑客技能
 // ──────────────────────────────────────────
 
 const WARRIOR_SKILLS: SkillConfig[] = [
   {
     id: 1001,
-    name: '旋风斩',
+    name: '狂风剑诀',
     type: 'active_attack',
     power: 130,
     cooldown: 2,
@@ -97,11 +97,11 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'Swords',
     element: 0,
-    description: '挥舞武器形成风暴，对所有敌人造成 130% 物理伤害'
+    description: '剑气纵横成风，对所有敌人造成 130% 外功伤害'
   },
   {
     id: 1002,
-    name: '重击',
+    name: '崩山击',
     type: 'active_attack',
     power: 180,
     cooldown: 3,
@@ -112,11 +112,11 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'Sword',
     element: 0,
-    description: '集中力量进行一次重击，对单体造成 180% 物理伤害'
+    description: '蓄力一击崩山，对单体造成 180% 外功伤害'
   },
   {
     id: 1003,
-    name: '钢铁壁垒',
+    name: '金钟罩',
     type: 'active_buff',
     cooldown: 4,
     mpCost: 8,
@@ -126,11 +126,11 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     unlockLevel: 5,
     icon: 'Shield',
     element: 0,
-    description: '进入防御姿态，提升自身防御力，持续 2 回合'
+    description: '护体罡气，提升自身防御力，持续 2 回合'
   },
   {
     id: 1004,
-    name: '战吼',
+    name: '战意勃发',
     type: 'active_buff',
     cooldown: 5,
     mpCost: 10,
@@ -140,11 +140,11 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     unlockLevel: 8,
     icon: 'Volume2',
     element: 0,
-    description: '发出震天战吼，提升自身攻击力，持续 3 回合'
+    description: '激发战意，提升自身攻击力，持续 3 回合'
   },
   {
     id: 1005,
-    name: '狂战士之血',
+    name: '浴血狂战',
     type: 'passive',
     owner: 'WARRIOR',
     unlockLevel: 3,
@@ -153,11 +153,11 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     icon: 'Heart',
     element: 0,
     attachedBuff: BUFF_ATTACK_UP,
-    description: 'HP 低于 30% 时自动触发，攻击力大幅提升'
+    description: '气血低于 30% 时自动激发，攻击力大幅提升'
   },
   {
     id: 1006,
-    name: '破甲打击',
+    name: '破甲一击',
     type: 'active_attack',
     power: 120,
     cooldown: 3,
@@ -168,18 +168,18 @@ const WARRIOR_SKILLS: SkillConfig[] = [
     unlockLevel: 12,
     icon: 'Axe',
     element: 0,
-    description: '攻击单体并降低其防御力，持续 3 回合'
+    description: '击破护甲，攻击单体并降低其防御力，持续 3 回合'
   }
 ]
 
 // ──────────────────────────────────────────
-// 法师技能
+// 术士技能
 // ──────────────────────────────────────────
 
 const MAGE_SKILLS: SkillConfig[] = [
   {
     id: 2001,
-    name: '火球术',
+    name: '炎灵诀',
     type: 'active_attack',
     power: 160,
     cooldown: 2,
@@ -191,11 +191,11 @@ const MAGE_SKILLS: SkillConfig[] = [
     icon: 'Flame',
     element: 1,
     isMagicAttack: true,
-    description: '投掷灼热火球，对单体造成 160% 魔法伤害'
+    description: '凝聚炎灵之力，对单体造成 160% 内功伤害'
   },
   {
     id: 2002,
-    name: '陨石术',
+    name: '天火焚城',
     type: 'active_attack',
     power: 140,
     cooldown: 4,
@@ -208,11 +208,11 @@ const MAGE_SKILLS: SkillConfig[] = [
     icon: 'CloudLightning',
     element: 1,
     isMagicAttack: true,
-    description: '召唤陨石从天而降，对所有敌人造成伤害并附带灼烧'
+    description: '召唤九天玄火，对所有敌人造成伤害并附带灼烧'
   },
   {
     id: 2003,
-    name: '治疗术',
+    name: '回春术',
     type: 'active_heal',
     power: 120,
     cooldown: 2,
@@ -222,11 +222,11 @@ const MAGE_SKILLS: SkillConfig[] = [
     unlockLevel: 3,
     icon: 'HeartPulse',
     element: 5,
-    description: '恢复自身生命值，治疗量为魔法攻击的 120%'
+    description: '运气回春，恢复自身气血，治疗量为内功攻击的 120%'
   },
   {
     id: 2004,
-    name: '魔力涌动',
+    name: '灵力涌动',
     type: 'active_buff',
     cooldown: 5,
     mpCost: 8,
@@ -236,11 +236,11 @@ const MAGE_SKILLS: SkillConfig[] = [
     unlockLevel: 6,
     icon: 'Sparkles',
     element: 0,
-    description: '集中魔力，提升自身魔法攻击力，持续 3 回合'
+    description: '凝聚灵力，提升自身内功攻击力，持续 3 回合'
   },
   {
     id: 2005,
-    name: '奥术屏障',
+    name: '玄术护盾',
     type: 'passive',
     owner: 'MAGE',
     unlockLevel: 4,
@@ -253,7 +253,7 @@ const MAGE_SKILLS: SkillConfig[] = [
   },
   {
     id: 2006,
-    name: '冰冻术',
+    name: '寒冰诀',
     type: 'active_attack',
     power: 110,
     cooldown: 3,
@@ -270,13 +270,13 @@ const MAGE_SKILLS: SkillConfig[] = [
 ]
 
 // ──────────────────────────────────────────
-// 猎人技能
+// 刺客技能
 // ──────────────────────────────────────────
 
 const HUNTER_SKILLS: SkillConfig[] = [
   {
     id: 3001,
-    name: '穿心箭',
+    name: '惊雷一击',
     type: 'active_attack',
     power: 180,
     cooldown: 2,
@@ -287,11 +287,11 @@ const HUNTER_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'Crosshair',
     element: 0,
-    description: '蓄力射出致命一箭，对单体造成 180% 物理伤害'
+    description: '蓄势雷霆一击，对单体造成 180% 外功伤害'
   },
   {
     id: 3002,
-    name: '连射',
+    name: '暴雨连打',
     type: 'active_attack',
     power: 90,
     cooldown: 2,
@@ -302,11 +302,11 @@ const HUNTER_SKILLS: SkillConfig[] = [
     isDefault: true,
     icon: 'Target',
     element: 0,
-    description: '快速射击所有敌人，每个目标受到 90% 物理伤害'
+    description: '疾速连打所有敌人，每个目标受到 90% 外功伤害'
   },
   {
     id: 3003,
-    name: '影遁',
+    name: '潜影术',
     type: 'active_buff',
     cooldown: 4,
     mpCost: 8,
@@ -316,7 +316,7 @@ const HUNTER_SKILLS: SkillConfig[] = [
     unlockLevel: 4,
     icon: 'Eye',
     element: 6,
-    description: '隐入暗影，大幅提升闪避率，持续 2 回合'
+    description: '化入暗影，大幅提升闪避率，持续 2 回合'
   },
   {
     id: 3004,
@@ -330,11 +330,11 @@ const HUNTER_SKILLS: SkillConfig[] = [
     unlockLevel: 7,
     icon: 'Scan',
     element: 0,
-    description: '集中注意力，大幅提升暴击率，持续 3 回合'
+    description: '凝神聚力，大幅提升暴击率，持续 3 回合'
   },
   {
     id: 3005,
-    name: '嗜血本能',
+    name: '嗜血杀意',
     type: 'passive',
     owner: 'HUNTER',
     unlockLevel: 5,
@@ -347,7 +347,7 @@ const HUNTER_SKILLS: SkillConfig[] = [
   },
   {
     id: 3006,
-    name: '毒箭',
+    name: '淬毒暗器',
     type: 'active_attack',
     power: 100,
     cooldown: 3,
@@ -358,7 +358,7 @@ const HUNTER_SKILLS: SkillConfig[] = [
     unlockLevel: 11,
     icon: 'FlaskConical',
     element: 0,
-    description: '射出淬毒箭矢，造成伤害并附带灼烧效果'
+    description: '掷出淬毒暗器，造成伤害并附带持续中毒效果'
   }
 ]
 

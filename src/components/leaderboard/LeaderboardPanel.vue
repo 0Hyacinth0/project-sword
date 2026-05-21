@@ -106,7 +106,7 @@ const store = useLeaderboardStore()
 const categoryTabs: UiTabItem[] = [
   { label: '等级', value: 'level' },
   { label: '战力', value: 'power' },
-  { label: '竞技', value: 'arena' }
+  { label: '比武', value: 'arena' }
 ]
 
 /** 范围 Tab 配置 */

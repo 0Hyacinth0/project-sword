@@ -92,57 +92,21 @@
 .login-brand {
   text-align: center;
   margin-bottom: 32px;
-  animation: fadeInDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .login-brand__icon {
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   margin: 0 auto 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-dark));
-  box-shadow:
-    0 8px 24px rgba(0, 113, 227, 0.3),
-    0 0 0 0 rgba(0, 113, 227, 0);
+  background: none;
+  box-shadow: none;
   line-height: 1;
-  color: #fff;
-  position: relative;
-  overflow: hidden;
-  animation: iconFloat 4s ease-in-out infinite, iconPulseGlow 3s ease-in-out infinite;
-  transition: transform 0.4s var(--ease-spring);
 }
 
-.login-brand__icon:hover {
-  transform: scale(1.08) rotate(-5deg);
-  animation-play-state: paused;
-}
-
-/* 品牌图标光泽扫过 */
-.login-brand__icon::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  background: linear-gradient(
-    105deg,
-    transparent 30%,
-    rgba(255, 255, 255, 0.25) 45%,
-    rgba(255, 255, 255, 0.4) 50%,
-    rgba(255, 255, 255, 0.25) 55%,
-    transparent 70%
-  );
-  animation: shimmerSweep 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-[data-theme='dark'] .login-brand__icon {
-  box-shadow:
-    0 8px 24px rgba(10, 132, 255, 0.25),
-    0 0 0 0 rgba(10, 132, 255, 0);
-}
+/* [data-theme='dark'] .login-brand__icon 已由上方统一覆盖 */
 
 .login-brand__title {
   font-family: var(--font-display);
@@ -520,11 +484,24 @@
 
 /* ── 底部提示 ── */
 .login-footer {
+  position: relative;
   text-align: center;
   margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid var(--border-light);
+  padding-top: 24px;
   animation: formFieldEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+.login-footer::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 12px;
+  background-image: url('/assets/ui/decorative_line.png');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-footer__text {
@@ -679,22 +656,7 @@
   }
 }
 
-[data-theme='dark'] .login-brand__icon {
-  animation: iconFloat 4s ease-in-out infinite, iconPulseGlowDark 3s ease-in-out infinite;
-}
-
-@keyframes iconPulseGlowDark {
-  0%, 100% {
-    box-shadow:
-      0 8px 24px rgba(10, 132, 255, 0.25),
-      0 0 0 0 rgba(10, 132, 255, 0);
-  }
-  50% {
-    box-shadow:
-      0 12px 32px rgba(10, 132, 255, 0.3),
-      0 0 0 8px rgba(10, 132, 255, 0.05);
-  }
-}
+/* 品牌图标 — 暗色模式无额外动画 */
 
 /* 品牌图标光泽扫过 */
 @keyframes shimmerSweep {

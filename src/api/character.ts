@@ -17,7 +17,7 @@ export interface CharacterInfo {
   id: string
   userId: string
   characterName: string
-  profession: number           // 职业类型：1-战士, 2-法师, 3-猎人
+  profession: number           // 职业类型：1-剑客, 2-术士, 3-刺客
   professionName: string       // 职业名称（后端返回）
   level: number
   experience: number           // 当前经验值
@@ -156,7 +156,7 @@ export function normalizeCharacter(data: CharacterInfo): CharacterInfo {
 /** 创建角色参数 */
 export interface CreateCharacterParams {
   characterName: string
-  profession: number           // 1-战士, 2-法师, 3-猎人
+  profession: number           // 1-剑客, 2-术士, 3-刺客
 }
 
 /** 属性加点参数 */

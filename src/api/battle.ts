@@ -21,18 +21,25 @@ import type { RoomMember } from '../types/team'
 // 奖励领取相关类型
 // ──────────────────────────────────────────
 
-/** 奖励领取请求参数 */
-export interface ClaimRewardsParams {
+/** 增加金币请求参数 */
+export interface AddGoldParams {
   characterId: string
-  exp: number
   gold: number
+}
+
+/** 增加金币响应 */
+export interface AddGoldResult {
+  character: CharacterInfo
+}
+
+/** 添加物品请求参数 */
+export interface AddItemsParams {
+  characterId: string
   items: { itemId: number; quantity: number }[]
 }
 
-/** 奖励领取响应 */
-export interface ClaimRewardsResult {
-  character: CharacterInfo
-  levelUp: { oldLevel: number; newLevel: number; gainedPoints: number } | null
+/** 添加物品响应 */
+export interface AddItemsResult {
   addedItems: InventoryItem[]
 }
 
@@ -71,12 +78,20 @@ export async function endBattleApi(battleId: string): Promise<ApiResponse<Battle
 }
 
 /**
- * 领取战斗奖励（经验、金币、物品）
- * 前端计算奖励后调用此接口，后端负责持久化
- * @param params - 奖励领取参数
+ * 增加角色金币
+ * @param params - 包含角色ID和金币数量
  */
-export async function claimBattleRewardsApi(params: ClaimRewardsParams): Promise<ApiResponse<ClaimRewardsResult>> {
-  const res = await request.post<ApiResponse<ClaimRewardsResult>>('/battle/claim-rewards', params)
+export async function addGoldApi(params: AddGoldParams): Promise<ApiResponse<AddGoldResult>> {
+  const res = await request.post<ApiResponse<AddGoldResult>>('/character/add-gold', params)
+  return res.data
+}
+
+/**
+ * 添加物品到角色背包
+ * @param params - 包含角色ID和物品列表
+ */
+export async function addItemsApi(params: AddItemsParams): Promise<ApiResponse<AddItemsResult>> {
+  const res = await request.post<ApiResponse<AddItemsResult>>('/inventory/add', params)
   return res.data
 }
 

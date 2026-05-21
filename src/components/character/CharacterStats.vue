@@ -7,14 +7,14 @@
 <template>
   <div class="char-stats">
     <UiStatBar
-      label="HP"
+      label="气血"
       :value="character.hp"
       :max="character.maxHp"
       :tone="hpTone"
     />
 
     <UiStatBar
-      label="MP"
+      label="内力"
       :value="character.mp"
       :max="character.maxMp"
       tone="mp"
@@ -51,21 +51,21 @@
       <!-- 正常显示模式 -->
       <div v-else class="char-stats__grid">
         <CharacterStatItem
-          label="力量"
+          label="臂力"
           :value="character.strength"
           :show-add-button="character.availablePoints > 0"
           :add-button-visible="character.availablePoints > 0"
           @add="startAllocating('strength')"
         />
         <CharacterStatItem
-          label="智力"
+          label="根骨"
           :value="character.intelligence"
           :show-add-button="character.availablePoints > 0"
           :add-button-visible="character.availablePoints > 0"
           @add="startAllocating('intelligence')"
         />
         <CharacterStatItem
-          label="敏捷"
+          label="身法"
           :value="character.agility"
           :show-add-button="character.availablePoints > 0"
           :add-button-visible="character.availablePoints > 0"
@@ -84,8 +84,8 @@
     <div class="char-stats__section">
       <div class="char-stats__title">衍生属性</div>
       <div class="char-stats__grid">
-        <CharacterStatItem label="物攻" :value="statsBreakdown.total.physicalAttack" />
-        <CharacterStatItem label="魔攻" :value="statsBreakdown.total.magicAttack" />
+        <CharacterStatItem label="外功" :value="statsBreakdown.total.physicalAttack" />
+        <CharacterStatItem label="内功" :value="statsBreakdown.total.magicAttack" />
         <CharacterStatItem label="防御" :value="statsBreakdown.total.defense" />
         <CharacterStatItem label="闪避" :value="statsBreakdown.total.dodgeRate" :show-percent="true" />
         <CharacterStatItem label="暴击" :value="statsBreakdown.total.criticalRate" :show-percent="true" />
@@ -95,16 +95,16 @@
       <div class="char-stats__breakdown">
         <div class="char-stats__breakdown-row">
           <span class="char-stats__breakdown-label">基础</span>
-          <span class="char-stats__breakdown-value">物攻 {{ statsBreakdown.base.physicalAttack }} · 魔攻 {{ statsBreakdown.base.magicAttack }} · 防御 {{ statsBreakdown.base.defense }}</span>
+          <span class="char-stats__breakdown-value">外功 {{ statsBreakdown.base.physicalAttack }} · 内功 {{ statsBreakdown.base.magicAttack }} · 防御 {{ statsBreakdown.base.defense }}</span>
         </div>
         <div class="char-stats__breakdown-row">
           <span class="char-stats__breakdown-label">装备</span>
-          <span class="char-stats__breakdown-value char-stats__breakdown-value--equip">物攻 +{{ statsBreakdown.equipment.physicalAttack }} · 防御 +{{ statsBreakdown.equipment.defense }}</span>
+          <span class="char-stats__breakdown-value char-stats__breakdown-value--equip">外功 +{{ statsBreakdown.equipment.physicalAttack }} · 防御 +{{ statsBreakdown.equipment.defense }}</span>
         </div>
         <div v-if="hasPetBonus" class="char-stats__breakdown-row">
           <span class="char-stats__breakdown-label">战宠</span>
           <span class="char-stats__breakdown-value char-stats__breakdown-value--pet">
-            <template v-if="statsBreakdown.pet.hp">生命 +{{ statsBreakdown.pet.hp }}</template>
+            <template v-if="statsBreakdown.pet.hp">气血 +{{ statsBreakdown.pet.hp }}</template>
             <template v-if="statsBreakdown.pet.attack">攻击 +{{ statsBreakdown.pet.attack }}</template>
             <template v-if="statsBreakdown.pet.defense">防御 +{{ statsBreakdown.pet.defense }}</template>
             <template v-if="statsBreakdown.pet.criticalRate">暴击 +{{ (statsBreakdown.pet.criticalRate * 100).toFixed(1) }}%</template>

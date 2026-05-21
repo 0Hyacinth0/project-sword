@@ -105,7 +105,7 @@
           <!-- 底部信息 -->
           <div class="item-modal__footer">
             <span>数量：{{ item.quantity }}/{{ item.item.maxStack }}</span>
-            <span v-if="item.item.sellPrice > 0">售价：{{ item.item.sellPrice }} 金币</span>
+            <span v-if="item.item.sellPrice > 0">售价：{{ item.item.sellPrice }} 银两</span>
           </div>
 
           <!-- 操作按钮区 -->

@@ -22,12 +22,12 @@ export function calculateEloScore(myScore: number, opponentScore: number): Estim
 
 /** Mock 对手池 */
 export const MOCK_PVP_OPPONENTS: PvpOpponent[] = [
-  { characterId: 'pvp-opp-001', characterName: '火焰法师', profession: 'Mage', level: 33, tier: 'diamond', subTier: 'III', score: 2450 },
+  { characterId: 'pvp-opp-001', characterName: '赤焰术士', profession: 'Mage', level: 33, tier: 'diamond', subTier: 'III', score: 2450 },
   { characterId: 'pvp-opp-002', characterName: '暗夜刺客', profession: 'Hunter', level: 28, tier: 'platinum', subTier: 'I', score: 2300 },
-  { characterId: 'pvp-opp-003', characterName: '圣光骑士', profession: 'Warrior', level: 25, tier: 'platinum', subTier: 'III', score: 1900 },
-  { characterId: 'pvp-opp-004', characterName: '冰霜女巫', profession: 'Mage', level: 22, tier: 'gold', subTier: 'I', score: 1700 },
-  { characterId: 'pvp-opp-005', characterName: '狂暴战士', profession: 'Warrior', level: 20, tier: 'silver', subTier: 'II', score: 900 },
-  { characterId: 'pvp-opp-006', characterName: '影舞者', profession: 'Hunter', level: 15, tier: 'bronze', subTier: 'I', score: 200 }
+  { characterId: 'pvp-opp-003', characterName: '圣光剑客', profession: 'Warrior', level: 25, tier: 'platinum', subTier: 'III', score: 1900 },
+  { characterId: 'pvp-opp-004', characterName: '寒冰妖姬', profession: 'Mage', level: 22, tier: 'gold', subTier: 'I', score: 1700 },
+  { characterId: 'pvp-opp-005', characterName: '狂刀侠客', profession: 'Warrior', level: 20, tier: 'silver', subTier: 'II', score: 900 },
+  { characterId: 'pvp-opp-006', characterName: '影舞刺客', profession: 'Hunter', level: 15, tier: 'bronze', subTier: 'I', score: 200 }
 ]
 
 /**
